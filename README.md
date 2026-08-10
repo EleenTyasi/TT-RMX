@@ -1,12 +1,5 @@
-# Toontown-School-House
-Welcome to the Toontown School House repistory!
-
-Toontown School House is a course dedicated to teaching members of the Toontown community how to develop for the game. For more information, head over to [this](https://www.reddit.com/r/Toontown/comments/doszgg/toontown_school_house_learn_to_develop_for/) Reddit post.
-
-Feel free to join our Discord server [here!](https://discord.gg/xFGA8Xa)
-
-This project is currently inactive, but feel free to submit pull requests and join the Discord server regardless to interact with other people who are interested in developing for Toontown.
-
+# TT-RMX
+An experimental, and potentially unstable as hell version of Toontown School House, meant for myself to tinker with. 
 # Panda3D
 This source code requires a customized version of Panda3D to run. Here are links to the 32 and 64 bit Windows executables. Please contact the teachers on our Discord server for instructions on the Linux Panda3D setup.
 
@@ -18,8 +11,7 @@ This source code requires libuv.dll in the astron folder to run. Here are links 
 [Libuv.dll(64-bit)](https://cdn.discordapp.com/attachments/638485243560460309/640339153346887696/libuv.dll)
 After downloading the file just drop it in the astron folder
 
-# Source Code
-This source code is based on a March 2019 fork of Toontown Offline v1.0.0.0. It has been stripped of all Toontown Offline exclusive features, save one. The brand new Magic Words system made for Toontown Offline has been left alone, and upgraded to the most recent build. This feature will allow users to easily navigate around Toontown without any hassle.
+
 
 Credits:
 * [The Toontown Offline Team](https://ttoffline.com)
@@ -28,4 +20,5 @@ Credits:
 * [libpandadna](https://github.com/loblao/libpandadna)
 * [libotp-movement](https://github.com/jwcotejr/libotp-movement)
 * [libotp-nametags](https://github.com/loblao/libotp-nametags)
-* Reverse-engineered Toontown Online client/server source code is property of The Walt Disney Company.
+
+*This is NOT meant for more than just personal tinkering and altercations. Toontown Online is property of Walt Disney Co. 
