@@ -49,6 +49,7 @@ class TownBattle(StateData.StateData):
         self.tutorialFlag = 0
         self.building = 0
         self.activeCogs = []
+        self.cog = 0
         self.enemyHPPanel = EnemyHPPanel.EnemyHPPanel()
         self.fsm = ClassicFSM.ClassicFSM('TownBattle', [State.State('Off', self.enterOff, self.exitOff, ['Attack', 'Pet']),
          State.State('Attack', self.enterAttack, self.exitAttack, ['ChooseCog',
@@ -339,6 +340,13 @@ class TownBattle(StateData.StateData):
                     else:
                         self.notify.error('Bad localNum value: %s' % self.localNum)
                     messenger.send(self.battleEvent, [response])
+                elif self.numToons == 1:
+                    response = {}
+                    response['mode'] = 'Attack'
+                    response['track'] = self.track
+                    response['level'] = self.level
+                    response['target'] = self.localNum
+                    messenger.send(self.battleEvent, [response])
                     self.fsm.request('AttackWait')
                 else:
                     self.notify.error('Heal was chosen when number of toons is %s' % self.numToons)
@@ -434,8 +442,9 @@ class TownBattle(StateData.StateData):
             elif currStateName == 'ChooseToon':
                 self.chooseToonPanel.adjustToons(self.numToons, self.localNum)
             self.activeCogs = cogs
-            if len(cogs) > self.cog:
-                self.enemyHPPanel.updateSuit(cogs[self.cog])
+            cogIdx = getattr(self, 'cog', 0)
+            if len(cogs) > cogIdx:
+                self.enemyHPPanel.updateSuit(cogs[cogIdx])
             elif len(cogs) > 0:
                 self.enemyHPPanel.updateSuit(cogs[0])
             else:
