@@ -1442,6 +1442,7 @@ dclass DistributedBattleBase : DistributedObject {
   requestAttack(int8, int8, int32) airecv clsend;
   requestPetProxy(uint32) airecv clsend;
   setStatusEffects(uint32, string[]) broadcast ram;
+  setCogIntentions(uint32[], string[], uint16[]) broadcast ram;
 };
 
 dclass DistributedBattle : DistributedBattleBase {

@@ -50,7 +50,7 @@ class TownBattle(StateData.StateData):
         self.building = 0
         self.activeCogs = []
         self.cog = 0
-        self.enemyHPPanel = EnemyHPPanel.EnemyHPPanel()
+        self.enemyHPPanel = EnemyHPPanel.EnemyHPPanelManager()
         self.fsm = ClassicFSM.ClassicFSM('TownBattle', [State.State('Off', self.enterOff, self.exitOff, ['Attack', 'Pet']),
          State.State('Attack', self.enterAttack, self.exitAttack, ['ChooseCog',
           'ChooseToon',
@@ -124,6 +124,9 @@ class TownBattle(StateData.StateData):
             toonPanel.cleanup()
 
         del self.toonPanels
+        if hasattr(self, 'enemyHPPanel'):
+            self.enemyHPPanel.destroyAll()
+            del self.enemyHPPanel
         self.timer.destroy()
         del self.timer
         del self.toons
@@ -152,6 +155,8 @@ class TownBattle(StateData.StateData):
 
     def exit(self):
         base.localAvatar.laffMeter.stop()
+        if hasattr(self, 'enemyHPPanel'):
+            self.enemyHPPanel.hideAll()
         self.parentFSMState.removeChild(self.fsm)
         del self.parentFSMState
         base.localAvatar.inventory.setBattleCreditMultiplier(1)
@@ -278,6 +283,8 @@ class TownBattle(StateData.StateData):
         if self.isLoaded:
             for toonPanel in self.toonPanels:
                 toonPanel.hide()
+            if hasattr(self, 'enemyHPPanel'):
+                self.enemyHPPanel.hideAll()
 
         self.toonAttacks = [(-1, 0, 0),
          (-1, 0, 0),
@@ -298,6 +305,8 @@ class TownBattle(StateData.StateData):
         return None
 
     def enterAttack(self):
+        if hasattr(self, 'enemyHPPanel') and self.activeCogs:
+            self.enemyHPPanel.updateCogs(self.activeCogs)
         self.attackPanel.enter()
         self.accept(self.attackPanelDoneEvent, self.__handleAttackPanelDone)
         for toonPanel in self.toonPanels:
@@ -432,6 +441,12 @@ class TownBattle(StateData.StateData):
         self.numToons = len(toons)
         self.localNum = toons.index(base.localAvatar)
         currStateName = self.fsm.getCurrentState().getName()
+        self.activeCogs = cogs
+        if cogs:
+            self.enemyHPPanel.updateCogs(cogs)
+        else:
+            self.enemyHPPanel.hideAll()
+
         if resetActivateMode:
             self.__enterPanels(self.numToons, self.localNum)
             for i in range(len(toons)):
@@ -441,14 +456,6 @@ class TownBattle(StateData.StateData):
                 self.chooseCogPanel.adjustCogs(self.numCogs, self.luredIndices, self.trappedIndices, self.track)
             elif currStateName == 'ChooseToon':
                 self.chooseToonPanel.adjustToons(self.numToons, self.localNum)
-            self.activeCogs = cogs
-            cogIdx = getattr(self, 'cog', 0)
-            if len(cogs) > cogIdx:
-                self.enemyHPPanel.updateSuit(cogs[cogIdx])
-            elif len(cogs) > 0:
-                self.enemyHPPanel.updateSuit(cogs[0])
-            else:
-                self.enemyHPPanel.hide()
             canHeal, canTrap, canLure = self.checkHealTrapLure()
             base.localAvatar.inventory.setBattleCreditMultiplier(self.creditMultiplier)
             base.localAvatar.inventory.setActivateMode('battle', heal=canHeal, trap=canTrap, lure=canLure, bldg=self.bldg, creditLevel=self.creditLevel, tutorialFlag=self.tutorialFlag)

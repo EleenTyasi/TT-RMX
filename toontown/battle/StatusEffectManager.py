@@ -4,6 +4,7 @@
 # =============================================================================
 
 from direct.directnotify import DirectNotifyGlobal
+from toontown.battle.statuses import create_status_instance
 from toontown.battle.StatusEffectsConfig import (
     GAG_TRACK_STATUS_EFFECTS,
     SUIT_ATTACK_STATUS_EFFECTS,
@@ -14,19 +15,40 @@ class StatusEffectManager:
     notify = DirectNotifyGlobal.directNotify.newCategory('StatusEffectManager')
 
     def __init__(self):
-        # Maps avatar_id -> dict of {effect_name: {'rounds': N, 'data': dict}}
+        # Maps avatar_id -> dict of {effect_name: StatusBase instance}
         self.effects = {}
+
+    @staticmethod
+    def calc_proc_chance(base_chance, gag_level=0, hit_type='NORMAL'):
+        """
+        Calculates dynamic status application chance:
+        - +5% per Gag level
+        - +25% on Critical or Direct Hit
+        - 100% (Guaranteed) on Critical Direct Hit
+        """
+        if hit_type == 'CRIT_DIRECT_HIT':
+            return 100
+        
+        chance = base_chance + (gag_level * 5)
+        if hit_type in ('CRITICAL', 'DIRECT_HIT'):
+            chance += 25
+            
+        return min(100, chance)
 
     def apply_effect(self, avatar_id, effect_name, rounds, data=None):
         if avatar_id not in self.effects:
             self.effects[avatar_id] = {}
         
-        entry = {'rounds': rounds, 'data': data or {}}
-        self.effects[avatar_id][effect_name] = entry
+        inst = create_status_instance(effect_name, avatar_id, rounds, data)
+        inst.on_apply(self)
+        self.effects[avatar_id][effect_name] = {'rounds': rounds, 'data': data or {}, 'inst': inst}
         self.notify.info(f"Applied status effect '{effect_name}' to avatar {avatar_id} for {rounds} rounds.")
 
     def remove_effect(self, avatar_id, effect_name):
         if avatar_id in self.effects and effect_name in self.effects[avatar_id]:
+            entry = self.effects[avatar_id][effect_name]
+            if 'inst' in entry:
+                entry['inst'].on_remove(self)
             del self.effects[avatar_id][effect_name]
             self.notify.info(f"Removed status effect '{effect_name}' from avatar {avatar_id}.")
 
@@ -45,34 +67,34 @@ class StatusEffectManager:
 
     def get_accuracy_mod(self, avatar_id):
         mod = 0
-        if self.has_effect(avatar_id, 'SLOW'):
-            eff = self.get_effect(avatar_id, 'SLOW')
-            mod -= eff['data'].get('accuracy_reduction', 15)
-        if self.has_effect(avatar_id, 'LUCKY'):
-            eff = self.get_effect(avatar_id, 'LUCKY')
-            mod += eff['data'].get('accuracy_boost', 15)
+        if avatar_id in self.effects:
+            for entry in self.effects[avatar_id].values():
+                if 'inst' in entry:
+                    mod += entry['inst'].get_accuracy_mod()
         return mod
 
     def get_defense_mod(self, avatar_id):
         mod = 0
-        if self.has_effect(avatar_id, 'WEAKEN'):
-            eff = self.get_effect(avatar_id, 'WEAKEN')
-            mod -= eff['data'].get('defense_reduction', 10)
+        if avatar_id in self.effects:
+            for entry in self.effects[avatar_id].values():
+                if 'inst' in entry:
+                    mod += entry['inst'].get_defense_mod()
         return mod
 
     def get_damage_multiplier(self, avatar_id):
         mult = 1.0
-        if self.has_effect(avatar_id, 'BURN'):
-            eff = self.get_effect(avatar_id, 'BURN')
-            mult *= eff['data'].get('damage_multiplier', 1.25)
-        if self.has_effect(avatar_id, 'SHIELD'):
-            eff = self.get_effect(avatar_id, 'SHIELD')
-            reduction = eff['data'].get('damage_reduction', 0.30)
-            mult *= (1.0 - reduction)
+        if avatar_id in self.effects:
+            for entry in self.effects[avatar_id].values():
+                if 'inst' in entry:
+                    mult *= entry['inst'].get_damage_multiplier()
         return mult
 
     def is_frozen(self, avatar_id):
-        return self.has_effect(avatar_id, 'FREEZE')
+        if avatar_id in self.effects:
+            for entry in self.effects[avatar_id].values():
+                if 'inst' in entry and entry['inst'].is_frozen():
+                    return True
+        return False
 
     def tick_round(self):
         """
@@ -84,12 +106,11 @@ class StatusEffectManager:
 
         for avatar_id, avatar_effects in list(self.effects.items()):
             for effect_name, info in list(avatar_effects.items()):
-                # Handle periodic ticks (e.g. POISON)
-                if effect_name == 'POISON':
-                    dmg = info['data'].get('damage_per_round', 8)
-                    poison_ticks[avatar_id] = poison_ticks.get(avatar_id, 0) + dmg
+                if 'inst' in info:
+                    dmg = info['inst'].on_turn_end(self)
+                    if dmg:
+                        poison_ticks[avatar_id] = poison_ticks.get(avatar_id, 0) + dmg
 
-                # Decrement turn duration
                 info['rounds'] -= 1
                 if info['rounds'] <= 0:
                     expired.append((avatar_id, effect_name))

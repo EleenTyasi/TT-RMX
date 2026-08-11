@@ -89,6 +89,8 @@ class BattleCalculatorAI:
         atkTrack, atkLevel = self.__getActualTrackLevel(attack)
         if atkTrack == NPCSOS:
             return (1, 95)
+        if atkTrack == HEAL:
+            return (1, 100)
         if atkTrack == FIRE:
             return (1, 95)
         if atkTrack == TRAP:
@@ -265,12 +267,8 @@ class BattleCalculatorAI:
                 targetList.append(target)
         else:
             if atkTrack == HEAL or atkTrack == PETSOS:
-                if attack[TOON_TRACK_COL] == NPCSOS or atkTrack == PETSOS:
-                    targetList = self.battle.activeToons
-                else:
-                    for currToon in self.battle.activeToons:
-                        if attack[TOON_ID_COL] != currToon or TOONUP_CAN_TARGET_SELF:
-                            targetList.append(currToon)
+                for currToon in self.battle.activeToons:
+                    targetList.append(currToon)
 
             else:
                 targetList = self.battle.activeSuits
@@ -566,16 +564,27 @@ class BattleCalculatorAI:
                     result = result / len(targetList)
                     if self.notify.getDebug():
                         self.notify.debug('Splitting heal among ' + str(len(targetList)) + ' targets')
-                if result > 0 and atkTrack != HEAL:
-                    result = int(result * self.statusEffectMgr.get_damage_multiplier(targetId))
+                if result > 0:
+                    from toontown.battle.CritGlobals import roll_hit_type, HIT_TYPE_NAMES
+                    hit_type, crit_mult = roll_hit_type(is_toon=True)
+                    result = int(result * crit_mult)
+
+                    if atkTrack != HEAL:
+                        result = int(result * self.statusEffectMgr.get_damage_multiplier(targetId))
+
                     if atkTrack in GAG_TRACK_STATUS_EFFECTS:
                         eff_cfg = GAG_TRACK_STATUS_EFFECTS[atkTrack]
-                        if random.randint(1, 100) <= eff_cfg.get('chance', 100):
+                        proc_chance = self.statusEffectMgr.calc_proc_chance(eff_cfg.get('chance', 100), atkLevel, HIT_TYPE_NAMES[hit_type])
+                        if random.randint(1, 100) <= proc_chance:
                             self.statusEffectMgr.apply_effect(targetId, eff_cfg['effect'], eff_cfg['rounds'], eff_cfg)
+                            if atkTrack == HEAL:
+                                self.statusEffectMgr.apply_effect(toonId, eff_cfg['effect'], eff_cfg['rounds'], eff_cfg)
                 if targetId in self.successfulLures and atkTrack == LURE:
                     self.notify.debug('Updating lure damage to ' + str(result))
                     self.successfulLures[targetId][3] = result
                 else:
+                    while len(attack[TOON_HP_COL]) <= targetIndex:
+                        attack[TOON_HP_COL].append(0)
                     attack[TOON_HP_COL][targetIndex] = result
                 if result > 0 and atkTrack != HEAL and atkTrack != DROP and atkTrack != PETSOS:
                     attackTrack = LURE
@@ -1191,13 +1200,18 @@ class BattleCalculatorAI:
                 theSuit = self.battle.findSuit(attack[SUIT_ID_COL])
                 atkInfo = SuitBattleGlobals.getSuitAttack(theSuit.dna.name, theSuit.getLevel(), atkType)
                 raw_hp = atkInfo['hp']
-                result = int(raw_hp * self.statusEffectMgr.get_damage_multiplier(toonId))
+                from toontown.battle.CritGlobals import roll_hit_type, HIT_TYPE_NAMES
+                hit_type, crit_mult = roll_hit_type(is_toon=False)
+                result = int(raw_hp * crit_mult * self.statusEffectMgr.get_damage_multiplier(toonId))
                 atkName = atkInfo['name']
                 if atkName in SUIT_ATTACK_STATUS_EFFECTS:
                     eff_cfg = SUIT_ATTACK_STATUS_EFFECTS[atkName]
-                    if random.randint(1, 100) <= eff_cfg.get('chance', 100):
+                    proc_chance = self.statusEffectMgr.calc_proc_chance(eff_cfg.get('chance', 100), 0, HIT_TYPE_NAMES[hit_type])
+                    if random.randint(1, 100) <= proc_chance:
                         self.statusEffectMgr.apply_effect(toonId, eff_cfg['effect'], eff_cfg['rounds'], eff_cfg)
             targetIndex = self.battle.activeToons.index(toonId)
+            while len(attack[SUIT_HP_COL]) <= targetIndex:
+                attack[SUIT_HP_COL].append(0)
             attack[SUIT_HP_COL][targetIndex] = result
 
     def __getToonHp(self, toonDoId):
@@ -1253,7 +1267,8 @@ class BattleCalculatorAI:
             tgtPos = self.battle.activeToons.index(currTgt)
             self.notify.debug(' toon ' + str(currTgt) + ' at position ' + str(tgtPos) + ' was attacked ' + str(self.suitAtkStats[currTgt]) + ' times')
 
-        self.notify.debug('\n')
+    def calculateSuitAttacks(self):
+        self.__calculateSuitAttacks()
 
     def __calculateSuitAttacks(self):
         for i in range(len(self.battle.suitAttacks)):

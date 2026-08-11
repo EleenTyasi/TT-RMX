@@ -1075,11 +1075,7 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
                 self.toonAttacks[toonId] = getToonAttack(toonId)
                 return
             if track == HEAL:
-                if self.runningToons.count(av) == 1 or attackAffectsGroup(track, level) and len(self.activeToons) < 2:
-                    self.toonAttacks[toonId] = getToonAttack(toonId, track=UN_ATTACK)
-                    validResponse = 0
-                else:
-                    self.toonAttacks[toonId] = getToonAttack(toonId, track=track, level=level, target=av)
+                self.toonAttacks[toonId] = getToonAttack(toonId, track=track, level=level, target=av)
             else:
                 self.toonAttacks[toonId] = getToonAttack(toonId, track=track, level=level, target=av)
                 if av == -1 and not attackAffectsGroup(track, level):
@@ -1296,7 +1292,37 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
                 if toon is not None:
                     toon.doRestock(0)
 
+        if hasattr(self, 'battleCalc') and self.battleCalc:
+            self.battleCalc.calculateSuitAttacks()
+        self.broadcastCogIntentions()
         return
+
+    def broadcastCogIntentions(self):
+        if not hasattr(self, 'battleCalc') or not self.battleCalc:
+            return
+        cogIds = []
+        attackNames = []
+        damages = []
+        for i in range(len(self.suitAttacks)):
+            if i < len(self.activeSuits):
+                suit = self.activeSuits[i]
+                cogIds.append(suit.doId)
+                atkType = self.suitAttacks[i][SUIT_ATK_COL]
+                damage = self.suitAttacks[i][SUIT_HP_COL]
+                atkName = 'Wait'
+                if atkType != NO_ATTACK:
+                    try:
+                        from toontown.suit import SuitBattleGlobals
+                        atkName = SuitBattleGlobals.SuitAttributes[suit.dna.name]['attacks'][atkType][0]
+                    except Exception:
+                        atkName = 'Attack'
+                attackNames.append(str(atkName))
+                if isinstance(damage, list):
+                    dmg_val = sum(damage) if damage else 0
+                else:
+                    dmg_val = int(damage) if damage else 0
+                damages.append(max(0, int(dmg_val)))
+        self.sendUpdate('setCogIntentions', [cogIds, attackNames, damages])
 
     def exitWaitForInput(self):
         self.npcAttacks = {}

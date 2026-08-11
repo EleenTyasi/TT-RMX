@@ -1401,18 +1401,31 @@ class DistributedBattleBase(DistributedNode.DistributedNode, BattleBase):
         for suit in self.activeSuits:
             if suit.doId == avId:
                 setattr(suit, 'statusEffects', effects)
-                if hasattr(self, 'townBattle') and self.townBattle and self.townBattle.enemyHPPanel:
-                    if self.townBattle.enemyHPPanel.activeSuit == suit:
-                        self.townBattle.enemyHPPanel.updateSuit(suit, effects)
+                if hasattr(self, 'townBattle') and self.townBattle and hasattr(self.townBattle, 'enemyHPPanel'):
+                    self.townBattle.enemyHPPanel.updateSuitHP(suit, effects)
                 break
         for toon in self.activeToons:
             if toon == avId or getattr(toon, 'doId', None) == avId:
                 setattr(toon, 'statusEffects', effects)
-                if hasattr(self, 'townBattle') and self.townBattle and self.townBattle.toonPanels:
+                if hasattr(self, 'townBattle') and self.townBattle and hasattr(self.townBattle, 'toonPanels'):
                     for panel in self.townBattle.toonPanels:
                         if panel.avatar and getattr(panel.avatar, 'doId', None) == avId:
                             panel.setStatusEffects(effects)
                 break
+
+    def setCogIntentions(self, cogIds, attackNames, damages):
+        if hasattr(self, 'townBattle') and self.townBattle and hasattr(self.townBattle, 'enemyHPPanel'):
+            self.townBattle.enemyHPPanel.updateCogs(self.activeSuits)
+        for i in range(len(cogIds)):
+            cogId = cogIds[i]
+            atkName = attackNames[i] if i < len(attackNames) else 'Wait'
+            dmg = damages[i] if i < len(damages) else 0
+            for suit in self.activeSuits:
+                if suit.doId == cogId:
+                    setattr(suit, 'intendedAttack', (atkName, dmg))
+                    if hasattr(self, 'townBattle') and self.townBattle and hasattr(self.townBattle, 'enemyHPPanel'):
+                        self.townBattle.enemyHPPanel.updateSuitIntention(suit, atkName, dmg)
+                    break
 
     def __adjustDone(self):
         self.notify.debug('__adjustDone()')
