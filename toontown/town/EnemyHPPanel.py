@@ -10,6 +10,8 @@ from toontown.toonbase import ToontownGlobals, TTLocalizer
 
 class EnemyHPPanel(DirectObject):
     def __init__(self, parent=None):
+        DirectObject.__init__(self)
+        self.activeSuit = None
         self.frame = DirectFrame(
             parent=parent or aspect2d,
             relief=None,
@@ -56,8 +58,14 @@ class EnemyHPPanel(DirectObject):
         )
 
         self.frame.hide()
+        self.accept('suit-hp-change', self.__handleSuitHPChange)
+
+    def __handleSuitHPChange(self, suit):
+        if self.activeSuit and (self.activeSuit == suit or getattr(self.activeSuit, 'doId', None) == getattr(suit, 'doId', None)):
+            self.updateSuit(suit)
 
     def updateSuit(self, suit, status_effects=None):
+        self.activeSuit = suit
         if not suit:
             self.frame.hide()
             return
@@ -88,10 +96,12 @@ class EnemyHPPanel(DirectObject):
         self.frame.show()
 
     def hide(self):
+        self.activeSuit = None
         self.frame.hide()
 
     def show(self):
         self.frame.show()
 
     def destroy(self):
+        self.ignore('suit-hp-change')
         self.frame.destroy()

@@ -856,6 +856,7 @@ class Suit(Avatar.Avatar):
         if hp > self.currHP:
             hp = self.currHP
         self.currHP -= hp
+        messenger.send('suit-hp-change', [self])
         health = float(self.currHP) / float(self.maxHP)
         if health > 0.95:
             condition = 0

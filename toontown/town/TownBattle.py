@@ -433,7 +433,10 @@ class TownBattle(StateData.StateData):
                 self.chooseCogPanel.adjustCogs(self.numCogs, self.luredIndices, self.trappedIndices, self.track)
             elif currStateName == 'ChooseToon':
                 self.chooseToonPanel.adjustToons(self.numToons, self.localNum)
-            if len(cogs) > 0:
+            self.activeCogs = cogs
+            if len(cogs) > self.cog:
+                self.enemyHPPanel.updateSuit(cogs[self.cog])
+            elif len(cogs) > 0:
                 self.enemyHPPanel.updateSuit(cogs[0])
             else:
                 self.enemyHPPanel.hide()
@@ -458,6 +461,8 @@ class TownBattle(StateData.StateData):
             self.fsm.request('Attack')
         elif mode == 'Avatar':
             self.cog = doneStatus['avatar']
+            if hasattr(self, 'activeCogs') and len(self.activeCogs) > self.cog:
+                self.enemyHPPanel.updateSuit(self.activeCogs[self.cog])
             self.target = self.cog
             self.fsm.request('AttackWait')
             response = {}
