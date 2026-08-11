@@ -1163,12 +1163,16 @@ class BattleCalculatorAI:
             return targetList
         debug = self.notify.getDebug()
         if not self.__suitAtkAffectsGroup(attack):
-            targetList.append(attack[SUIT_TGT_COL])
+            targetList.append(self.battle.activeToons[attack[SUIT_TGT_COL]])
+            if debug:
+                self.notify.debug('Suit attack is single target')
         else:
-            for toonId in self.battle.activeToons:
+            if debug:
+                self.notify.debug('Suit attack is group target')
+            for currToon in self.battle.activeToons:
                 if debug:
-                    self.notify.debug('Suit attack will target toon' + str(toonId))
-                targetList.append(toonId)
+                    self.notify.debug('Suit attack will target toon' + str(currToon))
+                targetList.append(currToon)
 
         return targetList
 
