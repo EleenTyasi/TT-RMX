@@ -1,5 +1,6 @@
 # =============================================================================
 #  EnemyHPPanel.py  —  2D Multi-Cog HP, Status Effects & Intention UI Panels
+#                     with Mouse Hover Status Tooltips
 #  TT-RMX Personal Tinkering Project
 # =============================================================================
 
@@ -8,10 +9,23 @@ from direct.gui.DirectGui import *
 from direct.showbase.DirectObject import DirectObject
 from toontown.toonbase import ToontownGlobals, TTLocalizer
 
+STATUS_DESCRIPTIONS = {
+    'SLOW': ("Slow Debuff", "-15% Accuracy penalty on all attacks."),
+    'FREEZE': ("Freeze Stun", "Frozen solid! Skips attack turn."),
+    'WEAKEN': ("Weaken Debuff", "-10% Defense penalty, takes extra damage."),
+    'POISON': ("Poison DoT", "Takes Damage Over Time at round start."),
+    'BURN': ("Burn Vulnerability", "Vulnerable! Takes 1.25x (25% extra) damage."),
+    'SHIELD': ("Shield Buff", "Shielded! Takes 30% reduced damage."),
+    'LUCKY': ("Lucky Buff", "Lucky momentum! +15% Gag accuracy boost."),
+    'RALLIED': ("Rallied Buff", "Rallied spirit! +20% Gag damage boost."),
+}
+
 class EnemyHPPanel(DirectObject):
     def __init__(self, index=0, total=1):
         DirectObject.__init__(self)
         self.activeSuit = None
+        self.badgeButtons = []
+        
         self.frame = DirectFrame(
             parent=aspect2d,
             relief=None,
@@ -56,16 +70,46 @@ class EnemyHPPanel(DirectObject):
             text_font=ToontownGlobals.getInterfaceFont(),
         )
 
-        self.statusLabel = DirectLabel(
+        self.statusContainer = DirectFrame(
             parent=self.frame,
             relief=None,
             pos=(0, 0, -0.48),
+        )
+
+        # Tooltip Hover Frame
+        self.tooltipFrame = DirectFrame(
+            parent=self.frame,
+            relief=None,
+            pos=(0, 0, -1.35),
+            scale=0.85,
+            image=DGG.getDefaultDialogGeom(),
+            image_scale=(4.2, 1.0, 1.3),
+            image_pos=(0, 0, 0),
+            image_color=Vec4(0.08, 0.08, 0.12, 0.96),
+            sortOrder=100,
+        )
+        self.tooltipTitle = DirectLabel(
+            parent=self.tooltipFrame,
+            relief=None,
+            pos=(0, 0, 0.30),
             text='',
-            text_scale=0.25,
+            text_scale=0.26,
             text_fg=Vec4(1, 0.85, 0.2, 1),
             text_shadow=Vec4(0, 0, 0, 1),
+            text_font=ToontownGlobals.getSignFont(),
+        )
+        self.tooltipDesc = DirectLabel(
+            parent=self.tooltipFrame,
+            relief=None,
+            pos=(0, 0, -0.08),
+            text='',
+            text_scale=0.22,
+            text_fg=Vec4(1, 1, 1, 1),
+            text_shadow=Vec4(0, 0, 0, 1),
+            text_wordwrap=17,
             text_font=ToontownGlobals.getInterfaceFont(),
         )
+        self.tooltipFrame.hide()
 
         self.setPosition(index, total)
         self.frame.hide()
@@ -78,7 +122,7 @@ class EnemyHPPanel(DirectObject):
             xPositions = [-0.55, 0.55]
         elif total == 3:
             xPositions = [-0.72, 0.0, 0.72]
-        else: # 4 Cogs
+        else:
             xPositions = [-0.95, -0.32, 0.32, 0.95]
 
         posX = xPositions[index] if index < len(xPositions) else 0.0
@@ -88,6 +132,21 @@ class EnemyHPPanel(DirectObject):
     def __handleSuitHPChange(self, suit):
         if self.activeSuit and (self.activeSuit == suit or getattr(self.activeSuit, 'doId', None) == getattr(suit, 'doId', None)):
             self.updateSuit(suit)
+
+    def __clearBadges(self):
+        for btn in self.badgeButtons:
+            btn.destroy()
+        self.badgeButtons.clear()
+        self.tooltipFrame.hide()
+
+    def __showTooltip(self, key, full_str, extra=None):
+        title, desc = STATUS_DESCRIPTIONS.get(key, (key, "Active Status Effect"))
+        self.tooltipTitle['text'] = f"{title} [{full_str}]"
+        self.tooltipDesc['text'] = desc
+        self.tooltipFrame.show()
+
+    def __hideTooltip(self, extra=None):
+        self.tooltipFrame.hide()
 
     def updateSuit(self, suit=None, status_effects=None):
         if suit:
@@ -119,15 +178,30 @@ class EnemyHPPanel(DirectObject):
         else:
             self.intentionLabel['text'] = ''
 
-        if status_effects is not None:
-            badge_str = " ".join([f"[{eff}]" for eff in status_effects])
-            self.statusLabel['text'] = badge_str
-        else:
-            effs = getattr(suit, 'statusEffects', None)
-            if effs:
-                self.statusLabel['text'] = " ".join([f"[{eff}]" for eff in effs])
-            else:
-                self.statusLabel['text'] = ''
+        # Rebuild interactive status badges with mouse hover events
+        self.__clearBadges()
+        eff_list = status_effects if status_effects is not None else getattr(suit, 'statusEffects', [])
+        if eff_list:
+            startX = -0.45 * (len(eff_list) - 1) / 2.0
+            for i, eff_str in enumerate(eff_list):
+                key = eff_str.split()[0].replace('[', '').replace(']', '')
+                btn = DirectButton(
+                    parent=self.statusContainer,
+                    relief=DGG.RAISED,
+                    frameSize=(-0.5, 0.5, -0.15, 0.2),
+                    frameColor=(0.2, 0.2, 0.3, 0.9),
+                    pos=(startX + i * 0.55, 0, 0),
+                    scale=0.7,
+                    text=f"[{eff_str}]",
+                    text_scale=0.25,
+                    text_fg=Vec4(1, 0.85, 0.2, 1),
+                    text_shadow=Vec4(0, 0, 0, 1),
+                    text_font=ToontownGlobals.getInterfaceFont(),
+                    pressEffect=0,
+                )
+                btn.bind(DGG.ENTER, self.__showTooltip, extraArgs=[key, eff_str])
+                btn.bind(DGG.EXIT, self.__hideTooltip)
+                self.badgeButtons.append(btn)
 
         self.frame.show()
 
@@ -138,6 +212,7 @@ class EnemyHPPanel(DirectObject):
             self.intentionLabel['text'] = "Intention: Preparing..."
 
     def hide(self):
+        self.__clearBadges()
         self.frame.reparentTo(hidden)
         self.frame.hide()
 
@@ -146,6 +221,7 @@ class EnemyHPPanel(DirectObject):
         self.frame.show()
 
     def destroy(self):
+        self.__clearBadges()
         self.ignore('suit-hp-change')
         self.frame.reparentTo(hidden)
         self.frame.destroy()

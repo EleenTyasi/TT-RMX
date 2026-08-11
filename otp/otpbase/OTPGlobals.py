@@ -105,6 +105,10 @@ def getSignFont():
             SignFont = TextNode.getDefaultFont()
         else:
             SignFont = loader.loadFont(SignFontPath, lineHeight=1.0)
+            try:
+                SignFont.setFallback(getInterfaceFont())
+            except Exception:
+                pass
     return SignFont
 
 

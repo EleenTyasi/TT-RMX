@@ -1251,6 +1251,9 @@ class BattleCalculatorAI:
     def __suitCanAttack(self, suitId):
         if self.__combatantDead(suitId, toon=0) or self.__suitIsLured(suitId) or self.__combatantJustRevived(suitId):
             return 0
+        if hasattr(self, 'statusEffectMgr') and self.statusEffectMgr.is_frozen(suitId):
+            self.notify.debug(f"Suit {suitId} is frozen and cannot attack!")
+            return 0
         return 1
 
     def __updateSuitAtkStat(self, toonId):

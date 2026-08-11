@@ -1701,9 +1701,22 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
                     deadToons.append(activeToon)
                 self.notify.debug('AFTER ROUND: toon: %d setHp: %d' % (toon.doId, toon.hp))
 
-        for deadToon in deadToons:
-            self.__removeToon(deadToon)
-            needUpdate = 1
+        if hasattr(self, 'battleCalc') and self.battleCalc and hasattr(self.battleCalc, 'statusEffectMgr'):
+            poison_ticks = self.battleCalc.statusEffectMgr.tick_round()
+            if poison_ticks:
+                for avId, dmg in poison_ticks.items():
+                    for suit in self.activeSuits:
+                        if suit.doId == avId:
+                            suit.currHP = max(0, suit.currHP - dmg)
+                            self.notify.info('Poison DoT dealt %d damage to suit %d. HP is now %d' % (dmg, suit.doId, suit.currHP))
+                            break
+                    for toonId in self.activeToons:
+                        if toonId == avId:
+                            toon = self.air.doId2do.get(toonId)
+                            if toon:
+                                toon.takeDamage(dmg)
+                            break
+            self.broadcastStatusEffects()
 
         self.clearAttacks()
         self.d_setMovie()
