@@ -7,6 +7,9 @@ from . import SuitBattleGlobals, BattleExperienceAI
 from toontown.toon import NPCToons
 from toontown.pets import PetTricks, DistributedPetProxyAI
 from direct.showbase.PythonUtil import lerp
+from .StatusEffectManager import StatusEffectManager
+from .StatusEffectsConfig import GAG_TRACK_STATUS_EFFECTS, SUIT_ATTACK_STATUS_EFFECTS, TOON_BUFFS
+from toontown.battle.GagsConfig import TOONUP_CAN_TARGET_SELF
 
 class BattleCalculatorAI:
     AccuracyBonuses = [
@@ -37,6 +40,7 @@ class BattleCalculatorAI:
 
     def __init__(self, battle, tutorialFlag=0):
         self.battle = battle
+        self.statusEffectMgr = StatusEffectManager()
         self.SuitAttackers = {}
         self.currentlyLuredSuits = {}
         self.successfulLures = {}
@@ -244,6 +248,7 @@ class BattleCalculatorAI:
         if atkTrack == HEAL:
             return 0
         suitDef = SuitBattleGlobals.SuitAttributes[suit.dna.name]['def'][suit.getLevel()]
+        suitDef += self.statusEffectMgr.get_defense_mod(suit.doId)
         return -suitDef
 
     def __createToonTargetList(self, attackIndex):
@@ -265,7 +270,7 @@ class BattleCalculatorAI:
                     targetList = self.battle.activeToons
                 else:
                     for currToon in self.battle.activeToons:
-                        if attack[TOON_ID_COL] != currToon:
+                        if attack[TOON_ID_COL] != currToon or TOONUP_CAN_TARGET_SELF:
                             targetList.append(currToon)
 
             else:
@@ -562,6 +567,12 @@ class BattleCalculatorAI:
                     result = result / len(targetList)
                     if self.notify.getDebug():
                         self.notify.debug('Splitting heal among ' + str(len(targetList)) + ' targets')
+                if result > 0 and atkTrack != HEAL:
+                    result = int(result * self.statusEffectMgr.get_damage_multiplier(targetId))
+                    if atkTrack in GAG_TRACK_STATUS_EFFECTS:
+                        eff_cfg = GAG_TRACK_STATUS_EFFECTS[atkTrack]
+                        if random.randint(1, 100) <= eff_cfg.get('chance', 100):
+                            self.statusEffectMgr.apply_effect(targetId, eff_cfg['effect'], eff_cfg['rounds'], eff_cfg)
                 if targetId in self.successfulLures and atkTrack == LURE:
                     self.notify.debug('Updating lure damage to ' + str(result))
                     self.successfulLures[targetId][3] = result
@@ -1123,11 +1134,14 @@ class BattleCalculatorAI:
             if self.suitsAlwaysMiss:
                 return 0
         theSuit = self.battle.activeSuits[attackIndex]
+        if self.statusEffectMgr.is_frozen(theSuit.doId):
+            self.notify.info('Suit %d is FROZEN — skipping attack turn!' % theSuit.doId)
+            return 0
         atkType = self.battle.suitAttacks[attackIndex][SUIT_ATK_COL]
         atkInfo = SuitBattleGlobals.getSuitAttack(theSuit.dna.name, theSuit.getLevel(), atkType)
         atkAcc = atkInfo['acc']
         suitAcc = SuitBattleGlobals.SuitAttributes[theSuit.dna.name]['acc'][theSuit.getLevel()]
-        acc = atkAcc
+        acc = atkAcc + self.statusEffectMgr.get_accuracy_mod(theSuit.doId)
         randChoice = random.randint(0, 99)
         if self.notify.getDebug():
             self.notify.debug('Suit attack rolled ' + str(randChoice) + ' to hit with an accuracy of ' + str(acc) + ' (attackAcc: ' + str(atkAcc) + ' suitAcc: ' + str(suitAcc) + ')')
@@ -1149,16 +1163,12 @@ class BattleCalculatorAI:
             return targetList
         debug = self.notify.getDebug()
         if not self.__suitAtkAffectsGroup(attack):
-            targetList.append(self.battle.activeToons[attack[SUIT_TGT_COL]])
-            if debug:
-                self.notify.debug('Suit attack is single target')
+            targetList.append(attack[SUIT_TGT_COL])
         else:
-            if debug:
-                self.notify.debug('Suit attack is group target')
-            for currToon in self.battle.activeToons:
+            for toonId in self.battle.activeToons:
                 if debug:
-                    self.notify.debug('Suit attack will target toon' + str(currToon))
-                targetList.append(currToon)
+                    self.notify.debug('Suit attack will target toon' + str(toonId))
+                targetList.append(toonId)
 
         return targetList
 
@@ -1177,7 +1187,13 @@ class BattleCalculatorAI:
                 atkType = attack[SUIT_ATK_COL]
                 theSuit = self.battle.findSuit(attack[SUIT_ID_COL])
                 atkInfo = SuitBattleGlobals.getSuitAttack(theSuit.dna.name, theSuit.getLevel(), atkType)
-                result = atkInfo['hp']
+                raw_hp = atkInfo['hp']
+                result = int(raw_hp * self.statusEffectMgr.get_damage_multiplier(toonId))
+                atkName = atkInfo['name']
+                if atkName in SUIT_ATTACK_STATUS_EFFECTS:
+                    eff_cfg = SUIT_ATTACK_STATUS_EFFECTS[atkName]
+                    if random.randint(1, 100) <= eff_cfg.get('chance', 100):
+                        self.statusEffectMgr.apply_effect(toonId, eff_cfg['effect'], eff_cfg['rounds'], eff_cfg)
             targetIndex = self.battle.activeToons.index(toonId)
             attack[SUIT_HP_COL][targetIndex] = result
 
@@ -1359,6 +1375,13 @@ class BattleCalculatorAI:
          toonsHit, cogsMiss)
 
     def calculateRound(self):
+        poison_ticks = self.statusEffectMgr.tick_round()
+        for avatar_id, poison_dmg in poison_ticks.items():
+            suit = self.battle.findSuit(avatar_id)
+            if suit and suit.getHP() > 0:
+                suit.setHP(max(0, suit.getHP() - poison_dmg))
+                self.notify.info('Poison tick: dealt %d damage to suit %d' % (poison_dmg, avatar_id))
+
         longest = max(len(self.battle.activeToons), len(self.battle.activeSuits))
         for t in self.battle.activeToons:
             for j in range(longest):

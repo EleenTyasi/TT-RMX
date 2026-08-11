@@ -2351,8 +2351,8 @@ class Enum:
         _checkValidIdentifier = staticmethod(_checkValidIdentifier)
 
     def __init__(self, items, start=0):
-        if type(items) == bytes:
-            items = items.split(',')
+        if isinstance(items, (str, bytes)):
+            items = [x.strip() for x in items.split(',')]
 
         self._stringTable = {}
 
@@ -4415,6 +4415,11 @@ builtins.Functor = Functor
 builtins.Stack = Stack
 builtins.Queue = Queue
 builtins.Enum = Enum
+try:
+    import direct.showbase.PythonUtil as _dpu
+    _dpu.Enum = Enum
+except Exception:
+    pass
 builtins.SerialNumGen = SerialNumGen
 builtins.SerialMaskedGen = SerialMaskedGen
 builtins.ScratchPad = ScratchPad

@@ -34,11 +34,17 @@ class TownBattleToonPanel(DirectFrame):
         passGui.setScale(0.2)
         passGui.reparentTo(self.passNode)
         self.passNode.hide()
-        self.laffMeter = None
         self.whichText = DirectLabel(parent=self, text='', pos=(0.1, 0, -0.08), text_scale=0.05)
+        self.statusText = DirectLabel(parent=self, relief=None, text='', pos=(-0.06, 0, -0.12), text_scale=0.045, text_fg=Vec4(1, 0.8, 0.2, 1))
         self.hide()
         gui.removeNode()
         return
+
+    def setStatusEffects(self, effects):
+        if effects:
+            self.statusText['text'] = " ".join([f"[{e}]" for e in effects])
+        else:
+            self.statusText['text'] = ''
 
     def setLaffMeter(self, avatar):
         self.notify.debug('setLaffMeter: new avatar %s' % avatar.doId)

@@ -1,6 +1,17 @@
 from . import TTLocalizer
 from otp.otpbase.OTPGlobals import *
-from direct.showbase.PythonUtil import Enum, invertDict
+try:
+    from direct.showbase.PythonUtil import Enum, invertDict
+except ImportError:
+    from direct.showbase.PythonUtil import invertDict
+    class Enum(object):
+        def __init__(self, names, start=0):
+            if isinstance(names, str):
+                names = names.split()
+            for i, name in enumerate(names, start=start):
+                setattr(self, name, i)
+
+
 from panda3d.core import BitMask32, Vec4
 import collections
 MapHotkeyOn = 'alt'

@@ -10,6 +10,7 @@ from . import TownBattleSOSPanel
 from . import TownBattleSOSPetSearchPanel
 from . import TownBattleSOSPetInfoPanel
 from . import TownBattleToonPanel
+from . import EnemyHPPanel
 from toontown.toontowngui import TTDialog
 from direct.directnotify import DirectNotifyGlobal
 from toontown.battle import BattleBase
@@ -23,86 +24,54 @@ from toontown.battle import FireCogPanel
 class TownBattle(StateData.StateData):
     notify = DirectNotifyGlobal.directNotify.newCategory('TownBattle')
     evenPos = (0.75,
+     0.55,
+     0.35,
+     0.15)
+    oddPos = (0.65,
+     0.45,
      0.25,
-     -0.25,
-     -0.75)
-    oddPos = (0.5, 0, -0.5)
+     0.05)
 
     def __init__(self, doneEvent):
         StateData.StateData.__init__(self, doneEvent)
-        self.numCogs = 1
+        self.numCogs = 0
         self.creditLevel = None
         self.luredIndices = []
         self.trappedIndices = []
-        self.numToons = 1
+        self.numToons = 0
         self.toons = []
         self.localNum = 0
-        self.time = 0
-        self.bldg = 0
         self.track = -1
         self.level = -1
-        self.target = 0
-        self.toonAttacks = [(-1, 0, 0),
-         (-1, 0, 0),
-         (-1, 0, 0),
-         (-1, 0, 0)]
-        self.fsm = ClassicFSM.ClassicFSM('TownBattle', [
-            State.State('Off',
-                self.enterOff,
-                self.exitOff,
-                ['Attack']),
-            State.State('Attack',
-                self.enterAttack,
-                self.exitAttack,
-                ['ChooseCog',
-                 'ChooseToon',
-                 'AttackWait',
-                 'Run',
-                 'Fire',
-                 'SOS']),
-            State.State('ChooseCog',
-                self.enterChooseCog,
-                self.exitChooseCog,
-                ['AttackWait',
-                 'Attack']),
-            State.State('AttackWait',
-                self.enterAttackWait,
-                self.exitAttackWait,
-                ['ChooseCog',
-                 'ChooseToon',
-                 'Attack']),
-            State.State('ChooseToon',
-                self.enterChooseToon,
-                self.exitChooseToon,
-                ['AttackWait',
-                 'Attack']),
-            State.State('Run',
-                self.enterRun,
-                self.exitRun,
-                ['Attack']),
-            State.State('SOS',
-                self.enterSOS,
-                self.exitSOS,
-                ['Attack',
-                 'AttackWait',
-                 'SOSPetSearch',
-                 'SOSPetInfo']),
-            State.State('SOSPetSearch',
-                self.enterSOSPetSearch,
-                self.exitSOSPetSearch,
-                ['SOS',
-                 'SOSPetInfo']),
-            State.State('SOSPetInfo',
-                self.enterSOSPetInfo,
-                self.exitSOSPetInfo,
-                ['SOS',
-                 'AttackWait']),
-            State.State('Fire',
-                self.enterFire,
-                self.exitFire,
-                ['Attack',
-                 'AttackWait'])],
-            'Off', 'Off')
+        self.target = -1
+        self.bldg = 0
+        self.creditMultiplier = 1
+        self.tutorialFlag = 0
+        self.building = 0
+        self.activeCogs = []
+        self.enemyHPPanel = EnemyHPPanel.EnemyHPPanel()
+        self.fsm = ClassicFSM.ClassicFSM('TownBattle', [State.State('Off', self.enterOff, self.exitOff, ['Attack', 'Pet']),
+         State.State('Attack', self.enterAttack, self.exitAttack, ['ChooseCog',
+          'ChooseToon',
+          'AttackWait',
+          'Run',
+          'SOS',
+          'Fire',
+          'Pet']),
+         State.State('ChooseCog', self.enterChooseCog, self.exitChooseCog, ['AttackWait', 'Attack', 'Pet']),
+         State.State('ChooseToon', self.enterChooseToon, self.exitChooseToon, ['AttackWait', 'Attack', 'Pet']),
+         State.State('AttackWait', self.enterAttackWait, self.exitAttackWait, ['ChooseCog',
+          'ChooseToon',
+          'Attack',
+          'Off',
+          'Pet']),
+         State.State('Run', self.enterRun, self.exitRun, ['Off', 'Attack', 'Pet']),
+         State.State('SOS', self.enterSOS, self.exitSOS, ['Attack', 'SOSPetSearch', 'Pet']),
+         State.State('SOSPetSearch', self.enterSOSPetSearch, self.exitSOSPetSearch, ['SOSPetInfo', 'SOS', 'Pet']),
+         State.State('SOSPetInfo', self.enterSOSPetInfo, self.exitSOSPetInfo, ['SOSPetSearch', 'SOS', 'Pet']),
+         State.State('Fire', self.enterFire, self.exitFire, ['AttackWait', 'Attack', 'Pet']),
+         State.State('Pet', self.enterPet, self.exitPet, ['Off', 'AttackWait', 'Attack'])], 'Off', 'Off')
+        self.fsm.enterInitialState()
         self.runPanel = TTDialog.TTDialog(dialogName='TownBattleRunPanel', text=TTLocalizer.TownBattleRun, style=TTDialog.TwoChoice, command=self.__handleRunPanelDone)
         self.runPanel.hide()
         self.attackPanelDoneEvent = 'attack-panel-done'
@@ -420,7 +389,8 @@ class TownBattle(StateData.StateData):
             canTrap = 0
         else:
             canLure = 1
-        if self.numToons == 1:
+        from toontown.battle.GagsConfig import TOONUP_CAN_TARGET_SELF
+        if self.numToons == 1 and not TOONUP_CAN_TARGET_SELF:
             canHeal = 0
         else:
             canHeal = 1
@@ -463,6 +433,10 @@ class TownBattle(StateData.StateData):
                 self.chooseCogPanel.adjustCogs(self.numCogs, self.luredIndices, self.trappedIndices, self.track)
             elif currStateName == 'ChooseToon':
                 self.chooseToonPanel.adjustToons(self.numToons, self.localNum)
+            if len(cogs) > 0:
+                self.enemyHPPanel.updateSuit(cogs[0])
+            else:
+                self.enemyHPPanel.hide()
             canHeal, canTrap, canLure = self.checkHealTrapLure()
             base.localAvatar.inventory.setBattleCreditMultiplier(self.creditMultiplier)
             base.localAvatar.inventory.setActivateMode('battle', heal=canHeal, trap=canTrap, lure=canLure, bldg=self.bldg, creditLevel=self.creditLevel, tutorialFlag=self.tutorialFlag)
@@ -671,6 +645,12 @@ class TownBattle(StateData.StateData):
             bboard.post(PetConstants.OurPetsMoodChangedKey, True)
         elif mode == 'Back':
             self.fsm.request('SOS')
+
+    def enterPet(self):
+        pass
+
+    def exitPet(self):
+        pass
 
     def __isCogChoiceNecessary(self):
         if self.numCogs > 1 and not self.__isGroupAttack(self.track, self.level):

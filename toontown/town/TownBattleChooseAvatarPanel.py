@@ -89,8 +89,10 @@ class TownBattleChooseAvatarPanel(StateData.StateData):
         self.__placeButtons(numToons, [], localNum)
 
     def __placeButtons(self, numAvatars, invalidTargets, localNum):
+        from toontown.battle.GagsConfig import TOONUP_CAN_TARGET_SELF
+        allowSelf = self.toon and TOONUP_CAN_TARGET_SELF
         for i in range(4):
-            if numAvatars > i and i not in invalidTargets and i != localNum:
+            if numAvatars > i and i not in invalidTargets and (i != localNum or allowSelf):
                 self.avatarButtons[i].show()
             else:
                 self.avatarButtons[i].hide()

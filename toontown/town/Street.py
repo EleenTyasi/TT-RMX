@@ -387,11 +387,16 @@ class Street(BattlePlace.BattlePlace):
                 inDreamland = True
             alphaPath = 'phase_4/maps/tt_t_ara_gen_tunnelAheadSign_a.rgb'
             if Filename(signTexturePath).exists():
-                signTexture = loader.loadTexture(loaderTexturePath, alphaPath)
-            for sign in signs:
-                if Filename(signTexturePath).exists():
-                    sign.setTexture(signTexture, 1)
-                if inDreamland:
+                try:
+                    signTexture = loader.loadTexture(loaderTexturePath, alphaPath)
+                    for sign in signs:
+                        sign.setTexture(signTexture, 1)
+                        if inDreamland:
+                            sign.setColorScale(0.525, 0.525, 0.525, 1)
+                except Exception as e:
+                    self.notify.warning('Could not load custom street sign texture: %s' % e)
+            elif inDreamland:
+                for sign in signs:
                     sign.setColorScale(0.525, 0.525, 0.525, 1)
 
         return
