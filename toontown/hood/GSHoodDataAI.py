@@ -25,10 +25,10 @@ class GSHoodDataAI(HoodDataAI.HoodDataAI):
         self.cycleDuration = 10
         self.createLeaderBoards()
         self.__cycleLeaderBoards()
-        self.classicChar = DistributedGoofySpeedwayAI.DistributedGoofySpeedwayAI(self.air)
-        self.classicChar.generateWithRequired(self.zoneId)
-        self.classicChar.start()
-        self.addDistObj(self.classicChar)
+        # self.classicChar = DistributedGoofySpeedwayAI.DistributedGoofySpeedwayAI(self.air)
+        # self.classicChar.generateWithRequired(self.zoneId)
+        # self.classicChar.start()
+        # self.addDistObj(self.classicChar)
         messenger.send('GSHoodSpawned', [self])
 
     def shutdown(self):

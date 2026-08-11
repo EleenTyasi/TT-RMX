@@ -1441,6 +1441,7 @@ dclass DistributedBattleBase : DistributedObject {
   joinDone(uint32) airecv clsend;
   requestAttack(int8, int8, int32) airecv clsend;
   requestPetProxy(uint32) airecv clsend;
+  setStatusEffects(uint32, string[]) broadcast ram;
 };
 
 dclass DistributedBattle : DistributedBattleBase {

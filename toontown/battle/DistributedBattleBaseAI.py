@@ -49,6 +49,14 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
         self.toonMerits = {}
         self.toonParts = {}
         self.battleCalc = BattleCalculatorAI.BattleCalculatorAI(self, tutorialFlag)
+
+    def broadcastStatusEffects(self):
+        if not hasattr(self, 'battleCalc') or not self.battleCalc:
+            return
+        for avId in list(self.activeSuits) + list(self.activeToons):
+            eff_map = self.battleCalc.statusEffectMgr.get_active_effects(avId)
+            eff_strings = [f"{eff} ({info['rounds']}r)" for eff, info in eff_map.items()]
+            self.sendUpdate('setStatusEffects', [avId, eff_strings])
         if self.air.suitInvasionManager.getInvading():
             mult = getInvasionMultiplier()
             self.battleCalc.setSkillCreditMultiplier(mult)

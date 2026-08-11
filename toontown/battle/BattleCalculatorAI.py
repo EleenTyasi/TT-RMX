@@ -1409,6 +1409,7 @@ class BattleCalculatorAI:
         self.__calculateToonAttacks()
         self.__updateLureTimeouts()
         self.__calculateSuitAttacks()
+        self.battle.broadcastStatusEffects()
         if toonsHit == 1:
             BattleCalculatorAI.toonsAlwaysHit = 0
         if cogsMiss == 1:

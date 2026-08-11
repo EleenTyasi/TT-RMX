@@ -1387,9 +1387,32 @@ class DistributedBattleBase(DistributedNode.DistributedNode, BattleBase):
                     trappedSuits.append(self.activeSuits.index(suit))
 
             self.townBattle.adjustCogsAndToons(self.activeSuits, luredSuits, trappedSuits, self.activeToons)
+            if hasattr(self, 'townBattle') and self.townBattle and self.townBattle.toonPanels:
+                for panel in self.townBattle.toonPanels:
+                    if panel.avatar:
+                        effs = getattr(panel.avatar, 'statusEffects', None)
+                        if effs:
+                            panel.setStatusEffects(effs)
             if hasattr(self, 'townBattleAttacks'):
                 self.townBattle.updateChosenAttacks(self.townBattleAttacks[0], self.townBattleAttacks[1], self.townBattleAttacks[2], self.townBattleAttacks[3])
         self.needAdjustTownBattle = 0
+
+    def setStatusEffects(self, avId, effects):
+        for suit in self.activeSuits:
+            if suit.doId == avId:
+                setattr(suit, 'statusEffects', effects)
+                if hasattr(self, 'townBattle') and self.townBattle and self.townBattle.enemyHPPanel:
+                    if self.townBattle.enemyHPPanel.activeSuit == suit:
+                        self.townBattle.enemyHPPanel.updateSuit(suit, effects)
+                break
+        for toon in self.activeToons:
+            if toon == avId or getattr(toon, 'doId', None) == avId:
+                setattr(toon, 'statusEffects', effects)
+                if hasattr(self, 'townBattle') and self.townBattle and self.townBattle.toonPanels:
+                    for panel in self.townBattle.toonPanels:
+                        if panel.avatar and getattr(panel.avatar, 'doId', None) == avId:
+                            panel.setStatusEffects(effects)
+                break
 
     def __adjustDone(self):
         self.notify.debug('__adjustDone()')

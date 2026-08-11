@@ -302,10 +302,19 @@ class InventoryNew(InventoryBase.InventoryBase, DirectFrame):
                 damageBonus += getDamageBonus(damage)
             if damageBonus:
                 damageBonusStr = TTLocalizer.InventoryDamageBonus % damageBonus
-        accString = AvTrackAccStrings[track]
-        if (organicBonus or propBonus) and track == LURE_TRACK:
-            accString = TTLocalizer.BattleGlobalLureAccMedium
+        accVal = getAvPropAccuracy(track, level, organicBonus, propBonus)
+        accString = f"{accVal}%"
+        from toontown.battle.StatusEffectsConfig import GAG_TRACK_STATUS_EFFECTS
+        statusInfo = GAG_TRACK_STATUS_EFFECTS.get(track, None)
+        if statusInfo:
+            statusStr = statusInfo['effect'].title()
+            statusChanceStr = f"{statusInfo['chance']}%"
+        else:
+            statusStr = 'None'
+            statusChanceStr = 'N/A'
         self.detailDataLabel.configure(text=TTLocalizer.InventoryDetailData % {'accuracy': accString,
+         'status': statusStr,
+         'statusChance': statusChanceStr,
          'damageString': self.getToonupDmgStr(track, level),
          'damage': damage,
          'bonus': damageBonusStr,

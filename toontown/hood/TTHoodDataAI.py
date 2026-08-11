@@ -26,10 +26,10 @@ class TTHoodDataAI(HoodDataAI.HoodDataAI):
         self.trolley = trolley
         self.treasurePlanner = TTTreasurePlannerAI.TTTreasurePlannerAI(self.zoneId)
         self.treasurePlanner.start()
-        self.classicChar = DistributedMickeyAI.DistributedMickeyAI(self.air)
-        self.classicChar.generateWithRequired(self.zoneId)
-        self.classicChar.start()
-        self.addDistObj(self.classicChar)
+        # self.classicChar = DistributedMickeyAI.DistributedMickeyAI(self.air)
+        # self.classicChar.generateWithRequired(self.zoneId)
+        # self.classicChar.start()
+        # self.addDistObj(self.classicChar)
         self.createButterflies(ButterflyGlobals.TTC)
         if simbase.blinkTrolley:
             taskMgr.doMethodLater(0.5, self._deleteTrolley, 'deleteTrolley')

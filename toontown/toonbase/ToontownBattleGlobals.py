@@ -533,6 +533,14 @@ AvLureBonusAccuracy = (60, 60, 70, 70, 80, 80, 100)
 AvTrackAccStrings = TTLocalizer.BattleGlobalAvTrackAccStrings
 from toontown.battle.GagsConfig import GAG_ACCURACY as AvPropAccuracy, GAG_DAMAGE as AvPropDamage, GAG_TARGET_CATEGORY as AvPropTargetCat, GAG_TARGET_MAP as AvPropTarget, ATK_SINGLE_TARGET, ATK_GROUP_TARGET
 
+def getAvPropAccuracy(attackTrack, attackLevel, organicBonus=False, propBonus=False):
+    if attackTrack == TRAP_TRACK:
+        return 100
+    acc = AvPropAccuracy[attackTrack][attackLevel]
+    if attackTrack == LURE_TRACK and (organicBonus or propBonus):
+        acc += 10
+    return min(100, acc)
+
 def getAvPropDamage(attackTrack, attackLevel, exp, organicBonus = False, propBonus = False, propAndOrganicBonusStack = False):
     minD = AvPropDamage[attackTrack][attackLevel][0][0]
     maxD = AvPropDamage[attackTrack][attackLevel][0][1]

@@ -36,7 +36,7 @@ class TownBattleToonPanel(DirectFrame):
         self.passNode.hide()
         self.laffMeter = None
         self.whichText = DirectLabel(parent=self, text='', pos=(0.1, 0, -0.08), text_scale=0.05)
-        self.statusText = DirectLabel(parent=self, relief=None, text='', pos=(-0.06, 0, -0.12), text_scale=0.045, text_fg=Vec4(1, 0.8, 0.2, 1))
+        self.statusText = DirectLabel(parent=self, relief=None, text='=OK=', pos=(-0.06, 0, -0.13), text_scale=0.06, text_fg=Vec4(0.2, 1.0, 0.3, 1), text_shadow=Vec4(0, 0, 0, 1), text_font=ToontownGlobals.getSignFont())
         self.hide()
         gui.removeNode()
         return
@@ -44,8 +44,12 @@ class TownBattleToonPanel(DirectFrame):
     def setStatusEffects(self, effects):
         if effects:
             self.statusText['text'] = " ".join([f"[{e}]" for e in effects])
+            self.statusText['text_scale'] = 0.042
+            self.statusText['text_fg'] = Vec4(1.0, 0.85, 0.2, 1.0)
         else:
-            self.statusText['text'] = ''
+            self.statusText['text'] = '=OK='
+            self.statusText['text_scale'] = 0.06
+            self.statusText['text_fg'] = Vec4(0.2, 1.0, 0.3, 1.0)
 
     def setLaffMeter(self, avatar):
         self.notify.debug('setLaffMeter: new avatar %s' % avatar.doId)

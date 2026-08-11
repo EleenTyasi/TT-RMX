@@ -31,18 +31,19 @@ class OZHoodDataAI(HoodDataAI.HoodDataAI):
 
     def startup(self):
         HoodDataAI.HoodDataAI.startup(self)
-        if simbase.air.config.GetBool('create-chip-and-dale', 1):
-            chip = DistributedChipAI.DistributedChipAI(self.air)
-            chip.generateWithRequired(self.zoneId)
-            chip.start()
-            self.addDistObj(chip)
-            self.classicChars.append(chip)
-            dale = DistributedDaleAI.DistributedDaleAI(self.air, chip.doId)
-            dale.generateWithRequired(self.zoneId)
-            dale.start()
-            self.addDistObj(dale)
-            self.classicChars.append(dale)
-            chip.setDaleId(dale.doId)
+        # if simbase.air.config.GetBool('create-chip-and-dale', 1):
+        #     chip = DistributedChipAI.DistributedChipAI(self.air)
+        #     chip.generateWithRequired(self.zoneId)
+        #     chip.start()
+        #     self.addDistObj(chip)
+        #     self.classicChars.append(chip)
+        #     dale = DistributedDaleAI.DistributedDaleAI(self.air, chip.doId)
+        #     dale.generateWithRequired(self.zoneId)
+        #     dale.start()
+        #     self.addDistObj(dale)
+        #     self.classicChars.append(dale)
+        #     chip.setDaleId(dale.doId)
+        pass
         self.treasurePlanner = OZTreasurePlannerAI.OZTreasurePlannerAI(self.zoneId)
         self.treasurePlanner.start()
         self.timer = DistributedTimerAI.DistributedTimerAI(self.air)
