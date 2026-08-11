@@ -177,7 +177,7 @@ CRConnecting = 'Connecting...'
 CRNoConnectTryAgain = 'Could not connect to %s:%s. Try again?'
 CRNoConnectProxyNoPort = 'Could not connect to %s:%s.\n\nYou are communicating to the internet via a proxy, but your proxy does not permit connections on port %s.\n\nYou must open up this port, or disable your proxy, in order to play.  If your proxy has been provided by your ISP, you must contact your ISP to request them to open up this port.'
 CRMissingGameRootObject = 'Missing some root game objects.  (May be a failed network connection).\n\nTry again?'
-CRNoDistrictsTryAgain = 'No Districts are available. Try again?'
+CRNoDistrictsTryAgain = 'AI Server is fucked. Try again?'
 CRRejectRemoveAvatar = 'The avatar was not able to be deleted, try again another time.'
 CRLostConnection = 'Your internet connection to the servers has been unexpectedly broken.'
 CRBootedReasons = {
@@ -191,7 +191,7 @@ CRBootedReasons = {
  BootedToonIssue: 'A problem has occurred with your Toon.  If this issue persists, please contact Toontown Online support.',
  BootedKickedForMaintenance: 'You have been logged out by an administrator working on the servers.',
  BootedBanned: "There has been a reported violation of this server's rules connected to '%(name)s'. You have been banned.",
- BootedDistrictReset: 'The district you were playing on has been reset.  Everyone who was playing on that district has been disconnected.  However, you should be able to connect again and go right back into the game.',
+ BootedDistrictReset: 'It appears as if the AI server has died due to a coding issue.',
  BootedOutOfTime: 'Sorry, you have run out of time to play.'
 }
 CRBootedReasonUnknownCode = 'An unexpected problem has occurred (error code %s).  Your connection has been lost, but you should be able to connect again and go right back into the game.'

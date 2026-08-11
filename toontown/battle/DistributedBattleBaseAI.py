@@ -49,14 +49,6 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
         self.toonMerits = {}
         self.toonParts = {}
         self.battleCalc = BattleCalculatorAI.BattleCalculatorAI(self, tutorialFlag)
-
-    def broadcastStatusEffects(self):
-        if not hasattr(self, 'battleCalc') or not self.battleCalc:
-            return
-        for avId in list(self.activeSuits) + list(self.activeToons):
-            eff_map = self.battleCalc.statusEffectMgr.get_active_effects(avId)
-            eff_strings = [f"{eff} ({info['rounds']}r)" for eff, info in eff_map.items()]
-            self.sendUpdate('setStatusEffects', [avId, eff_strings])
         if self.air.suitInvasionManager.getInvading():
             mult = getInvasionMultiplier()
             self.battleCalc.setSkillCreditMultiplier(mult)
@@ -88,10 +80,13 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
          State.State('WaitForJoin', self.enterWaitForJoin, self.exitWaitForJoin, ['WaitForInput', 'Resume']),
          State.State('WaitForInput', self.enterWaitForInput, self.exitWaitForInput, ['MakeMovie', 'Resume']),
          State.State('MakeMovie', self.enterMakeMovie, self.exitMakeMovie, ['PlayMovie', 'Resume']),
-         State.State('PlayMovie', self.enterPlayMovie, self.exitPlayMovie, ['WaitForJoin', 'Reward', 'Resume']),
+         State.State('PlayMovie', self.enterPlayMovie, self.exitPlayMovie, ['WaitForJoin',
+          'Reward',
+          'Resume']),
          State.State('Reward', self.enterReward, self.exitReward, ['Resume']),
          State.State('Resume', self.enterResume, self.exitResume, []),
          State.State('Off', self.enterOff, self.exitOff, ['FaceOff', 'WaitForJoin'])], 'Off', 'Off')
+        self.fsm.enterInitialState()
         self.joinableFsm = ClassicFSM.ClassicFSM('Joinable', [State.State('Joinable', self.enterJoinable, self.exitJoinable, ['Unjoinable']), State.State('Unjoinable', self.enterUnjoinable, self.exitUnjoinable, ['Joinable'])], 'Unjoinable', 'Unjoinable')
         self.joinableFsm.enterInitialState()
         self.runableFsm = ClassicFSM.ClassicFSM('Runable', [State.State('Runable', self.enterRunable, self.exitRunable, ['Unrunable']), State.State('Unrunable', self.enterUnrunable, self.exitUnrunable, ['Runable'])], 'Unrunable', 'Unrunable')
@@ -106,6 +101,20 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
     def clearAttacks(self):
         self.toonAttacks = {}
         self.suitAttacks = getDefaultSuitAttacks()
+
+    def broadcastStatusEffects(self):
+        if not hasattr(self, 'battleCalc') or not self.battleCalc:
+            return
+        for suit in self.activeSuits:
+            avId = getattr(suit, 'doId', suit)
+            eff_map = self.battleCalc.statusEffectMgr.effects.get(avId, {})
+            eff_strings = [f"{eff} ({info['rounds']}r)" for eff, info in eff_map.items()]
+            self.sendUpdate('setStatusEffects', [avId, eff_strings])
+        for toon in self.activeToons:
+            avId = getattr(toon, 'doId', toon)
+            eff_map = self.battleCalc.statusEffectMgr.effects.get(avId, {})
+            eff_strings = [f"{eff} ({info['rounds']}r)" for eff, info in eff_map.items()]
+            self.sendUpdate('setStatusEffects', [avId, eff_strings])
 
     def requestDelete(self):
         if hasattr(self, 'fsm'):
