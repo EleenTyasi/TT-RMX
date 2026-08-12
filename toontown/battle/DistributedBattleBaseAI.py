@@ -674,6 +674,31 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
         self.suitGone = 1
         del suit.battleTrap
 
+        # Increment Cog Kills Count & trigger Trinket unlock / Jellybean rewards
+        import random
+        from toontown.toon.TrinketsConfig import ALL_TRINKET_IDS, get_trinket_info, TRINKET_LUCKY_CHARM
+        for toonId in self.activeToons:
+            toon = self.getToon(toonId)
+            if toon:
+                count = toon.getCogKillsCount() + 1
+                if count >= 5:
+                    count = 0
+                    unlocked = toon.getUnlockedTrinkets()
+                    unowned = [t_id for t_id in ALL_TRINKET_IDS if t_id not in unlocked]
+                    if unowned:
+                        new_trinket = random.choice(unowned)
+                        toon.unlockTrinket(new_trinket)
+                        info = get_trinket_info(new_trinket)
+                        trinket_name = info['name'] if info else f"Trinket #{new_trinket}"
+                        toon.d_setSystemMessage(0, f"+NEW TRINKET UNLOCKED: {trinket_name}!")
+                    else:
+                        jellybeans = 100
+                        if toon.hasTrinketEquipped(TRINKET_LUCKY_CHARM):
+                            jellybeans = 150
+                        toon.addMoney(jellybeans)
+                        toon.d_setSystemMessage(0, f"+{jellybeans} JELLYBEANS!")
+                toon.b_setCogKillsCount(count)
+
     def __removeToon(self, toonId, userAborted = 0):
         self.notify.debug('__removeToon(%d)' % toonId)
         if self.toons.count(toonId) == 0:
@@ -1221,12 +1246,15 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
             if t not in self.toonAttacks:
                 self.toonAttacks[t] = getToonAttack(t)
             attack = self.toonAttacks[t]
-            if attack[TOON_TRACK_COL] == PASS or attack[TOON_TRACK_COL] == UN_ATTACK:
+            if attack[TOON_TRACK_COL] == UN_ATTACK:
                 self.toonAttacks[t] = getToonAttack(t)
-            if self.toonAttacks[t][TOON_TRACK_COL] != NO_ATTACK:
+            if self.toonAttacks[t][TOON_TRACK_COL] != NO_ATTACK and self.toonAttacks[t][TOON_TRACK_COL] != PASS:
                 self.addHelpfulToon(t)
 
         self.battleCalc.calculateRound()
+        for t in self.activeToons:
+            if self.toonAttacks[t][TOON_TRACK_COL] == PASS:
+                self.toonAttacks[t] = getToonAttack(t)
         for t in self.activeToons:
             self.sendEarnedExperience(t)
             toon = self.getToon(t)

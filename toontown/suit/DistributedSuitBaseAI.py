@@ -60,6 +60,21 @@ class DistributedSuitBaseAI(DistributedAvatarAI.DistributedAvatarAI, SuitBase.Su
     def d_setLevelDist(self, level):
         self.sendUpdate('setLevelDist', [level])
 
+    def b_setVariantFlags(self, alphatype, prototype, supertype=0):
+        self.setVariantFlags(alphatype, prototype, supertype)
+        self.d_setVariantFlags(alphatype, prototype, supertype)
+
+    def d_setVariantFlags(self, alphatype, prototype, supertype=0):
+        self.sendUpdate('setVariantFlags', [alphatype, prototype, supertype])
+
+    def setVariantFlags(self, alphatype, prototype, supertype=0):
+        self.isAlphatype = bool(alphatype)
+        self.isPrototype = bool(prototype)
+        self.isSupertype = bool(supertype)
+
+    def getVariantFlags(self):
+        return (1 if getattr(self, 'isAlphatype', False) else 0, 1 if getattr(self, 'isPrototype', False) else 0, 1 if getattr(self, 'isSupertype', False) else 0)
+
     def setupSuitDNA(self, level, type, track):
         dna = SuitDNA.SuitDNA()
         dna.newSuitRandom(type, track)

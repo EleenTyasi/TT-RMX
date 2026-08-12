@@ -3788,13 +3788,21 @@ class DistributedToonAI(DistributedPlayerAI.DistributedPlayerAI, DistributedSmoo
     def getTrinketSlots(self):
         return getattr(self, 'trinketSlots', [0, 0])
 
-    def setTrinketSlots(self, slot1, slot2):
-        self.trinketSlots = [slot1, slot2]
+    def setTrinketSlots(self, slot1=0, slot2=0):
+        if isinstance(slot1, (list, tuple)):
+            self.trinketSlots = [slot1[0], slot1[1]] if len(slot1) >= 2 else [0, 0]
+        else:
+            self.trinketSlots = [slot1, slot2]
 
-    def d_setTrinketSlots(self, slot1, slot2):
-        self.sendUpdate('setTrinketSlots', [slot1, slot2])
+    def d_setTrinketSlots(self, slot1=0, slot2=0):
+        if isinstance(slot1, (list, tuple)):
+            s1 = slot1[0] if len(slot1) >= 1 else 0
+            s2 = slot1[1] if len(slot1) >= 2 else 0
+            self.sendUpdate('setTrinketSlots', [s1, s2])
+        else:
+            self.sendUpdate('setTrinketSlots', [slot1, slot2])
 
-    def b_setTrinketSlots(self, slot1, slot2):
+    def b_setTrinketSlots(self, slot1=0, slot2=0):
         self.setTrinketSlots(slot1, slot2)
         self.d_setTrinketSlots(slot1, slot2)
 

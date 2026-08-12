@@ -48,6 +48,7 @@ class BattleCalculatorAI:
         self.toonSkillPtsGained = {}
         self.traps = {}
         self.npcTraps = {}
+        self.blockingToons = set()
         self.suitAtkStats = {}
         self.__clearBonuses(hp=1)
         self.__clearBonuses(hp=0)
@@ -123,13 +124,17 @@ class BattleCalculatorAI:
         tgtDef = 0
         numLured = 0
         if atkTrack != HEAL:
+            targetDefs = []
             for currTarget in atkTargets:
-                thisSuitDef = self.__targetDefense(currTarget, atkTrack)
+                thisSuitDef = self.__targetDefense(currTarget, atkTrack, atkLevel)
+                targetDefs.append(thisSuitDef)
                 if debug:
                     self.notify.debug('Examining suit def for toon attack: ' + str(thisSuitDef))
-                tgtDef = min(thisSuitDef, tgtDef)
-                if self.__suitIsLured(currTarget.getDoId()):
+                tgtId = currTarget.getDoId()
+                if self.__suitIsLured(tgtId) or (tgtId in self.successfulLures):
                     numLured += 1
+            if targetDefs:
+                tgtDef = min(targetDefs)
 
         trackExp = self.__toonTrackExp(attack[TOON_ID_COL], atkTrack)
         for currOtherAtk in self.toonAtkOrder:
@@ -166,8 +171,7 @@ class BattleCalculatorAI:
                     propAcc += AvLureBonusAccuracy[atkLevel]
             elif treebonus or propBonus:
                 self.notify.debug('using oragnic OR prop bonus lure accuracy')
-                propAcc = AvLureBonusAccuracy[atkLevel]
-        attackAcc = propAcc + trackExp + tgtDef
+        attackAcc = propAcc + trackExp + tgtDef + 40
         currAtk = self.toonAtkOrder.index(attackIndex)
         if currAtk > 0 and atkTrack != HEAL:
             prevAtkId = self.toonAtkOrder[currAtk - 1]
@@ -190,25 +194,26 @@ class BattleCalculatorAI:
         acc = attackAcc + self.__calcToonAccBonus(attackIndex)
         if atkTrack != LURE and atkTrack != HEAL:
             if atkTrack != DROP:
-                if numLured == len(atkTargets):
+                if numLured > 0:
                     if debug:
-                        self.notify.debug('all targets are lured, attack hits')
+                        self.notify.debug('target is lured, attack hits with 100% accuracy')
                     attack[TOON_ACCBONUS_COL] = 0
                     return (1, 100)
-                else:
-                    luredRatio = float(numLured) / float(len(atkTargets))
-                    accAdjust = 100 * luredRatio
-                    if accAdjust > 0 and debug:
-                        self.notify.debug(str(numLured) + ' out of ' + str(len(atkTargets)) + ' targets are lured, so adding ' + str(accAdjust) + ' to attack accuracy')
-                    acc += accAdjust
-            elif numLured == len(atkTargets):
+            elif numLured > 0:
                 if debug:
-                    self.notify.debug('all targets are lured, attack misses')
-                attack[TOON_ACCBONUS_COL] = 0
+                    self.notify.debug('target is lured, drop attack misses')
+                attack[TOON_ACCBONUS_COL] = 1
                 return (0, 0)
+        minAccFloor = [5, 8, 10, 13, 15, 18, 20][min(max(0, atkLevel), 6)]
+        if acc < minAccFloor:
+            acc = minAccFloor
         if acc > MaxToonAcc:
             acc = MaxToonAcc
-        if randChoice < acc:
+        hit = randChoice < acc
+        toonName = toon.getName() if toon else "Toon"
+        trackName = Tracks[atkTrack] if atkTrack < len(Tracks) else f"Track{atkTrack}"
+        print(f"[COMBAT LOG] TOON ATTACK -> Toon: {toonName} | Track: {trackName} Lvl {atkLevel+1} | BaseAcc: {propAcc}% | AccDelta: {tgtDef:+d}% | FinalAcc: {acc}% | Roll: {randChoice} | Result: {'HIT' if hit else 'MISS'}")
+        if hit:
             if debug:
                 self.notify.debug('HIT: Toon attack rolled' + str(randChoice) + 'to hit with an accuracy of' + str(acc))
             attack[TOON_ACCBONUS_COL] = 0
@@ -245,12 +250,23 @@ class BattleCalculatorAI:
             result = True
         return result
 
-    def __targetDefense(self, suit, atkTrack):
+    def __targetDefense(self, suit, atkTrack, atkLevel=0):
         if atkTrack == HEAL:
             return 0
-        suitDef = SuitBattleGlobals.SuitAttributes[suit.dna.name]['def'][suit.getLevel()]
-        suitDef += self.statusEffectMgr.get_defense_mod(suit.doId)
-        return -suitDef
+        
+        gagLevel = atkLevel + 1
+        cogLevel = suit.getActualLevel() if hasattr(suit, 'getActualLevel') else (suit.getLevel() + 1)
+        levelDiff = gagLevel - cogLevel
+
+        if levelDiff > 0:
+            mismatchMod = levelDiff * 5
+        elif levelDiff <= -2:
+            mismatchMod = (levelDiff + 1) * 10
+        else:
+            mismatchMod = 0
+
+        statusDefMod = -self.statusEffectMgr.get_defense_mod(suit.doId)
+        return mismatchMod + statusDefMod
 
     def __createToonTargetList(self, attackIndex):
         attack = self.battle.toonAttacks[attackIndex]
@@ -527,6 +543,7 @@ class BattleCalculatorAI:
                             attackDamage = suit.getHP()
                     else:
                         attackDamage = 0
+                else:
                     bonus = 0
                     from toontown.toon.TrinketsConfig import (
                         TRINKET_ORGANIC_TOONUP, TRINKET_ORGANIC_TRAP, TRINKET_ORGANIC_SOUND,
@@ -1218,14 +1235,19 @@ class BattleCalculatorAI:
             return 0
         atkType = self.battle.suitAttacks[attackIndex][SUIT_ATK_COL]
         atkInfo = SuitBattleGlobals.getSuitAttack(theSuit.dna.name, theSuit.getLevel(), atkType)
+        atkAcc = atkInfo['acc']
+        suitAcc = SuitBattleGlobals.SuitAttributes[theSuit.dna.name]['acc'][theSuit.getLevel()]
         targetIdx = self.battle.suitAttacks[attackIndex][SUIT_TGT_COL]
         targetId = self.battle.activeToons[targetIdx] if (targetIdx >= 0 and targetIdx < len(self.battle.activeToons)) else None
         targetDefMod = self.statusEffectMgr.get_defense_mod(targetId) if targetId else 0
         acc = atkAcc + self.statusEffectMgr.get_accuracy_mod(theSuit.doId) - targetDefMod
         randChoice = random.randint(0, 99)
-        if self.notify.getDebug():
-            self.notify.debug('Suit attack rolled ' + str(randChoice) + ' to hit with an accuracy of ' + str(acc) + ' (attackAcc: ' + str(atkAcc) + ' suitAcc: ' + str(suitAcc) + ')')
-        if randChoice < acc:
+        hit = randChoice < acc
+        accDelta = self.statusEffectMgr.get_accuracy_mod(theSuit.doId) - targetDefMod
+        suitName = theSuit.getName() if hasattr(theSuit, 'getName') else f"Suit #{theSuit.doId}"
+        suitLvl = (theSuit.getActualLevel() if hasattr(theSuit, 'getActualLevel') else theSuit.getLevel() + 1)
+        print(f"[COMBAT LOG] ENEMY ATTACK -> Suit: {suitName} Lvl {suitLvl} | Attack: {atkInfo['name']} | BaseAcc: {atkAcc}% | AccDelta: {accDelta:+d}% | FinalAcc: {acc}% | Roll: {randChoice} | Result: {'HIT' if hit else 'MISS'}")
+        if hit:
             return 1
         return 0
 
@@ -1273,14 +1295,17 @@ class BattleCalculatorAI:
                 atkInfo = SuitBattleGlobals.getSuitAttack(theSuit.dna.name, theSuit.getLevel(), atkType)
                 raw_hp = atkInfo['hp']
                 from toontown.battle.CritGlobals import roll_hit_type, HIT_TYPE_NAMES, HIT_NORMAL
-                hit_type, crit_mult = roll_hit_type(is_toon=False)
-                result = int(raw_hp * crit_mult * self.statusEffectMgr.get_damage_multiplier(toonId))
+                is_skelecog = getattr(theSuit, 'isSkelecogVariant', False) or getattr(theSuit, 'isSkelecog', False)
+                hit_type, crit_mult = roll_hit_type(is_toon=False, is_skelecog=is_skelecog)
+                dmg_mult = self.statusEffectMgr.get_damage_multiplier(toonId)
+                if getattr(theSuit, 'isAlphatype', False) or getattr(theSuit, 'isSupertype', False):
+                    dmg_mult *= 1.3
+                result = int(raw_hp * crit_mult * dmg_mult)
                 if hit_type != HIT_NORMAL:
-                    result = max(result + 1, int(math.ceil(raw_hp * crit_mult * self.statusEffectMgr.get_damage_multiplier(toonId))))
+                    result = max(result + 1, int(math.ceil(raw_hp * crit_mult * dmg_mult)))
                 
                 # Check if target Toon is BLOCKING (PASS action)
-                toonAtk = self.battle.toonAttacks.get(toonId)
-                if toonAtk and toonAtk[TOON_TRACK_COL] == PASS:
+                if toonId in self.blockingToons:
                     result = int(result * 0.5)
                     hit_type = 4 if result > 0 else 5
 
@@ -1426,6 +1451,10 @@ class BattleCalculatorAI:
     def __initRound(self):
         if self.CLEAR_SUIT_ATTACKERS:
             self.SuitAttackers = {}
+        self.blockingToons = set()
+        for toonId, attack in list(self.battle.toonAttacks.items()):
+            if attack[TOON_TRACK_COL] == PASS:
+                self.blockingToons.add(toonId)
         self.toonAtkOrder = []
         attacks = findToonAttack(self.battle.activeToons, self.battle.toonAttacks, PETSOS)
         for atk in attacks:

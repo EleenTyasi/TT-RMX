@@ -2080,8 +2080,11 @@ class DistributedToon(DistributedPlayer.DistributedPlayer, Toon.Toon, Distribute
     def getTrinketSlots(self):
         return getattr(self, 'trinketSlots', [0, 0])
 
-    def setTrinketSlots(self, slot1, slot2):
-        self.trinketSlots = [slot1, slot2]
+    def setTrinketSlots(self, slot1=0, slot2=0):
+        if isinstance(slot1, (list, tuple)):
+            self.trinketSlots = [slot1[0], slot1[1]] if len(slot1) >= 2 else [0, 0]
+        else:
+            self.trinketSlots = [slot1, slot2]
 
     def getUnlockedTrinkets(self):
         return getattr(self, 'unlockedTrinkets', [])

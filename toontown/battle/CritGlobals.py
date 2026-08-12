@@ -33,14 +33,14 @@ HIT_TYPE_NAMES = {
     HIT_CRIT_DIRECT: "CRIT_DIRECT_HIT",
 }
 
-def roll_hit_type(is_toon=True):
+def roll_hit_type(is_toon=True, is_skelecog=False):
     """
     Rolls for hit type:
     Returns (hit_type_code, multiplier)
     """
     crit_d_chance = TOON_CRIT_DIRECT_CHANCE if is_toon else COG_CRIT_DIRECT_CHANCE
     direct_chance = TOON_DIRECT_CHANCE if is_toon else COG_DIRECT_CHANCE
-    crit_chance = TOON_CRIT_CHANCE if is_toon else COG_CRIT_CHANCE
+    crit_chance = TOON_CRIT_CHANCE if is_toon else (15 if is_skelecog else COG_CRIT_CHANCE)
 
     roll = random.randint(1, 100)
 

@@ -980,6 +980,10 @@ dclass DistributedToon : DistributedPlayer {
   setMoney(int16 = 0) required broadcast ownrecv db;
   setMaxHp(int16 = 15) required broadcast ownrecv db;
   setHp(int16 = 15) required broadcast ownrecv db;
+  setTrinketSlots(int16 = 0, int16 = 0) required broadcast ownrecv db;
+  setUnlockedTrinkets(int16[] = []) required broadcast ownrecv db;
+  setCogKillsCount(uint16 = 0) required broadcast ownrecv db;
+  requestEquipTrinket(uint8, int16) airecv clsend;
   toonUp(uint16) broadcast ownrecv;
   takeDamage(uint16) broadcast ownrecv;
   setBattleId(uint32 = 0) required broadcast ram;
@@ -1267,6 +1271,7 @@ dclass DistributedSuitBase : DistributedObject {
   setSkelecog(uint8) required broadcast ram;
   setSkeleRevives(uint8) required broadcast ram;
   setHP(int16) required broadcast ram;
+  setVariantFlags(uint8 = 0, uint8 = 0, uint8 = 0) required broadcast ram;
 };
 
 dclass DistributedSuit : DistributedSuitBase {

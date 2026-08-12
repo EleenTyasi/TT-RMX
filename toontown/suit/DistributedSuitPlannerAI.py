@@ -394,6 +394,41 @@ class DistributedSuitPlannerAI(DistributedObjectAI.DistributedObjectAI, SuitPlan
                 suitLevel = self.SuitHoodInfo[self.hoodInfoIdx][self.SUIT_HOOD_INFO_LVL][-1] + 1
         suitLevel, suitType, suitTrack = self.pickLevelTypeAndTrack(suitLevel, suitType, suitTrack)
         newSuit.setupSuitDNA(suitLevel, suitType, suitTrack)
+
+        # --- 5% Special Cog Variant Roll ---
+        if not skelecog and not revives and random.randint(1, 100) <= 5:
+            variant_roll = random.randint(1, 100)
+            if variant_roll <= 5:  # Supertype (5% of special spawns -> RARE)
+                newSuit.isSupertype = True
+                newSuit.isV20 = True
+                newSuit.isPrototype = True
+                newSuit.isAlphatype = True
+                skelecog = 0
+                revives = 1
+                newSuit.maxHP *= 2
+                newSuit.currHP = newSuit.maxHP
+                if hasattr(simbase.air, 'newsManager') and simbase.air.newsManager:
+                    simbase.air.newsManager.sendUpdateToZone(self.zoneId, 'sendSystemMessage', [f"DANGEROUS ENEMY DETECTED: A Level {suitLevel+1} Supertype Cog has appeared on this street!", 0])
+                print(f"[SPECIAL SPAWN] SUPERTYPE COG SPAWNED in zone {self.zoneId} (Lvl {suitLevel+1}, 2x HP: {newSuit.maxHP}, Alphatype +30% Dmg, v2.0 Skelecog inside)!")
+            elif variant_roll <= 28: # v2.0 Cog
+                newSuit.isV20 = True
+                revives = 1
+                print(f"[SPECIAL SPAWN] v2.0 Cog spawned in zone {self.zoneId} (Lvl {suitLevel+1})")
+            elif variant_roll <= 52: # Prototype (Double HP)
+                newSuit.isPrototype = True
+                newSuit.maxHP *= 2
+                newSuit.currHP = newSuit.maxHP
+                print(f"[SPECIAL SPAWN] Prototype Cog spawned in zone {self.zoneId} (Lvl {suitLevel+1}, 2x HP: {newSuit.maxHP})")
+            elif variant_roll <= 76: # Alphatype (+30% attack damage)
+                newSuit.isAlphatype = True
+                print(f"[SPECIAL SPAWN] Alphatype Cog spawned in zone {self.zoneId} (Lvl {suitLevel+1}, +30% Attack Damage)")
+            else: # Skelecog
+                newSuit.isSkelecogVariant = True
+                skelecog = 1
+                newSuit.maxHP = max(1, int(newSuit.maxHP * 0.75))
+                newSuit.currHP = newSuit.maxHP
+                print(f"[SPECIAL SPAWN] Skelecog spawned in zone {self.zoneId} (Lvl {suitLevel+1}, 0.75x HP: {newSuit.maxHP}, +10% Crit Chance)")
+
         newSuit.buildingHeight = buildingHeight
         gotDestination = self.chooseDestination(newSuit, startTime, toonBlockTakeover=toonBlockTakeover, cogdoTakeover=cogdoTakeover, minPathLen=minPathLen, maxPathLen=maxPathLen)
         if not gotDestination:
@@ -407,6 +442,11 @@ class DistributedSuitPlannerAI(DistributedObjectAI.DistributedObjectAI, SuitPlan
             newSuit.setSkelecog(skelecog)
         if revives:
             newSuit.setSkeleRevives(revives)
+        newSuit.b_setVariantFlags(
+            1 if getattr(newSuit, 'isAlphatype', False) else 0,
+            1 if getattr(newSuit, 'isPrototype', False) else 0,
+            1 if getattr(newSuit, 'isSupertype', False) else 0
+        )
         newSuit.generateWithRequired(newSuit.zoneId)
         newSuit.moveToNextLeg(None)
         self.suitList.append(newSuit)

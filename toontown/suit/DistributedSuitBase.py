@@ -65,22 +65,43 @@ class DistributedSuitBase(DistributedAvatar.DistributedAvatar, Suit.Suit, SuitBa
     def getVirtual(self):
         return 0
 
+    def setVariantFlags(self, isAlphatype, isPrototype, isSupertype=0):
+        self.isAlphatype = bool(isAlphatype)
+        self.isPrototype = bool(isPrototype)
+        self.isSupertype = bool(isSupertype)
+        self.updateNameText()
+
+    def getVariantFlags(self):
+        return (1 if getattr(self, 'isAlphatype', False) else 0, 1 if getattr(self, 'isPrototype', False) else 0, 1 if getattr(self, 'isSupertype', False) else 0)
+
+    def updateNameText(self):
+        levelStr = str(self.getActualLevel())
+        if getattr(self, 'isSupertype', False):
+            levelStr += '.S'
+        elif getattr(self, 'isAlphatype', False) and getattr(self, 'isPrototype', False):
+            levelStr += '.A.P'
+        elif getattr(self, 'isAlphatype', False):
+            levelStr += '.A'
+        elif getattr(self, 'isPrototype', False):
+            levelStr += '.P'
+
+        if self.getSkeleRevives() > 0:
+            levelStr += TTLocalizer.SkeleRevivePostFix
+
+        nameInfo = TTLocalizer.SuitBaseNameWithLevel % {
+            'name': self._name,
+            'dept': self.getStyleDept(),
+            'level': levelStr
+        }
+        self.setDisplayName(nameInfo)
+
     def setSkeleRevives(self, num):
         if num == None:
             num = 0
         self.skeleRevives = num
         if num > self.maxSkeleRevives:
             self.maxSkeleRevives = num
-        if self.getSkeleRevives() > 0:
-            nameInfo = TTLocalizer.SuitBaseNameWithLevel % {'name': self._name,
-             'dept': self.getStyleDept(),
-             'level': '%s%s' % (self.getActualLevel(), TTLocalizer.SkeleRevivePostFix)}
-            self.setDisplayName(nameInfo)
-        else:
-            nameInfo = TTLocalizer.SuitBaseNameWithLevel % {'name': self._name,
-             'dept': self.getStyleDept(),
-             'level': self.getActualLevel()}
-            self.setDisplayName(nameInfo)
+        self.updateNameText()
         return
 
     def getSkeleRevives(self):
