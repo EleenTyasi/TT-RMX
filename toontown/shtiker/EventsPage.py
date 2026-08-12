@@ -15,11 +15,11 @@ class EventsPage(ShtikerPage.ShtikerPage):
 
     def __init__(self):
         ShtikerPage.ShtikerPage.__init__(self)
-        self.title = None
-        self.slot1Frame = None
-        self.slot2Frame = None
+        self.titleLabel = None
+        self.leftFrame = None
+        self.rightFrame = None
+        self.guiModels = None
         self.inventoryList = None
-        self.progressLabel = None
 
     def load(self):
         ShtikerPage.ShtikerPage.load(self)
@@ -90,17 +90,15 @@ class EventsPage(ShtikerPage.ShtikerPage):
         )
 
         self.guiModels = loader.loadModel('phase_3.5/models/gui/friendslist_gui')
+        scrollUp = self.guiModels.find('**/FndsLst_ScrollUp')
+        scrollDown = self.guiModels.find('**/FndsLst_ScrollDN')
+        scrollRollover = self.guiModels.find('**/FndsLst_ScrollUp_Rllvr')
+
         self.inventoryList = DirectScrolledList(
             parent=self.rightFrame, relief=None, pos=(0, 0, -0.05),
-            incButton_image=(self.guiModels.find('**/Fren_ScrollDownFrenUp'),
-                             self.guiModels.find('**/Fren_ScrollDownFrenDown'),
-                             self.guiModels.find('**/Fren_ScrollDownFrenRollover'),
-                             self.guiModels.find('**/Fren_ScrollDownFrenDisabled')),
+            incButton_image=(scrollUp, scrollDown, scrollRollover, scrollUp),
             incButton_relief=None, incButton_pos=(0, 0, -0.42), incButton_scale=(1.0, 1.0, -1.0),
-            decButton_image=(self.guiModels.find('**/Fren_ScrollDownFrenUp'),
-                             self.guiModels.find('**/Fren_ScrollDownFrenDown'),
-                             self.guiModels.find('**/Fren_ScrollDownFrenRollover'),
-                             self.guiModels.find('**/Fren_ScrollDownFrenDisabled')),
+            decButton_image=(scrollUp, scrollDown, scrollRollover, scrollUp),
             decButton_relief=None, decButton_pos=(0, 0, 0.38),
             itemFrame_pos=(0, 0, 0), itemFrame_relief=None, numItemsVisible=4
         )
