@@ -52,6 +52,12 @@ class StatusEffectManager:
             del self.effects[avatar_id][effect_name]
             self.notify.info(f"Removed status effect '{effect_name}' from avatar {avatar_id}.")
 
+    def clear_avatar(self, avatar_id):
+        if avatar_id in self.effects:
+            for eff_name in list(self.effects[avatar_id].keys()):
+                self.remove_effect(avatar_id, eff_name)
+            del self.effects[avatar_id]
+
     def has_effect(self, avatar_id, effect_name):
         return avatar_id in self.effects and effect_name in self.effects[avatar_id]
 
@@ -99,7 +105,7 @@ class StatusEffectManager:
     def tick_round(self):
         """
         Ticks down all active status durations by 1 round.
-        Returns a dictionary of {avatar_id: poison_damage} for any active POISON ticks.
+        Returns a dictionary of {avatar_id: (poison_damage, hit_type)} for any active POISON ticks.
         """
         poison_ticks = {}
         expired = []
@@ -109,7 +115,11 @@ class StatusEffectManager:
                 if 'inst' in info:
                     dmg = info['inst'].on_turn_end(self)
                     if dmg:
-                        poison_ticks[avatar_id] = poison_ticks.get(avatar_id, 0) + dmg
+                        from toontown.battle.CritGlobals import roll_hit_type
+                        is_toon_target = (avatar_id >= 100000000)
+                        hit_type, crit_mult = roll_hit_type(is_toon=not is_toon_target)
+                        final_dmg = int(dmg * crit_mult)
+                        poison_ticks[avatar_id] = (final_dmg, hit_type)
 
                 info['rounds'] -= 1
                 if info['rounds'] <= 0:

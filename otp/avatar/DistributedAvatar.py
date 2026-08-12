@@ -112,14 +112,14 @@ class DistributedAvatar(DistributedActor, Avatar):
             self.hpChange(quietly=0)
         return
 
-    def takeDamage(self, hpLost, bonus = 0):
+    def takeDamage(self, hpLost, bonus = 0, crit_type = 0):
         if self.hp == None or hpLost < 0:
             return
         oldHp = self.hp
         self.hp = max(self.hp - hpLost, 0)
         hpLost = oldHp - self.hp
         if hpLost > 0:
-            self.showHpText(-hpLost, bonus)
+            self.showHpText(-hpLost, bonus, crit_type=crit_type)
             self.hpChange(quietly=0)
             if self.hp <= 0 and oldHp > 0:
                 self.died()
@@ -166,7 +166,7 @@ class DistributedAvatar(DistributedActor, Avatar):
 
         return Avatar.setName(self, name)
 
-    def showHpText(self, number, bonus = 0, scale = 1):
+    def showHpText(self, number, bonus = 0, scale = 1, crit_type = 0):
         if self.HpTextEnabled and not self.ghostMode:
             if number != 0:
                 if self.hpText:
@@ -176,8 +176,12 @@ class DistributedAvatar(DistributedActor, Avatar):
                     self.HpTextGenerator.setText(str(number))
                 else:
                     self.HpTextGenerator.setText('+' + str(number))
+                _CRIT_LABELS = {1: '\nCritical!', 2: '\nDirect Hit!', 3: '\nCrit Direct!'}
+                if crit_type in _CRIT_LABELS:
+                    self.HpTextGenerator.setText(self.HpTextGenerator.getText() + _CRIT_LABELS[crit_type])
                 self.HpTextGenerator.clearShadow()
                 self.HpTextGenerator.setAlign(TextNode.ACenter)
+                self.HpTextGenerator.setWordwrap(0)
                 if bonus == 1:
                     r = 1.0
                     g = 1.0
@@ -187,6 +191,21 @@ class DistributedAvatar(DistributedActor, Avatar):
                     r = 1.0
                     g = 0.5
                     b = 0
+                    a = 1
+                elif crit_type == 1:  # Critical — gold
+                    r = 1.0
+                    g = 0.84
+                    b = 0.0
+                    a = 1
+                elif crit_type == 2:  # Direct Hit — cyan
+                    r = 0.0
+                    g = 0.9
+                    b = 1.0
+                    a = 1
+                elif crit_type == 3:  # Crit Direct — magenta
+                    r = 1.0
+                    g = 0.2
+                    b = 1.0
                     a = 1
                 elif number < 0:
                     r = 0.9
@@ -208,7 +227,7 @@ class DistributedAvatar(DistributedActor, Avatar):
                 self.hpTextSeq = Sequence(self.hpText.posInterval(1.0, Point3(0, 0, self.height + 1.5), blendType='easeOut'), Wait(0.85), self.hpText.colorInterval(0.1, Vec4(r, g, b, 0)), Func(self.hideHpText))
                 self.hpTextSeq.start()
 
-    def showHpString(self, text, duration = 0.85, scale = 0.7):
+    def showHpString(self, text, duration = 0.85, scale = 0.7, color = (1.0, 0.0, 0.0, 1.0)):
         if self.HpTextEnabled and not self.ghostMode:
             if text != '':
                 if self.hpText:
@@ -217,8 +236,7 @@ class DistributedAvatar(DistributedActor, Avatar):
                 self.HpTextGenerator.setText(text)
                 self.HpTextGenerator.clearShadow()
                 self.HpTextGenerator.setAlign(TextNode.ACenter)
-                r = a = 1.0
-                g = b = 0.0
+                r, g, b, a = color
                 self.HpTextGenerator.setTextColor(r, g, b, a)
                 self.hpTextNode = self.HpTextGenerator.generate()
                 self.hpText = self.attachNewNode(self.hpTextNode)

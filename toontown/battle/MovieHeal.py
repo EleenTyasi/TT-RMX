@@ -83,7 +83,7 @@ def __returnToBase(heal):
     return Sequence(a, b, c, d)
 
 
-def __healToon(toon, hp, ineffective, hasInteractivePropHealBonus):
+def __healToon(toon, hp, ineffective, hasInteractivePropHealBonus, crit_type = 0):
     notify.debug('healToon() - toon: %d hp: %d ineffective: %d' % (toon.doId, hp, ineffective))
     if ineffective == 1:
         laughter = random.choice(TTLocalizer.MovieHealLaughterMisses)
@@ -95,7 +95,7 @@ def __healToon(toon, hp, ineffective, hasInteractivePropHealBonus):
             laughter = random.choice(TTLocalizer.MovieHealLaughterHits1)
     toon.setChatAbsolute(laughter, CFSpeech | CFTimeout)
     if hp > 0 and toon.hp != None:
-        toon.toonUp(hp, hasInteractivePropHealBonus)
+        toon.toonUp(hp, hasInteractivePropHealBonus, crit_type=crit_type)
     else:
         notify.debug('__healToon() - toon: %d hp: %d' % (toon.doId, hp))
     return
@@ -130,6 +130,7 @@ def __healTickle(heal, hasInteractivePropHealBonus):
     hp = heal['target']['hp']
     ineffective = heal['sidestep']
     level = heal['level']
+    crit_type = heal.get('crit_type', 0)
     track = Sequence(__runToHealSpot(heal))
     feather = globalPropPool.getProp('feather')
     feather2 = MovieUtil.copyProp(feather)
@@ -157,7 +158,7 @@ def __healTickle(heal, hasInteractivePropHealBonus):
     dFeatherScaleDown = 0.5
     featherTrack = Parallel(MovieUtil.getActorIntervals(feathers, 'feather'), Sequence(Wait(tFeatherScaleUp), Func(MovieUtil.showProps, feathers, hands), Func(scaleFeathers, feathers), MovieUtil.getScaleIntervals(feathers, dFeatherScaleUp, MovieUtil.PNT3_NEARZERO, feathers[0].getScale)), Sequence(Wait(toon.getDuration('tickle') - dFeatherScaleDown), MovieUtil.getScaleIntervals(feathers, dFeatherScaleDown, None, MovieUtil.PNT3_NEARZERO)))
     tHeal = 3.0
-    mtrack = Parallel(featherTrack, ActorInterval(toon, 'tickle'), __getSoundTrack(level, 1, node=toon), Sequence(Wait(tHeal), Func(__healToon, target, hp, ineffective, hasInteractivePropHealBonus), ActorInterval(target, 'cringe', startTime=20.0 / target.getFrameRate('cringe'))))
+    mtrack = Parallel(featherTrack, ActorInterval(toon, 'tickle'), __getSoundTrack(level, 1, node=toon), Sequence(Wait(tHeal), Func(__healToon, target, hp, ineffective, hasInteractivePropHealBonus, crit_type), ActorInterval(target, 'cringe', startTime=20.0 / target.getFrameRate('cringe'))))
     track.append(mtrack)
     track.append(Func(MovieUtil.removeProps, feathers))
     track.append(__returnToBase(heal))
@@ -177,6 +178,7 @@ def __healJoke(heal, hasInteractivePropHealBonus):
     targets = heal['target']
     ineffective = heal['sidestep']
     level = heal['level']
+    crit_type = heal.get('crit_type', 0)
     jokeIndex = heal['hpbonus'] % len(HealJokes.toonHealJokes)
     if npcId != 0:
         track = Sequence(MovieNPCSOS.teleportIn(heal, toon))
@@ -207,7 +209,7 @@ def __healJoke(heal, hasInteractivePropHealBonus):
     for target in targets:
         targetToon = target['toon']
         hp = target['hp']
-        reactTrack.append(Func(__healToon, targetToon, hp, ineffective, hasInteractivePropHealBonus))
+        reactTrack.append(Func(__healToon, targetToon, hp, ineffective, hasInteractivePropHealBonus, crit_type))
 
     reactTrack.append(Wait(dTargetLaugh))
     for target in targets:
@@ -229,6 +231,7 @@ def __healSmooch(heal, hasInteractivePropHealBonus):
     level = heal['level']
     hp = heal['target']['hp']
     ineffective = heal['sidestep']
+    crit_type = heal.get('crit_type', 0)
     track = Sequence(__runToHealSpot(heal))
     lipstick = globalPropPool.getProp('lipstick')
     lipstick2 = MovieUtil.copyProp(lipstick)
@@ -250,7 +253,7 @@ def __healSmooch(heal, hasInteractivePropHealBonus):
 
     lipsTrack = Sequence(Wait(tLips), Func(MovieUtil.showProp, lips, render, getLipPos), Func(lips.setBillboardPointWorld), LerpScaleInterval(lips, dScale, Point3(3, 3, 3), startScale=MovieUtil.PNT3_NEARZERO), Wait(tThrow - tLips - dScale), LerpPosInterval(lips, dThrow, Point3(target.getPos() + Point3(0, 0, target.getHeight()))), Func(MovieUtil.removeProp, lips))
     delay = tThrow + dThrow
-    mtrack = Parallel(lipstickTrack, lipsTrack, __getSoundTrack(level, 2, node=toon), Sequence(ActorInterval(toon, 'smooch'), *__returnToBase(heal)), Sequence(Wait(delay), ActorInterval(target, 'conked')), Sequence(Wait(delay), Func(__healToon, target, hp, ineffective, hasInteractivePropHealBonus)))
+    mtrack = Parallel(lipstickTrack, lipsTrack, __getSoundTrack(level, 2, node=toon), Sequence(ActorInterval(toon, 'smooch'), *__returnToBase(heal)), Sequence(Wait(delay), ActorInterval(target, 'conked')), Sequence(Wait(delay), Func(__healToon, target, hp, ineffective, hasInteractivePropHealBonus, crit_type)))
     track.append(mtrack)
     track.append(Func(target.clearChat))
     return track
@@ -268,6 +271,7 @@ def __healDance(heal, hasInteractivePropHealBonus):
     targets = heal['target']
     ineffective = heal['sidestep']
     level = heal['level']
+    crit_type = heal.get('crit_type', 0)
     if npcId != 0:
         track = Sequence(MovieNPCSOS.teleportIn(heal, toon))
     else:
@@ -278,7 +282,7 @@ def __healDance(heal, hasInteractivePropHealBonus):
     for target in targets:
         targetToon = target['toon']
         hp = target['hp']
-        reactIval = Func(__healToon, targetToon, hp, ineffective, hasInteractivePropHealBonus)
+        reactIval = Func(__healToon, targetToon, hp, ineffective, hasInteractivePropHealBonus, crit_type)
         if first:
             targetTrack.append(Wait(delay))
             first = 0
@@ -315,6 +319,7 @@ def __healSprinkle(heal, hasInteractivePropHealBonus):
     hp = heal['target']['hp']
     ineffective = heal['sidestep']
     level = heal['level']
+    crit_type = heal.get('crit_type', 0)
     track = Sequence(__runToHealSpot(heal))
     sprayEffect = BattleParticles.createParticleEffect(file='pixieSpray')
     dropEffect = BattleParticles.createParticleEffect(file='pixieDrop')
@@ -332,7 +337,7 @@ def __healSprinkle(heal, hasInteractivePropHealBonus):
         toon.headsUp(render, targetPoint)
 
     delay = 2.5
-    mtrack = Parallel(__getPartTrack(sprayEffect, 1.5, 0.5, [sprayEffect, toon, 0]), __getPartTrack(dropEffect, 1.9, 2.0, [dropEffect, target, 0]), __getPartTrack(explodeEffect, 2.7, 1.0, [explodeEffect, toon, 0]), __getPartTrack(poofEffect, 3.4, 1.0, [poofEffect, target, 0]), __getPartTrack(wallEffect, 4.05, 1.2, [wallEffect, toon, 0]), __getSoundTrack(level, 2, duration=4.1, node=toon), Sequence(Func(face90), ActorInterval(toon, 'sprinkle-dust')), Sequence(Wait(delay), Func(__healToon, target, hp, ineffective, hasInteractivePropHealBonus)))
+    mtrack = Parallel(__getPartTrack(sprayEffect, 1.5, 0.5, [sprayEffect, toon, 0]), __getPartTrack(dropEffect, 1.9, 2.0, [dropEffect, target, 0]), __getPartTrack(explodeEffect, 2.7, 1.0, [explodeEffect, toon, 0]), __getPartTrack(poofEffect, 3.4, 1.0, [poofEffect, target, 0]), __getPartTrack(wallEffect, 4.05, 1.2, [wallEffect, toon, 0]), __getSoundTrack(level, 2, duration=4.1, node=toon), Sequence(Func(face90), ActorInterval(toon, 'sprinkle-dust')), Sequence(Wait(delay), Func(__healToon, target, hp, ineffective, hasInteractivePropHealBonus, crit_type)))
     track.append(mtrack)
     track.append(__returnToBase(heal))
     track.append(Func(target.clearChat))
@@ -351,6 +356,7 @@ def __healJuggle(heal, hasInteractivePropHealBonus):
     targets = heal['target']
     ineffective = heal['sidestep']
     level = heal['level']
+    crit_type = heal.get('crit_type', 0)
     if npcId != 0:
         track = Sequence(MovieNPCSOS.teleportIn(heal, toon))
     else:
@@ -361,7 +367,7 @@ def __healJuggle(heal, hasInteractivePropHealBonus):
     for target in targets:
         targetToon = target['toon']
         hp = target['hp']
-        reactIval = Func(__healToon, targetToon, hp, ineffective, hasInteractivePropHealBonus)
+        reactIval = Func(__healToon, targetToon, hp, ineffective, hasInteractivePropHealBonus, crit_type)
         if first == 1:
             targetTrack.append(Wait(delay))
             first = 0
@@ -399,6 +405,7 @@ def __healDive(heal, hasInteractivePropHealBonus):
     targets = heal['target']
     ineffective = heal['sidestep']
     level = heal['level']
+    crit_type = heal.get('crit_type', 0)
     if npcId != 0:
         track = Sequence(MovieNPCSOS.teleportIn(heal, toon))
     else:
@@ -409,7 +416,7 @@ def __healDive(heal, hasInteractivePropHealBonus):
     for target in targets:
         targetToon = target['toon']
         hp = target['hp']
-        reactIval = Func(__healToon, targetToon, hp, ineffective, hasInteractivePropHealBonus)
+        reactIval = Func(__healToon, targetToon, hp, ineffective, hasInteractivePropHealBonus, crit_type)
         if first == 1:
             targetTrack.append(Wait(delay))
             first = 0

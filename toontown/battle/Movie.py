@@ -24,6 +24,7 @@ from direct.directnotify import DirectNotifyGlobal
 from . import RewardPanel
 import random
 from . import MovieUtil
+from . import MovieCamera
 from toontown.toon import Toon
 from toontown.toonbase import ToontownGlobals
 from toontown.toontowngui import TTDialog
@@ -244,6 +245,10 @@ class Movie(DirectObject.DirectObject):
         if sattacks:
             ptrack.append(sattacks)
             camtrack.append(scam)
+        debuffticks, debuffcam = self.__doDebuffTicks()
+        if debuffticks:
+            ptrack.append(debuffticks)
+            camtrack.append(debuffcam)
         ptrack.append(Func(callback))
         self._deleteTrack()
         self.track = Sequence(ptrack, name='movie-track-%d' % self.battle.doId)
@@ -760,7 +765,8 @@ class Movie(DirectObject.DirectObject):
                             adict['target'] = [sdict]
                         else:
                             adict['target'] = sdict
-                adict['hpbonus'] = ta[TOON_HPBONUS_COL]
+                adict['crit_type'] = (ta[TOON_HPBONUS_COL] >> 12) & 0x3
+                adict['hpbonus'] = ta[TOON_HPBONUS_COL] & 0xFFF
                 adict['sidestep'] = ta[TOON_ACCBONUS_COL]
                 if 'npcId' in adict:
                     adict['sidestep'] = 0
@@ -834,6 +840,7 @@ class Movie(DirectObject.DirectObject):
                             tdict = {}
                             tdict['toon'] = target
                             tdict['hp'] = hps[targetIndex]
+                            tdict['crit_type'] = (sa[SUIT_BEFORE_TOONS_COL] >> (targetIndex * 2)) & 0x3
                             self.notify.debug('DAMAGE: toon: %d hit for hp: %d' % (target.doId, hps[targetIndex]))
                             toonDied = sa[TOON_DIED_COL] & 1 << targetIndex
                             tdict['died'] = toonDied
@@ -853,6 +860,7 @@ class Movie(DirectObject.DirectObject):
                     tdict = {}
                     tdict['toon'] = target
                     tdict['hp'] = hps[targetIndex]
+                    tdict['crit_type'] = (sa[SUIT_BEFORE_TOONS_COL] >> (targetIndex * 2)) & 0x3
                     self.notify.debug('DAMAGE: toon: %d hit for hp: %d' % (target.doId, hps[targetIndex]))
                     toonDied = sa[TOON_DIED_COL] & 1 << targetIndex
                     tdict['died'] = toonDied
@@ -909,3 +917,33 @@ class Movie(DirectObject.DirectObject):
         else:
             return (None, None)
         return
+
+    def __doDebuffTicks(self):
+        ticksTrack = Parallel()
+        camTrack = Sequence()
+        for suit in self.battle.activeSuits:
+            if hasattr(suit, 'poisonTick') and suit.poisonTick:
+                dmg, crit_type = suit.poisonTick
+                suit.poisonTick = None
+                suitTrack = Sequence()
+                showDamage = Func(suit.showHpText, -dmg, crit_type=crit_type)
+                updateHP = Func(suit.updateHealthBar, dmg)
+                anim = ActorInterval(suit, 'squirt-small-react')
+                suitTrack.append(Parallel(showDamage, updateHP, anim))
+                suitTrack.append(Func(suit.loop, 'neutral'))
+                ticksTrack.append(suitTrack)
+        for toon in self.battle.activeToons:
+            if hasattr(toon, 'poisonTick') and toon.poisonTick:
+                dmg, crit_type = toon.poisonTick
+                toon.poisonTick = None
+                toonTrack = Sequence()
+                showDamage = Func(toon.showHpText, -dmg, crit_type=crit_type)
+                anim = ActorInterval(toon, 'cringe')
+                toonTrack.append(Parallel(showDamage, anim))
+                toonTrack.append(Func(toon.loop, 'neutral'))
+                ticksTrack.append(toonTrack)
+        if len(ticksTrack) > 0:
+            dur = ticksTrack.getDuration()
+            camTrack.append(MovieCamera.allGroupShot(None, dur))
+            return ticksTrack, camTrack
+        return None, None

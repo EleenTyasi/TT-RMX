@@ -393,9 +393,10 @@ def __createSuitTrack(drop, delay, level, alreadyDodged, alreadyTeased, target, 
     rightSuits = target['rightSuits']
     kbbonus = target['kbbonus']
     hpbonus = drop['hpbonus']
+    crit_type = drop.get('crit_type', 0)
     if hp > 0:
         suitTrack = Sequence()
-        showDamage = Func(suit.showHpText, -hp, openEnded=0)
+        showDamage = Func(suit.showHpText, -hp, openEnded=0, crit_type=crit_type)
         updateHealthBar = Func(suit.updateHealthBar, hp)
         if majorObject:
             anim = 'flatten'
@@ -412,7 +413,7 @@ def __createSuitTrack(drop, delay, level, alreadyDodged, alreadyTeased, target, 
         suitTrack.append(suitGettingHit)
         bonusTrack = None
         if hpbonus > 0:
-            bonusTrack = Sequence(Wait(delay + tObjectAppears + 0.75), Func(suit.showHpText, -hpbonus, 1, openEnded=0))
+            bonusTrack = Sequence(Wait(delay + tObjectAppears + 0.75), Func(suit.showHpText, -hpbonus, 1, openEnded=0, crit_type=crit_type))
         if revived != 0:
             suitTrack.append(MovieUtil.createSuitReviveTrack(suit, toon, battle, npcs))
         elif died != 0:

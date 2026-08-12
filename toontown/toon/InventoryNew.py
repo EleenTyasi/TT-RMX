@@ -306,7 +306,10 @@ class InventoryNew(InventoryBase.InventoryBase, DirectFrame):
         accString = f"{accVal}%"
         from toontown.battle.StatusEffectsConfig import GAG_TRACK_STATUS_EFFECTS
         statusInfo = GAG_TRACK_STATUS_EFFECTS.get(track, None)
-        if statusInfo:
+        if track == TRAP_TRACK:
+            statusStr = 'Poison'
+            statusChanceStr = '100%'
+        elif statusInfo:
             statusStr = statusInfo['effect'].title()
             statusChanceStr = f"{statusInfo['chance']}%"
         else:

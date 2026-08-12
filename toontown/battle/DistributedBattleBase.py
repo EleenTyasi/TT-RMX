@@ -1398,19 +1398,63 @@ class DistributedBattleBase(DistributedNode.DistributedNode, BattleBase):
         self.needAdjustTownBattle = 0
 
     def setStatusEffects(self, avId, effects):
+        clean_effects = []
+        poison_tick = None
+        for eff in effects:
+            if eff.startswith("TICK:"):
+                parts = eff.split(":")
+                if len(parts) >= 4 and parts[1] == "POISON":
+                    try:
+                        poison_tick = (int(parts[2]), int(parts[3]))
+                    except ValueError:
+                        pass
+            else:
+                clean_effects.append(eff)
+
+        STATUS_COLORS = {
+            'POISON': (0.2, 0.9, 0.2, 1.0),
+            'BURN': (1.0, 0.4, 0.0, 1.0),
+            'FREEZE': (0.2, 0.8, 1.0, 1.0),
+            'SLOW': (0.9, 0.9, 0.1, 1.0),
+            'WEAKEN': (0.8, 0.3, 0.9, 1.0),
+            'SHIELD': (0.3, 0.6, 1.0, 1.0),
+            'LUCKY': (1.0, 0.84, 0.0, 1.0),
+            'RALLIED': (1.0, 0.3, 0.6, 1.0),
+        }
+
         for suit in self.activeSuits:
             if suit.doId == avId:
-                setattr(suit, 'statusEffects', effects)
+                prev = getattr(suit, 'prevCleanStatusEffects', [])
+                for eff in clean_effects:
+                    eff_name = eff.split()[0].upper()
+                    if not any(eff_name in p.upper() for p in prev):
+                        color = STATUS_COLORS.get(eff_name, (1.0, 0.7, 0.0, 1.0))
+                        if hasattr(suit, 'showHpString'):
+                            suit.showHpString(f"+{eff_name}!", duration=1.2, scale=0.85, color=color)
+                suit.prevCleanStatusEffects = list(clean_effects)
+                setattr(suit, 'statusEffects', clean_effects)
+                if poison_tick:
+                    suit.poisonTick = poison_tick
                 if hasattr(self, 'townBattle') and self.townBattle and hasattr(self.townBattle, 'enemyHPPanel'):
-                    self.townBattle.enemyHPPanel.updateSuitHP(suit, effects)
+                    self.townBattle.enemyHPPanel.updateSuitHP(suit, clean_effects)
                 break
         for toon in self.activeToons:
             if toon == avId or getattr(toon, 'doId', None) == avId:
-                setattr(toon, 'statusEffects', effects)
+                prev = getattr(toon, 'prevCleanStatusEffects', [])
+                for eff in clean_effects:
+                    eff_name = eff.split()[0].upper()
+                    if not any(eff_name in p.upper() for p in prev):
+                        color = STATUS_COLORS.get(eff_name, (1.0, 0.7, 0.0, 1.0))
+                        if hasattr(toon, 'showHpString'):
+                            toon.showHpString(f"+{eff_name}!", duration=1.2, scale=0.85, color=color)
+                toon.prevCleanStatusEffects = list(clean_effects)
+                setattr(toon, 'statusEffects', clean_effects)
+                if poison_tick:
+                    toon.poisonTick = poison_tick
                 if hasattr(self, 'townBattle') and self.townBattle and hasattr(self.townBattle, 'toonPanels'):
                     for panel in self.townBattle.toonPanels:
                         if panel.avatar and getattr(panel.avatar, 'doId', None) == avId:
-                            panel.setStatusEffects(effects)
+                            panel.setStatusEffects(clean_effects)
                 break
 
     def setCogIntentions(self, cogIds, attackNames, damages):

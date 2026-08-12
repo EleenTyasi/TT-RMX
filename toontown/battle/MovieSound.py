@@ -60,7 +60,7 @@ def doSounds(sounds):
     return (soundTrack, camTrack)
 
 
-def __getSuitTrack(sound, lastSoundThatHit, delay, hitCount, targets, totalDamage, hpbonus, toon, npcs):
+def __getSuitTrack(sound, lastSoundThatHit, delay, hitCount, targets, totalDamage, hpbonus, toon, npcs, crit_type=0):
     tracks = Parallel()
     attacks = 0
     uberDelay = 0.0
@@ -76,7 +76,7 @@ def __getSuitTrack(sound, lastSoundThatHit, delay, hitCount, targets, totalDamag
             battle = sound['battle']
             kbbonus = target['kbbonus']
             suitTrack = Sequence()
-            showDamage = Func(suit.showHpText, -totalDamage, openEnded=0)
+            showDamage = Func(suit.showHpText, -totalDamage, openEnded=0, crit_type=crit_type)
             updateHealthBar = Func(suit.updateHealthBar, totalDamage)
             if isUber:
                 breakEffect = BattleParticles.createParticleEffect(file='soundBreak')
@@ -103,7 +103,7 @@ def __getSuitTrack(sound, lastSoundThatHit, delay, hitCount, targets, totalDamag
                 suitTrack.append(Func(battle.unlureSuit, suit))
             bonusTrack = None
             if hpbonus > 0:
-                bonusTrack = Sequence(Wait(delay + tSuitReact + delay + 0.75 + uberDelay), Func(suit.showHpText, -hpbonus, 1, openEnded=0))
+                bonusTrack = Sequence(Wait(delay + tSuitReact + delay + 0.75 + uberDelay), Func(suit.showHpText, -hpbonus, 1, openEnded=0, crit_type=crit_type))
             suitTrack.append(Func(suit.loop, 'neutral'))
             if bonusTrack == None:
                 tracks.append(suitTrack)
@@ -137,7 +137,8 @@ def __doSoundsLevel(sounds, delay, hitCount, npcs):
         hpbonus = sound['hpbonus']
         attackMTrack = soundfn_array[sound['level']](sound, delay, toon, targets, level)
         tracks.append(Sequence(Wait(delay), attackMTrack))
-        tracks.append(__getSuitTrack(sound, lastSoundThatHit, delay, hitCount, targets, totalDamage, hpbonus, toon, npcs))
+        crit_type = sound.get('crit_type', 0)
+        tracks.append(__getSuitTrack(sound, lastSoundThatHit, delay, hitCount, targets, totalDamage, hpbonus, toon, npcs, crit_type))
         for target in targets:
             battle = sound['battle']
             suit = target['suit']

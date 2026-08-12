@@ -355,7 +355,7 @@ class DistributedSuitBase(DistributedAvatar.DistributedAvatar, Suit.Suit, SuitBa
         if flag:
             Suit.Suit.makeSkeleton(self)
 
-    def showHpText(self, number, bonus = 0, scale = 1, attackTrack = -1):
+    def showHpText(self, number, bonus = 0, scale = 1, attackTrack = -1, crit_type = 0):
         if self.HpTextEnabled and not self.ghostMode:
             if number != 0:
                 if self.hpText:
@@ -396,8 +396,13 @@ class DistributedSuitBase(DistributedAvatar.DistributedAvatar, Suit.Suit, SuitBa
                             self.HpTextGenerator.setText(str(number) + '\n' + TTLocalizer.InteractivePropTrackBonusTerms[attackTrack])
                 else:
                     self.HpTextGenerator.setText('+' + str(number))
+                # Append crit label regardless of sign
+                _CRIT_LABELS = {1: '\nCritical!', 2: '\nDirect Hit!', 3: '\nCrit Direct!'}
+                if crit_type in _CRIT_LABELS:
+                    self.HpTextGenerator.setText(self.HpTextGenerator.getText() + _CRIT_LABELS[crit_type])
                 self.HpTextGenerator.clearShadow()
                 self.HpTextGenerator.setAlign(TextNode.ACenter)
+                self.HpTextGenerator.setWordwrap(0)
                 if bonus == 1:
                     r = 1.0
                     g = 1.0
@@ -407,6 +412,21 @@ class DistributedSuitBase(DistributedAvatar.DistributedAvatar, Suit.Suit, SuitBa
                     r = 1.0
                     g = 0.5
                     b = 0
+                    a = 1
+                elif crit_type == 1:  # Critical — gold
+                    r = 1.0
+                    g = 0.84
+                    b = 0.0
+                    a = 1
+                elif crit_type == 2:  # Direct Hit — cyan
+                    r = 0.0
+                    g = 0.9
+                    b = 1.0
+                    a = 1
+                elif crit_type == 3:  # Crit Direct — magenta
+                    r = 1.0
+                    g = 0.2
+                    b = 1.0
                     a = 1
                 elif number < 0:
                     r = 0.9

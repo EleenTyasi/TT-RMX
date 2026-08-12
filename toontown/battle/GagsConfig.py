@@ -62,14 +62,14 @@ GAG_DAMAGE = (
      ((90, 120), (GAG_LEVEL_XP[0][5], GAG_LEVEL_XP[0][6])),
      ((210, 210), (GAG_LEVEL_XP[0][6], MAX_SKILL))),
 
-    # Trap
-    (((10, 12), (GAG_LEVEL_XP[1][0], GAG_LEVEL_XP[1][1])),
-     ((18, 20), (GAG_LEVEL_XP[1][1], GAG_LEVEL_XP[1][2])),
-     ((30, 35), (GAG_LEVEL_XP[1][2], GAG_LEVEL_XP[1][3])),
-     ((45, 50), (GAG_LEVEL_XP[1][3], GAG_LEVEL_XP[1][4])),
-     ((60, 70), (GAG_LEVEL_XP[1][4], GAG_LEVEL_XP[1][5])),
-     ((90, 180), (GAG_LEVEL_XP[1][5], GAG_LEVEL_XP[1][6])),
-     ((195, 195), (GAG_LEVEL_XP[1][6], MAX_SKILL))),
+    # Trap (Base damage divided by 8, rounded up)
+    (((2, 2), (GAG_LEVEL_XP[1][0], GAG_LEVEL_XP[1][1])),
+     ((3, 3), (GAG_LEVEL_XP[1][1], GAG_LEVEL_XP[1][2])),
+     ((4, 5), (GAG_LEVEL_XP[1][2], GAG_LEVEL_XP[1][3])),
+     ((6, 7), (GAG_LEVEL_XP[1][3], GAG_LEVEL_XP[1][4])),
+     ((8, 9), (GAG_LEVEL_XP[1][4], GAG_LEVEL_XP[1][5])),
+     ((12, 23), (GAG_LEVEL_XP[1][5], GAG_LEVEL_XP[1][6])),
+     ((25, 25), (GAG_LEVEL_XP[1][6], MAX_SKILL))),
 
     # Lure (Rounds of stun/lure)
     (((0, 0), (0, 0)),

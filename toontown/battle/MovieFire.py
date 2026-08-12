@@ -224,6 +224,7 @@ def __getSoundTrack(level, hitSuit, node = None):
 def __throwPie(throw, delay, hitCount, showCannon = 1):
     toon = throw['toon']
     hpbonus = throw['hpbonus']
+    crit_type = throw.get('crit_type', 0)
     target = throw['target']
     suit = target['suit']
     hp = target['hp']
@@ -272,7 +273,7 @@ def __throwPie(throw, delay, hitCount, showCannon = 1):
     suitResponseTrack = Sequence()
     reactIval = Sequence()
     if showCannon:
-        showDamage = Func(suit.showHpText, -hp, openEnded=0)
+        showDamage = Func(suit.showHpText, -hp, openEnded=0, crit_type=crit_type)
         updateHealthBar = Func(suit.updateHealthBar, hp)
         cannon = loader.loadModel('phase_4/models/minigames/toon_cannon')
         barrel = cannon.find('**/cannon')
@@ -335,7 +336,7 @@ ActorInterval(kapow, 'kapow'), Func(kapow.hide)), LerpPosInterval(suit, 3.0, Poi
             bonusTrack.append(Func(suit.showHpText, -kbbonus, 2, openEnded=0))
         if hpbonus > 0:
             bonusTrack.append(Wait(0.75))
-            bonusTrack.append(Func(suit.showHpText, -hpbonus, 1, openEnded=0))
+            bonusTrack.append(Func(suit.showHpText, -hpbonus, 1, openEnded=0, crit_type=crit_type))
         suitResponseTrack = Parallel(suitResponseTrack, bonusTrack)
     return [toonTrack,
      soundTrack,

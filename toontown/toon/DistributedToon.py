@@ -2473,7 +2473,7 @@ class DistributedToon(DistributedPlayer.DistributedPlayer, Toon.Toon, Distribute
         newText = ' '.join(newwords)
         return newText
 
-    def toonUp(self, hpGained, hasInteractivePropBonus = False):
+    def toonUp(self, hpGained, hasInteractivePropBonus = False, crit_type = 0):
         if self.hp == None or hpGained < 0:
             return
         oldHp = self.hp
@@ -2483,11 +2483,11 @@ class DistributedToon(DistributedPlayer.DistributedPlayer, Toon.Toon, Distribute
             self.hp = min(max(self.hp, 0) + hpGained, self.maxHp)
         hpGained = self.hp - max(oldHp, 0)
         if hpGained > 0:
-            self.showHpText(hpGained, hasInteractivePropBonus=hasInteractivePropBonus)
+            self.showHpText(hpGained, hasInteractivePropBonus=hasInteractivePropBonus, crit_type=crit_type)
             self.hpChange(quietly=0)
         return
 
-    def showHpText(self, number, bonus = 0, scale = 1, hasInteractivePropBonus = False):
+    def showHpText(self, number, bonus = 0, scale = 1, hasInteractivePropBonus = False, crit_type = 0):
         if self.HpTextEnabled and not self.ghostMode:
             if number != 0:
                 if self.hpText:
@@ -2500,6 +2500,9 @@ class DistributedToon(DistributedPlayer.DistributedPlayer, Toon.Toon, Distribute
                     if hasInteractivePropBonus:
                         hpGainedStr += '\n' + TTLocalizer.InteractivePropTrackBonusTerms[0]
                     self.HpTextGenerator.setText(hpGainedStr)
+                _CRIT_LABELS = {1: '\nCritical!', 2: '\nDirect Hit!', 3: '\nCrit Direct!'}
+                if crit_type in _CRIT_LABELS:
+                    self.HpTextGenerator.setText(self.HpTextGenerator.getText() + _CRIT_LABELS[crit_type])
                 self.HpTextGenerator.clearShadow()
                 self.HpTextGenerator.setAlign(TextNode.ACenter)
                 if bonus == 1:
@@ -2511,6 +2514,21 @@ class DistributedToon(DistributedPlayer.DistributedPlayer, Toon.Toon, Distribute
                     r = 1.0
                     g = 0.5
                     b = 0
+                    a = 1
+                elif crit_type == 1:  # Critical — gold
+                    r = 1.0
+                    g = 0.84
+                    b = 0.0
+                    a = 1
+                elif crit_type == 2:  # Direct Hit — cyan
+                    r = 0.0
+                    g = 0.9
+                    b = 1.0
+                    a = 1
+                elif crit_type == 3:  # Crit Direct — magenta
+                    r = 1.0
+                    g = 0.2
+                    b = 1.0
                     a = 1
                 elif number < 0:
                     r = 0.9

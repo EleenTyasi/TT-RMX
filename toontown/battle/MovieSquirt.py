@@ -150,7 +150,7 @@ def __getSplashTrack(point, scale, delay, battle, splashHold = 0.01):
     return Sequence(Func(battle.movie.needRestoreRenderProp, splash), Wait(delay), Func(prepSplash, splash, point), ActorInterval(splash, 'splash-from-splat'), Wait(splashHold), Func(MovieUtil.removeProp, splash), Func(battle.movie.clearRenderProp, splash))
 
 
-def __getSuitTrack(suit, tContact, tDodge, hp, hpbonus, kbbonus, anim, died, leftSuits, rightSuits, battle, toon, fShowStun, beforeStun = 0.5, afterStun = 1.8, geyser = 0, uberRepeat = 0, revived = 0):
+def __getSuitTrack(suit, tContact, tDodge, hp, hpbonus, kbbonus, anim, died, leftSuits, rightSuits, battle, toon, fShowStun, beforeStun = 0.5, afterStun = 1.8, geyser = 0, uberRepeat = 0, revived = 0, crit_type = 0):
     if hp > 0:
         suitTrack = Sequence()
         sival = ActorInterval(suit, anim)
@@ -190,7 +190,7 @@ def __getSuitTrack(suit, tContact, tDodge, hp, hpbonus, kbbonus, anim, died, lef
             sival = Parallel(ActorInterval(suit, anim), MovieUtil.createSuitStunInterval(suit, beforeStun, afterStun))
         else:
             sival = ActorInterval(suit, anim)
-        showDamage = Func(suit.showHpText, -hp, openEnded=0, attackTrack=SQUIRT_TRACK)
+        showDamage = Func(suit.showHpText, -hp, openEnded=0, attackTrack=SQUIRT_TRACK, crit_type=crit_type)
         updateHealthBar = Func(suit.updateHealthBar, hp)
         suitTrack.append(Wait(tContact))
         suitTrack.append(showDamage)
@@ -209,7 +209,7 @@ def __getSuitTrack(suit, tContact, tDodge, hp, hpbonus, kbbonus, anim, died, lef
             bonusTrack.append(Func(suit.showHpText, -kbbonus, 2, openEnded=0, attackTrack=SQUIRT_TRACK))
         if hpbonus > 0:
             bonusTrack.append(Wait(0.75))
-            bonusTrack.append(Func(suit.showHpText, -hpbonus, 1, openEnded=0, attackTrack=SQUIRT_TRACK))
+            bonusTrack.append(Func(suit.showHpText, -hpbonus, 1, openEnded=0, attackTrack=SQUIRT_TRACK, crit_type=crit_type))
         if died != 0:
             suitTrack.append(MovieUtil.createSuitDeathTrack(suit, toon, battle))
         else:
@@ -241,6 +241,7 @@ def __doFlower(squirt, delay, fShowStun):
     toon = squirt['toon']
     level = squirt['level']
     hpbonus = squirt['hpbonus']
+    crit_type = squirt.get('crit_type', 0)
     target = squirt['target']
     suit = target['suit']
     hp = target['hp']
@@ -306,7 +307,7 @@ def __doFlower(squirt, delay, fShowStun):
     if hp > 0:
         tracks.append(__getSplashTrack(targetPoint, scale, tSprayStarts + dSprayScale, battle))
     if hp > 0 or delay <= 0:
-        tracks.append(__getSuitTrack(suit, tContact, tSuitDodges, hp, hpbonus, kbbonus, 'squirt-small-react', died, leftSuits, rightSuits, battle, toon, fShowStun, revived=revived))
+        tracks.append(__getSuitTrack(suit, tContact, tSuitDodges, hp, hpbonus, kbbonus, 'squirt-small-react', died, leftSuits, rightSuits, battle, toon, fShowStun, revived=revived, crit_type=crit_type))
     return tracks
 
 
@@ -314,6 +315,7 @@ def __doWaterGlass(squirt, delay, fShowStun):
     toon = squirt['toon']
     level = squirt['level']
     hpbonus = squirt['hpbonus']
+    crit_type = squirt.get('crit_type', 0)
     target = squirt['target']
     suit = target['suit']
     hp = target['hp']
@@ -370,7 +372,7 @@ def __doWaterGlass(squirt, delay, fShowStun):
     if hp > 0:
         tracks.append(__getSplashTrack(targetPoint, scale, tSpray + dSprayScale, battle))
     if hp > 0 or delay <= 0:
-        tracks.append(__getSuitTrack(suit, tContact, tSuitDodges, hp, hpbonus, kbbonus, 'squirt-small-react', died, leftSuits, rightSuits, battle, toon, fShowStun, revived=revived))
+        tracks.append(__getSuitTrack(suit, tContact, tSuitDodges, hp, hpbonus, kbbonus, 'squirt-small-react', died, leftSuits, rightSuits, battle, toon, fShowStun, revived=revived, crit_type=crit_type))
     return tracks
 
 
@@ -378,6 +380,7 @@ def __doWaterGun(squirt, delay, fShowStun):
     toon = squirt['toon']
     level = squirt['level']
     hpbonus = squirt['hpbonus']
+    crit_type = squirt.get('crit_type', 0)
     target = squirt['target']
     suit = target['suit']
     hp = target['hp']
@@ -502,6 +505,7 @@ def __doFireHose(squirt, delay, fShowStun):
     toon = squirt['toon']
     level = squirt['level']
     hpbonus = squirt['hpbonus']
+    crit_type = squirt.get('crit_type', 0)
     target = squirt['target']
     suit = target['suit']
     hp = target['hp']
@@ -577,7 +581,7 @@ def __doFireHose(squirt, delay, fShowStun):
     if hp > 0:
         tracks.append(__getSplashTrack(targetPoint, 0.4, 2.7, battle, splashHold=1.5))
     if hp > 0 or delay <= 0:
-        tracks.append(__getSuitTrack(suit, tContact, tSuitDodges, hp, hpbonus, kbbonus, 'squirt-small-react', died, leftSuits, rightSuits, battle, toon, fShowStun, revived=revived))
+        tracks.append(__getSuitTrack(suit, tContact, tSuitDodges, hp, hpbonus, kbbonus, 'squirt-small-react', died, leftSuits, rightSuits, battle, toon, fShowStun, revived=revived, crit_type=crit_type))
     return tracks
 
 
@@ -585,6 +589,7 @@ def __doStormCloud(squirt, delay, fShowStun):
     toon = squirt['toon']
     level = squirt['level']
     hpbonus = squirt['hpbonus']
+    crit_type = squirt.get('crit_type', 0)
     target = squirt['target']
     suit = target['suit']
     hp = target['hp']
@@ -656,7 +661,7 @@ def __doStormCloud(squirt, delay, fShowStun):
     tracks.append(getCloudTrack(cloud, suit, cloudPosPoint, scaleUpPoint, rainEffects, rainDelay, effectDelay, cloudHold, useEffect=1))
     tracks.append(getCloudTrack(cloud2, suit, cloudPosPoint, scaleUpPoint, rainEffects, rainDelay, effectDelay, cloudHold, useEffect=0))
     if hp > 0 or delay <= 0:
-        tracks.append(__getSuitTrack(suit, tContact, tSuitDodges, hp, hpbonus, kbbonus, 'soak', died, leftSuits, rightSuits, battle, toon, fShowStun, beforeStun=2.6, afterStun=2.3, revived=revived))
+        tracks.append(__getSuitTrack(suit, tContact, tSuitDodges, hp, hpbonus, kbbonus, 'soak', died, leftSuits, rightSuits, battle, toon, fShowStun, beforeStun=2.6, afterStun=2.3, revived=revived, crit_type=crit_type))
     return tracks
 
 
@@ -664,6 +669,7 @@ def __doGeyser(squirt, delay, fShowStun, uberClone = 0):
     toon = squirt['toon']
     level = squirt['level']
     hpbonus = squirt['hpbonus']
+    crit_type = squirt.get('crit_type', 0)
     tracks = Parallel()
     tButton = 0.0
     dButtonScale = 0.5
@@ -733,7 +739,7 @@ def __doGeyser(squirt, delay, fShowStun, uberClone = 0):
         if not uberClone:
             tracks.append(Sequence(Wait(delayTime), getGeyserTrack(cloud, suit, geyserPosPoint, scaleUpPoint, rainEffects, rainDelay, effectDelay, geyserHold, useEffect=1)))
         if hp > 0 or delay <= 0:
-            tracks.append(Sequence(Wait(delayTime), __getSuitTrack(suit, tContact, tSuitDodges, hp, hpbonus, kbbonus, 'soak', died, leftSuits, rightSuits, battle, toon, fShowStun, beforeStun=2.6, afterStun=2.3, geyser=1, uberRepeat=uberClone, revived=revived)))
+            tracks.append(Sequence(Wait(delayTime), __getSuitTrack(suit, tContact, tSuitDodges, hp, hpbonus, kbbonus, 'soak', died, leftSuits, rightSuits, battle, toon, fShowStun, beforeStun=2.6, afterStun=2.3, geyser=1, uberRepeat=uberClone, revived=revived, crit_type=crit_type)))
 
     return tracks
 

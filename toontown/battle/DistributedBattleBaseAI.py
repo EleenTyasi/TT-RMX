@@ -105,15 +105,22 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
     def broadcastStatusEffects(self):
         if not hasattr(self, 'battleCalc') or not self.battleCalc:
             return
+        poison_ticks = getattr(self.battleCalc, 'poisonTicks', {})
         for suit in self.activeSuits:
             avId = getattr(suit, 'doId', suit)
             eff_map = self.battleCalc.statusEffectMgr.effects.get(avId, {})
             eff_strings = [f"{eff} ({info['rounds']}r)" for eff, info in eff_map.items()]
+            if avId in poison_ticks:
+                dmg, hit_type = poison_ticks[avId]
+                eff_strings.append(f"TICK:POISON:{dmg}:{hit_type}")
             self.sendUpdate('setStatusEffects', [avId, eff_strings])
         for toon in self.activeToons:
             avId = getattr(toon, 'doId', toon)
             eff_map = self.battleCalc.statusEffectMgr.effects.get(avId, {})
             eff_strings = [f"{eff} ({info['rounds']}r)" for eff, info in eff_map.items()]
+            if avId in poison_ticks:
+                dmg, hit_type = poison_ticks[avId]
+                eff_strings.append(f"TICK:POISON:{dmg}:{hit_type}")
             self.sendUpdate('setStatusEffects', [avId, eff_strings])
 
     def requestDelete(self):
@@ -1603,7 +1610,10 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
                 if self.luredSuits.count(suit) == 0 and suit.battleTrap == NO_TRAP:
                     suit.battleTrap = level
 
-            needUpdate = 1
+        for suit in self.activeSuits:
+            if suit.getHP() <= 0 or getattr(suit, 'currHP', 1) <= 0:
+                if suit not in deadSuits:
+                    deadSuits.append(suit)
 
         for suit in deadSuits:
             self.notify.debug('removing dead suit: %d' % suit.doId)
@@ -1701,10 +1711,11 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
                     deadToons.append(activeToon)
                 self.notify.debug('AFTER ROUND: toon: %d setHp: %d' % (toon.doId, toon.hp))
 
-        if hasattr(self, 'battleCalc') and self.battleCalc and hasattr(self.battleCalc, 'statusEffectMgr'):
-            poison_ticks = self.battleCalc.statusEffectMgr.tick_round()
+        if hasattr(self, 'battleCalc') and self.battleCalc and hasattr(self.battleCalc, 'poisonTicks'):
+            poison_ticks = self.battleCalc.poisonTicks
             if poison_ticks:
-                for avId, dmg in poison_ticks.items():
+                for avId, tick_data in poison_ticks.items():
+                    dmg, hit_type = tick_data
                     for suit in self.activeSuits:
                         if suit.doId == avId:
                             suit.currHP = max(0, suit.currHP - dmg)
@@ -1714,7 +1725,7 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
                         if toonId == avId:
                             toon = self.air.doId2do.get(toonId)
                             if toon:
-                                toon.takeDamage(dmg)
+                                toon.takeDamage(dmg, quietly=1)
                             break
             self.broadcastStatusEffects()
 

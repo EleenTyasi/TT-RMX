@@ -445,6 +445,14 @@ class BattleCalculatorAI:
                     if targetId in self.traps:
                         trapInfo = self.traps[targetId]
                         attackLevel = trapInfo[0]
+                        trap_damage = trapInfo[2]
+                        if trap_damage > 0:
+                            poison_cfg = {
+                                'effect': 'POISON',
+                                'rounds': 3,
+                                'damage_per_round': trap_damage
+                            }
+                            self.statusEffectMgr.apply_effect(targetId, 'POISON', 3, poison_cfg)
                     else:
                         attackLevel = NO_TRAP
                     attackDamage = self.__suitTrapDamage(targetId)
@@ -565,9 +573,11 @@ class BattleCalculatorAI:
                     if self.notify.getDebug():
                         self.notify.debug('Splitting heal among ' + str(len(targetList)) + ' targets')
                 if result > 0:
-                    from toontown.battle.CritGlobals import roll_hit_type, HIT_TYPE_NAMES
+                    import math
+                    from toontown.battle.CritGlobals import roll_hit_type, HIT_TYPE_NAMES, HIT_NORMAL
                     hit_type, crit_mult = roll_hit_type(is_toon=True)
-                    result = int(result * crit_mult)
+                    if hit_type != HIT_NORMAL:
+                        result = max(result + 1, int(math.ceil(result * crit_mult)))
 
                     if atkTrack != HEAL:
                         result = int(result * self.statusEffectMgr.get_damage_multiplier(targetId))
@@ -579,6 +589,12 @@ class BattleCalculatorAI:
                             self.statusEffectMgr.apply_effect(targetId, eff_cfg['effect'], eff_cfg['rounds'], eff_cfg)
                             if atkTrack == HEAL:
                                 self.statusEffectMgr.apply_effect(toonId, eff_cfg['effect'], eff_cfg['rounds'], eff_cfg)
+
+                    # Pack hit_type (0-3) into bits 12-13 of TOON_HPBONUS_COL.
+                    # Lower 12 bits remain available for the real hp bonus value later.
+                    # Client unpacks: real_bonus = hpbonus & 0xFFF, crit_type = (hpbonus >> 12) & 0x3
+                    existing_bonus = attack[TOON_HPBONUS_COL] & 0xFFF
+                    attack[TOON_HPBONUS_COL] = existing_bonus | (hit_type << 12)
                 if targetId in self.successfulLures and atkTrack == LURE:
                     self.notify.debug('Updating lure damage to ' + str(result))
                     self.successfulLures[targetId][3] = result
@@ -668,7 +684,7 @@ class BattleCalculatorAI:
             for position in range(len(targets)):
                 if hpbonus:
                     if targets[position] in self.__createToonTargetList(toonId):
-                        damageDone = attack[TOON_HPBONUS_COL]
+                        damageDone = attack[TOON_HPBONUS_COL] & 0xFFF
                     else:
                         damageDone = 0
                 elif kbbonus:
@@ -692,15 +708,10 @@ class BattleCalculatorAI:
                     totalDamages = totalDamages + damageDone
                     continue
                 currTarget = targets[position]
-                currTarget.setHP(currTarget.getHP() - damageDone)
+                prev_hp = currTarget.getHP()
+                currTarget.setHP(prev_hp - damageDone)
                 targetId = currTarget.getDoId()
-                if self.notify.getDebug():
-                    if hpbonus:
-                        self.notify.debug(str(targetId) + ': suit takes ' + str(damageDone) + ' damage from HP-Bonus')
-                    elif kbbonus:
-                        self.notify.debug(str(targetId) + ': suit takes ' + str(damageDone) + ' damage from KB-Bonus')
-                    else:
-                        self.notify.debug(str(targetId) + ': suit takes ' + str(damageDone) + ' damage')
+                self.notify.info(f"Toon attack applied {damageDone} damage to suit {targetId} (HP: {prev_hp} -> {currTarget.getHP()})")
                 totalDamages = totalDamages + damageDone
                 if currTarget.getHP() <= 0:
                     if currTarget.getSkeleRevives() >= 1:
@@ -833,9 +844,12 @@ class BattleCalculatorAI:
                     attackerId = self.toonAtkOrder[attackIdx]
                     attack = self.battle.toonAttacks[attackerId]
                     if hp:
-                        attack[TOON_HPBONUS_COL] = math.ceil(totalDmgs * (self.DamageBonuses[numDmgs - 1] * 0.01))
+                        raw_bonus = math.ceil(totalDmgs * (self.DamageBonuses[numDmgs - 1] * 0.01))
+                        # Preserve upper bits (crit type packed in bits 12-13)
+                        crit_bits = attack[TOON_HPBONUS_COL] & ~0xFFF
+                        attack[TOON_HPBONUS_COL] = crit_bits | (int(raw_bonus) & 0xFFF)
                         if self.notify.getDebug():
-                            self.notify.debug('Applying hp bonus to track ' + str(attack[TOON_TRACK_COL]) + ' of ' + str(attack[TOON_HPBONUS_COL]))
+                            self.notify.debug('Applying hp bonus to track ' + str(attack[TOON_TRACK_COL]) + ' of ' + str(raw_bonus))
                     elif len(attack[TOON_KBBONUS_COL]) > tgtPos:
                         attack[TOON_KBBONUS_COL][tgtPos] = totalDmgs * 0.5
                         if self.notify.getDebug():
@@ -1047,6 +1061,10 @@ class BattleCalculatorAI:
                 if self.notify.getDebug():
                     self.notify.debug("Toon %d is dead and can't attack" % toonId)
                 continue
+            if hasattr(self, 'statusEffectMgr') and self.statusEffectMgr.is_frozen(toonId):
+                self.notify.info("Toon %d is FROZEN — skipping gag turn!" % toonId)
+                self.__clearAttack(toonId)
+                continue
             attack = self.battle.toonAttacks[toonId]
             atkTrack = self.__getActualTrack(attack)
             if atkTrack != NO_ATTACK and atkTrack != SOS and atkTrack != NPCSOS:
@@ -1200,9 +1218,15 @@ class BattleCalculatorAI:
                 theSuit = self.battle.findSuit(attack[SUIT_ID_COL])
                 atkInfo = SuitBattleGlobals.getSuitAttack(theSuit.dna.name, theSuit.getLevel(), atkType)
                 raw_hp = atkInfo['hp']
-                from toontown.battle.CritGlobals import roll_hit_type, HIT_TYPE_NAMES
+                from toontown.battle.CritGlobals import roll_hit_type, HIT_TYPE_NAMES, HIT_NORMAL
                 hit_type, crit_mult = roll_hit_type(is_toon=False)
                 result = int(raw_hp * crit_mult * self.statusEffectMgr.get_damage_multiplier(toonId))
+                if hit_type != HIT_NORMAL:
+                    result = max(result + 1, int(math.ceil(raw_hp * crit_mult * self.statusEffectMgr.get_damage_multiplier(toonId))))
+                if not isinstance(attack[SUIT_BEFORE_TOONS_COL], int):
+                    attack[SUIT_BEFORE_TOONS_COL] = 0
+                targetIndex = self.battle.activeToons.index(toonId)
+                attack[SUIT_BEFORE_TOONS_COL] |= (hit_type << (targetIndex * 2))
                 atkName = atkInfo['name']
                 if atkName in SUIT_ATTACK_STATUS_EFFECTS:
                     eff_cfg = SUIT_ATTACK_STATUS_EFFECTS[atkName]
@@ -1279,6 +1303,7 @@ class BattleCalculatorAI:
                 suitId = self.battle.activeSuits[i].doId
                 self.battle.suitAttacks[i][SUIT_ID_COL] = suitId
                 if not self.__suitCanAttack(suitId):
+                    self.battle.suitAttacks[i] = getDefaultSuitAttack()
                     if self.notify.getDebug():
                         self.notify.debug("Suit %d can't attack" % suitId)
                     continue
@@ -1393,15 +1418,29 @@ class BattleCalculatorAI:
         self.__initTraps()
         self.successfulLures = {}
         return (
-         toonsHit, cogsMiss)
+toonsHit, cogsMiss)
 
     def calculateRound(self):
+        self.poisonTicks = {}
         poison_ticks = self.statusEffectMgr.tick_round()
-        for avatar_id, poison_dmg in poison_ticks.items():
+        self.poisonTicks = poison_ticks
+        for avatar_id, tick_data in list(poison_ticks.items()):
+            poison_dmg, hit_type = tick_data
             suit = self.battle.findSuit(avatar_id)
-            if suit and suit.getHP() > 0:
-                suit.setHP(max(0, suit.getHP() - poison_dmg))
-                self.notify.info('Poison tick: dealt %d damage to suit %d' % (poison_dmg, avatar_id))
+            if suit:
+                if suit.getHP() > 0:
+                    suit.setHP(max(0, suit.getHP() - poison_dmg))
+                    if suit.getHP() <= 0:
+                        self.suitLeftBattle(avatar_id)
+                    self.notify.info('Poison tick: dealt %d damage (crit_type=%d) to suit %d' % (poison_dmg, hit_type, avatar_id))
+            else:
+                toon = self.battle.getToon(avatar_id)
+                if toon:
+                    if avatar_id in self.toonHPAdjusts:
+                        self.toonHPAdjusts[avatar_id] -= poison_dmg
+                    self.notify.info('Poison tick: dealt %d damage (crit_type=%d) to toon %d' % (poison_dmg, hit_type, avatar_id))
+                else:
+                    self.statusEffectMgr.clear_avatar(avatar_id)
 
         longest = max(len(self.battle.activeToons), len(self.battle.activeSuits))
         for t in self.battle.activeToons:

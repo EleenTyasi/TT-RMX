@@ -16,9 +16,9 @@ from toontown.toonbase import ToontownGlobals
 from toontown.toonbase import TTLocalizer
 notify = DirectNotifyGlobal.directNotify.newCategory('MovieSuitAttacks')
 
-def __doDamage(toon, dmg, died):
+def __doDamage(toon, dmg, died, crit_type = 0):
     if dmg > 0 and toon.hp != None:
-        toon.takeDamage(dmg)
+        toon.takeDamage(dmg, crit_type=crit_type)
     return
 
 
@@ -543,7 +543,8 @@ def getToonTrack(attack, damageDelay = 1e-06, damageAnimNames = None, dodgeDelay
     animTrack = Sequence()
     animTrack.append(Func(toon.headsUp, battle, suitPos))
     if dmg > 0:
-        animTrack.append(getToonTakeDamageTrack(toon, target['died'], dmg, damageDelay, damageAnimNames, splicedDamageAnims, showDamageExtraTime))
+        crit_type = target.get('crit_type', 0)
+        animTrack.append(getToonTakeDamageTrack(toon, target['died'], dmg, damageDelay, damageAnimNames, splicedDamageAnims, showDamageExtraTime, crit_type=crit_type))
         return animTrack
     else:
         animTrack.append(getToonDodgeTrack(target, dodgeDelay, dodgeAnimNames, splicedDodgeAnims, showMissedExtraTime))
@@ -699,18 +700,18 @@ def throwPos(t, object, duration, target, values, gravity = -32.144):
     object.setPos(x, y, z)
 
 
-def getToonTakeDamageTrack(toon, died, dmg, delay, damageAnimNames = None, splicedDamageAnims = None, showDamageExtraTime = 0.01):
+def getToonTakeDamageTrack(toon, died, dmg, delay, damageAnimNames = None, splicedDamageAnims = None, showDamageExtraTime = 0.01, crit_type = 0):
     toonTrack = Sequence()
     toonTrack.append(Wait(delay))
     if damageAnimNames:
         for d in damageAnimNames:
             toonTrack.append(ActorInterval(toon, d))
 
-        indicatorTrack = Sequence(Wait(delay + showDamageExtraTime), Func(__doDamage, toon, dmg, died))
+        indicatorTrack = Sequence(Wait(delay + showDamageExtraTime), Func(__doDamage, toon, dmg, died, crit_type))
     else:
         splicedAnims = getSplicedAnimsTrack(splicedDamageAnims, actor=toon)
         toonTrack.append(splicedAnims)
-        indicatorTrack = Sequence(Wait(delay + showDamageExtraTime), Func(__doDamage, toon, dmg, died))
+        indicatorTrack = Sequence(Wait(delay + showDamageExtraTime), Func(__doDamage, toon, dmg, died, crit_type))
     toonTrack.append(Func(toon.loop, 'neutral'))
     if died:
         toonTrack.append(Wait(5.0))

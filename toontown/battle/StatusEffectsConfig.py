@@ -46,13 +46,7 @@ GAG_TRACK_STATUS_EFFECTS = {
         'defense_reduction': 10, # Cog defense reduced by 10%
     },
 
-    # 1 (Trap) → Poisons Cogs (deals damage over time)
-    1: {
-        'effect': 'POISON',
-        'chance': 100,
-        'rounds': 3,
-        'damage_per_round': 8,
-    },
+
 
     # 4 (Throw) → Burns Cogs (amplifies incoming damage)
     4: {
