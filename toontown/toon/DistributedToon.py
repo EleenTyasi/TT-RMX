@@ -192,6 +192,9 @@ class DistributedToon(DistributedPlayer.DistributedPlayer, Toon.Toon, Distribute
         self.immortalMode = False
         self.unlimitedGags = False
         self.instaKill = False
+        self.trinketSlots = [0, 0]
+        self.unlockedTrinkets = []
+        self.cogKillsCount = 0
         self.accept('f10', self.openTeleportGUI)
         return
 
@@ -2073,6 +2076,27 @@ class DistributedToon(DistributedPlayer.DistributedPlayer, Toon.Toon, Distribute
 
     def setPinkSlips(self, pinkSlips):
         self.pinkSlips = pinkSlips
+
+    def getTrinketSlots(self):
+        return getattr(self, 'trinketSlots', [0, 0])
+
+    def setTrinketSlots(self, slot1, slot2):
+        self.trinketSlots = [slot1, slot2]
+
+    def getUnlockedTrinkets(self):
+        return getattr(self, 'unlockedTrinkets', [])
+
+    def setUnlockedTrinkets(self, unlocked):
+        self.unlockedTrinkets = unlocked
+
+    def getCogKillsCount(self):
+        return getattr(self, 'cogKillsCount', 0)
+
+    def setCogKillsCount(self, count):
+        self.cogKillsCount = count
+
+    def hasTrinketEquipped(self, trinket_id):
+        return trinket_id in getattr(self, 'trinketSlots', [0, 0])
 
     def setAccess(self, access):
         self.setGameAccess(access)

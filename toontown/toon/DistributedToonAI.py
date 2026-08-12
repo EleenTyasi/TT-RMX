@@ -158,6 +158,9 @@ class DistributedToonAI(DistributedPlayerAI.DistributedPlayerAI, DistributedSmoo
         self.savedCheesyExpireTime = 0
         self.ghostMode = 0
         self.immortalMode = 0
+        self.trinketSlots = [0, 0]
+        self.unlockedTrinkets = []
+        self.cogKillsCount = 0
         self.numPies = 0
         self.pieType = 0
         self._isGM = False
@@ -3781,6 +3784,70 @@ class DistributedToonAI(DistributedPlayerAI.DistributedPlayerAI, DistributedSmoo
 
     def getPinkSlips(self):
         return self.pinkSlips
+
+    def getTrinketSlots(self):
+        return getattr(self, 'trinketSlots', [0, 0])
+
+    def setTrinketSlots(self, slot1, slot2):
+        self.trinketSlots = [slot1, slot2]
+
+    def d_setTrinketSlots(self, slot1, slot2):
+        self.sendUpdate('setTrinketSlots', [slot1, slot2])
+
+    def b_setTrinketSlots(self, slot1, slot2):
+        self.setTrinketSlots(slot1, slot2)
+        self.d_setTrinketSlots(slot1, slot2)
+
+    def requestEquipTrinket(self, slot_index, trinket_id):
+        # Validate trinket ownership
+        unlocked = self.getUnlockedTrinkets()
+        if trinket_id != 0 and trinket_id not in unlocked:
+            return
+        slots = list(self.getTrinketSlots())
+        if slot_index == 0:
+            slots[0] = trinket_id
+            if slots[1] == trinket_id and trinket_id != 0:
+                slots[1] = 0
+        elif slot_index == 1:
+            slots[1] = trinket_id
+            if slots[0] == trinket_id and trinket_id != 0:
+                slots[0] = 0
+        self.b_setTrinketSlots(slots[0], slots[1])
+
+    def getUnlockedTrinkets(self):
+        return getattr(self, 'unlockedTrinkets', [])
+
+    def setUnlockedTrinkets(self, unlocked):
+        self.unlockedTrinkets = unlocked
+
+    def d_setUnlockedTrinkets(self, unlocked):
+        self.sendUpdate('setUnlockedTrinkets', [unlocked])
+
+    def b_setUnlockedTrinkets(self, unlocked):
+        self.setUnlockedTrinkets(unlocked)
+        self.d_setUnlockedTrinkets(unlocked)
+
+    def unlockTrinket(self, trinket_id):
+        unlocked = list(self.getUnlockedTrinkets())
+        if trinket_id not in unlocked:
+            unlocked.append(trinket_id)
+            self.b_setUnlockedTrinkets(unlocked)
+
+    def getCogKillsCount(self):
+        return getattr(self, 'cogKillsCount', 0)
+
+    def setCogKillsCount(self, count):
+        self.cogKillsCount = count
+
+    def d_setCogKillsCount(self, count):
+        self.sendUpdate('setCogKillsCount', [count])
+
+    def b_setCogKillsCount(self, count):
+        self.setCogKillsCount(count)
+        self.d_setCogKillsCount(count)
+
+    def hasTrinketEquipped(self, trinket_id):
+        return trinket_id in getattr(self, 'trinketSlots', [0, 0])
 
     def addPinkSlips(self, amountToAdd):
         pinkSlips = min(self.pinkSlips + amountToAdd, 255)

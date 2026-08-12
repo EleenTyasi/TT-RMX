@@ -23,12 +23,12 @@
 
 # Track status mappings for Toon Gags:
 GAG_TRACK_STATUS_EFFECTS = {
-    # 5 (Squirt) → Slows Cogs (reduces Cog accuracy)
+    # 5 (Squirt) → Slows Cogs (reduces Cog defense by 30%, making them less likely to dodge)
     5: {
         'effect': 'SLOW',
         'chance': 100,        # Proc chance % (0 to 100)
         'rounds': 3,          # Duration in turns
-        'accuracy_reduction': 15, # Cog loses 15% accuracy
+        'defense_reduction': 30, # Cog loses 30% dodge defense
     },
 
     # 6 (Drop) → Freezes Cogs (Cog skips turn)
@@ -38,22 +38,20 @@ GAG_TRACK_STATUS_EFFECTS = {
         'rounds': 1,
     },
 
-    # 3 (Sound) → Weakens Cogs (reduces Cog defense)
+    # 3 (Sound) → Weakens Cogs (reduces Cog attack power)
     3: {
         'effect': 'WEAKEN',
         'chance': 75,
         'rounds': 2,
-        'defense_reduction': 10, # Cog defense reduced by 10%
+        'defense_reduction': 10,
     },
 
-
-
-    # 4 (Throw) → Burns Cogs (amplifies incoming damage)
+    # 4 (Throw) → Burns Cogs (amplifies incoming damage by 1.5x)
     4: {
         'effect': 'BURN',
         'chance': 60,
         'rounds': 2,
-        'damage_multiplier': 1.25, # Takes 25% extra damage
+        'damage_multiplier': 1.5,
     },
 }
 

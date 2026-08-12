@@ -8,4 +8,4 @@ class BurnStatus(StatusBase):
     name = "BURN"
 
     def get_damage_multiplier(self):
-        return self.data.get('damage_multiplier', 1.25)
+        return self.data.get('damage_multiplier', 1.5)

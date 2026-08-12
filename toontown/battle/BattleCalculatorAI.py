@@ -528,8 +528,23 @@ class BattleCalculatorAI:
                     else:
                         attackDamage = 0
                     bonus = 0
-                else:
+                    from toontown.toon.TrinketsConfig import (
+                        TRINKET_ORGANIC_TOONUP, TRINKET_ORGANIC_TRAP, TRINKET_ORGANIC_SOUND,
+                        TRINKET_ORGANIC_LURE, TRINKET_ORGANIC_THROW, TRINKET_ORGANIC_SQUIRT,
+                        TRINKET_ORGANIC_DROP
+                    )
                     organicBonus = toon.checkGagBonus(attackTrack, attackLevel)
+                    trinket_organic_map = {
+                        0: TRINKET_ORGANIC_TOONUP,
+                        1: TRINKET_ORGANIC_TRAP,
+                        2: TRINKET_ORGANIC_SOUND,
+                        3: TRINKET_ORGANIC_LURE,
+                        4: TRINKET_ORGANIC_THROW,
+                        5: TRINKET_ORGANIC_SQUIRT,
+                        6: TRINKET_ORGANIC_DROP,
+                    }
+                    if attackTrack in trinket_organic_map and toon.hasTrinketEquipped(trinket_organic_map[attackTrack]):
+                        organicBonus = 1
                     propBonus = self.__checkPropBonus(attackTrack)
                     attackDamage = getAvPropDamage(attackTrack, attackLevel, toon.experience.getExp(attackTrack), organicBonus, propBonus, self.propAndOrganicBonusStack)
                 if not self.__combatantDead(targetId, toon=toonTarget):
@@ -579,16 +594,54 @@ class BattleCalculatorAI:
                     if hit_type != HIT_NORMAL:
                         result = max(result + 1, int(math.ceil(result * crit_mult)))
 
+                    from toontown.toon.TrinketsConfig import (
+                        TRINKET_DEF_UP_ATK_DOWN, TRINKET_GLASS_CANNON, TRINKET_DARING_DANGER,
+                        TRINKET_RALLYING_TU, TRINKET_CLEANSING_TU, TRINKET_SHATTERING_FREEZING,
+                        TRINKET_VAMPIRIC_GAGS, TRINKET_STATUS_CATALYST
+                    )
+                    if toon:
+                        if toon.hasTrinketEquipped(TRINKET_DEF_UP_ATK_DOWN):
+                            result = int(result * 0.85)
+                        if toon.hasTrinketEquipped(TRINKET_GLASS_CANNON):
+                            result = int(result * 1.25)
+                        if toon.hasTrinketEquipped(TRINKET_DARING_DANGER) and (toon.hp / float(max(1, toon.maxHp)) <= 0.3):
+                            result = int(result * 1.30)
+
                     if atkTrack != HEAL:
                         result = int(result * self.statusEffectMgr.get_damage_multiplier(targetId))
+                    else:
+                        if toon and toon.hasTrinketEquipped(TRINKET_RALLYING_TU):
+                            self.statusEffectMgr.apply_effect(targetId, 'RALLIED', 2)
+                        if toon and toon.hasTrinketEquipped(TRINKET_CLEANSING_TU):
+                            for neg_eff in ['POISON', 'BURN', 'WEAKEN', 'SLOW']:
+                                self.statusEffectMgr.remove_effect(targetId, neg_eff)
+
+                    if toon and toon.hasTrinketEquipped(TRINKET_SHATTERING_FREEZING) and self.statusEffectMgr.is_frozen(targetId):
+                        shatter_dmg = max(1, int(result * 0.5))
+                        targetSuit = self.battle.findSuit(targetId)
+                        if targetSuit and targetSuit in self.battle.activeSuits:
+                            idx = self.battle.activeSuits.index(targetSuit)
+                            for adj_idx in [idx - 1, idx + 1]:
+                                if 0 <= adj_idx < len(self.battle.activeSuits):
+                                    adj_suit = self.battle.activeSuits[adj_idx]
+                                    adj_suit.setHP(max(0, adj_suit.getHP() - shatter_dmg))
+                                    self.notify.info('Shattering Freezing dealt %d area damage to adjacent suit %d' % (shatter_dmg, adj_suit.doId))
+
+                    if toon and toon.hasTrinketEquipped(TRINKET_VAMPIRIC_GAGS) and result > 0 and atkTrack != HEAL:
+                        vamp_heal = max(1, int(result * 0.1))
+                        toon.hp = min(toon.maxHp, toon.hp + vamp_heal)
+                        self.notify.info('Vampiric Gags healed toon %d for %d HP' % (toonId, vamp_heal))
 
                     if atkTrack in GAG_TRACK_STATUS_EFFECTS:
                         eff_cfg = GAG_TRACK_STATUS_EFFECTS[atkTrack]
                         proc_chance = self.statusEffectMgr.calc_proc_chance(eff_cfg.get('chance', 100), atkLevel, HIT_TYPE_NAMES[hit_type])
                         if random.randint(1, 100) <= proc_chance:
-                            self.statusEffectMgr.apply_effect(targetId, eff_cfg['effect'], eff_cfg['rounds'], eff_cfg)
+                            rounds = eff_cfg.get('rounds', 2)
+                            if toon and toon.hasTrinketEquipped(TRINKET_STATUS_CATALYST):
+                                rounds += 1
+                            self.statusEffectMgr.apply_effect(targetId, eff_cfg['effect'], rounds, eff_cfg)
                             if atkTrack == HEAL:
-                                self.statusEffectMgr.apply_effect(toonId, eff_cfg['effect'], eff_cfg['rounds'], eff_cfg)
+                                self.statusEffectMgr.apply_effect(toonId, eff_cfg['effect'], rounds, eff_cfg)
 
                     # Pack hit_type (0-3) into bits 12-13 of TOON_HPBONUS_COL.
                     # Lower 12 bits remain available for the real hp bonus value later.
@@ -1165,9 +1218,10 @@ class BattleCalculatorAI:
             return 0
         atkType = self.battle.suitAttacks[attackIndex][SUIT_ATK_COL]
         atkInfo = SuitBattleGlobals.getSuitAttack(theSuit.dna.name, theSuit.getLevel(), atkType)
-        atkAcc = atkInfo['acc']
-        suitAcc = SuitBattleGlobals.SuitAttributes[theSuit.dna.name]['acc'][theSuit.getLevel()]
-        acc = atkAcc + self.statusEffectMgr.get_accuracy_mod(theSuit.doId)
+        targetIdx = self.battle.suitAttacks[attackIndex][SUIT_TGT_COL]
+        targetId = self.battle.activeToons[targetIdx] if (targetIdx >= 0 and targetIdx < len(self.battle.activeToons)) else None
+        targetDefMod = self.statusEffectMgr.get_defense_mod(targetId) if targetId else 0
+        acc = atkAcc + self.statusEffectMgr.get_accuracy_mod(theSuit.doId) - targetDefMod
         randChoice = random.randint(0, 99)
         if self.notify.getDebug():
             self.notify.debug('Suit attack rolled ' + str(randChoice) + ' to hit with an accuracy of ' + str(acc) + ' (attackAcc: ' + str(atkAcc) + ' suitAcc: ' + str(suitAcc) + ')')
@@ -1223,10 +1277,17 @@ class BattleCalculatorAI:
                 result = int(raw_hp * crit_mult * self.statusEffectMgr.get_damage_multiplier(toonId))
                 if hit_type != HIT_NORMAL:
                     result = max(result + 1, int(math.ceil(raw_hp * crit_mult * self.statusEffectMgr.get_damage_multiplier(toonId))))
+                
+                # Check if target Toon is BLOCKING (PASS action)
+                toonAtk = self.battle.toonAttacks.get(toonId)
+                if toonAtk and toonAtk[TOON_TRACK_COL] == PASS:
+                    result = int(result * 0.5)
+                    hit_type = 4 if result > 0 else 5
+
                 if not isinstance(attack[SUIT_BEFORE_TOONS_COL], int):
                     attack[SUIT_BEFORE_TOONS_COL] = 0
                 targetIndex = self.battle.activeToons.index(toonId)
-                attack[SUIT_BEFORE_TOONS_COL] |= (hit_type << (targetIndex * 2))
+                attack[SUIT_BEFORE_TOONS_COL] |= ((hit_type & 0x7) << (targetIndex * 3))
                 atkName = atkInfo['name']
                 if atkName in SUIT_ATTACK_STATUS_EFFECTS:
                     eff_cfg = SUIT_ATTACK_STATUS_EFFECTS[atkName]
@@ -1503,10 +1564,35 @@ toonsHit, cogsMiss)
     def suitLeftBattle(self, suitId):
         if self.notify.getDebug():
             self.notify.debug('suitLeftBattle(): ' + str(suitId))
+        self.statusEffectMgr.clear_avatar(suitId)
         self.__removeLured(suitId)
         if suitId in self.SuitAttackers:
             del self.SuitAttackers[suitId]
         self.__removeSuitTrap(suitId)
+
+        # 5 Cog Defeat Progression -> Trinket Unlock or 100 Jellybeans
+        from toontown.toon.TrinketsConfig import ALL_TRINKET_IDS, get_trinket_info, TRINKET_LUCKY_CHARM
+        for toonId in self.battle.activeToons:
+            toon = self.battle.getToon(toonId)
+            if toon:
+                count = toon.getCogKillsCount() + 1
+                if count >= 5:
+                    count = 0
+                    unlocked = toon.getUnlockedTrinkets()
+                    unowned = [t_id for t_id in ALL_TRINKET_IDS if t_id not in unlocked]
+                    if unowned:
+                        new_trinket = random.choice(unowned)
+                        toon.unlockTrinket(new_trinket)
+                        info = get_trinket_info(new_trinket)
+                        trinket_name = info['name'] if info else f"Trinket #{new_trinket}"
+                        toon.d_setSystemMessage(0, f"+NEW TRINKET UNLOCKED: {trinket_name}!")
+                    else:
+                        jellybeans = 100
+                        if toon.hasTrinketEquipped(TRINKET_LUCKY_CHARM):
+                            jellybeans = 150
+                        toon.addMoney(jellybeans)
+                        toon.d_setSystemMessage(0, f"+{jellybeans} JELLYBEANS!")
+                toon.b_setCogKillsCount(count)
 
     def __updateActiveToons(self):
         if self.notify.getDebug():

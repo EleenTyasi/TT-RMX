@@ -840,7 +840,7 @@ class Movie(DirectObject.DirectObject):
                             tdict = {}
                             tdict['toon'] = target
                             tdict['hp'] = hps[targetIndex]
-                            tdict['crit_type'] = (sa[SUIT_BEFORE_TOONS_COL] >> (targetIndex * 2)) & 0x3
+                            tdict['crit_type'] = (sa[SUIT_BEFORE_TOONS_COL] >> (targetIndex * 3)) & 0x7
                             self.notify.debug('DAMAGE: toon: %d hit for hp: %d' % (target.doId, hps[targetIndex]))
                             toonDied = sa[TOON_DIED_COL] & 1 << targetIndex
                             tdict['died'] = toonDied
@@ -860,7 +860,7 @@ class Movie(DirectObject.DirectObject):
                     tdict = {}
                     tdict['toon'] = target
                     tdict['hp'] = hps[targetIndex]
-                    tdict['crit_type'] = (sa[SUIT_BEFORE_TOONS_COL] >> (targetIndex * 2)) & 0x3
+                    tdict['crit_type'] = (sa[SUIT_BEFORE_TOONS_COL] >> (targetIndex * 3)) & 0x7
                     self.notify.debug('DAMAGE: toon: %d hit for hp: %d' % (target.doId, hps[targetIndex]))
                     toonDied = sa[TOON_DIED_COL] & 1 << targetIndex
                     tdict['died'] = toonDied

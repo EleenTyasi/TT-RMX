@@ -176,8 +176,10 @@ class DistributedAvatar(DistributedActor, Avatar):
                     self.HpTextGenerator.setText(str(number))
                 else:
                     self.HpTextGenerator.setText('+' + str(number))
-                _CRIT_LABELS = {1: '\nCritical!', 2: '\nDirect Hit!', 3: '\nCrit Direct!'}
-                if crit_type in _CRIT_LABELS:
+                _CRIT_LABELS = {1: '\nCritical!', 2: '\nDirect Hit!', 3: '\nCrit Direct!', 4: '\nBlocked!', 5: 'Immune!'}
+                if crit_type == 5:
+                    self.HpTextGenerator.setText('Immune!')
+                elif crit_type in _CRIT_LABELS:
                     self.HpTextGenerator.setText(self.HpTextGenerator.getText() + _CRIT_LABELS[crit_type])
                 self.HpTextGenerator.clearShadow()
                 self.HpTextGenerator.setAlign(TextNode.ACenter)
@@ -206,6 +208,16 @@ class DistributedAvatar(DistributedActor, Avatar):
                     r = 1.0
                     g = 0.2
                     b = 1.0
+                    a = 1
+                elif crit_type == 4:  # Blocked — yellow-cyan
+                    r = 0.0
+                    g = 0.95
+                    b = 0.8
+                    a = 1
+                elif crit_type == 5:  # Immune — bright gold
+                    r = 1.0
+                    g = 0.9
+                    b = 0.2
                     a = 1
                 elif number < 0:
                     r = 0.9
