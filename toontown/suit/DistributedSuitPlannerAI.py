@@ -442,7 +442,7 @@ class DistributedSuitPlannerAI(DistributedObjectAI.DistributedObjectAI, SuitPlan
             newSuit.setSkelecog(skelecog)
         if revives:
             newSuit.setSkeleRevives(revives)
-        newSuit.b_setVariantFlags(
+        newSuit.setVariantFlags(
             1 if getattr(newSuit, 'isAlphatype', False) else 0,
             1 if getattr(newSuit, 'isPrototype', False) else 0,
             1 if getattr(newSuit, 'isSupertype', False) else 0
