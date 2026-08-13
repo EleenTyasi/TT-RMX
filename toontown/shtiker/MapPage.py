@@ -167,10 +167,7 @@ class MapPage(ShtikerPage.ShtikerPage):
             self.safeZoneButton.hide()
         else:
             self.safeZoneButton.show()
-        if base.cr.playGame.getPlaceId() == ToontownGlobals.MyEstate and base.cr.playGame.hood.loader.atMyEstate() or self.book.safeMode:
-            self.goHomeButton.hide()
-        elif base.housingEnabled:
-            self.goHomeButton.show()
+        self.goHomeButton.hide()
         if base.cr.playGame.getPlaceId() == ToontownGlobals.MyEstate:
             if base.cr.playGame.hood.loader.atMyEstate():
                 self.hoodLabel['text'] = TTLocalizer.MapPageYouAreAtHome

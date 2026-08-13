@@ -1030,7 +1030,7 @@ class DistributedToon(DistributedPlayer.DistributedPlayer, Toon.Toon, Distribute
             if len(q) >= 5:
                 if q[0] == 150:
                     q[1] = ToontownGlobals.ToonHQ
-                    q[2] = 2001
+                    q[2] = 2005
                     q[3] = Quests.NA
                 elif q[0] == 175:
                     q[1] = 2001

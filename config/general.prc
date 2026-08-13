@@ -41,6 +41,7 @@ want-news-tab false
 want-gardening true
 want-cogdominiums true
 want-emblems true
+want-housing false
 
 # Misc. settings
 respect-prev-transform true

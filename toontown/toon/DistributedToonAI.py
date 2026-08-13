@@ -1714,9 +1714,9 @@ class DistributedToonAI(DistributedPlayerAI.DistributedPlayerAI, DistributedSmoo
             q = list(flattenedQuests[i:i + questLen])
             if len(q) >= 5:
                 if q[0] == 150:
-                    if q[1] != ToontownGlobals.ToonHQ or q[2] != 2001 or q[3] != Quests.NA:
+                    if q[1] != ToontownGlobals.ToonHQ or q[2] != 2005 or q[3] != Quests.NA:
                         q[1] = ToontownGlobals.ToonHQ
-                        q[2] = 2001
+                        q[2] = 2005
                         q[3] = Quests.NA
                         migrated = True
                 elif q[0] == 175:

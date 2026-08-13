@@ -1040,17 +1040,7 @@ class LocalToon(DistributedToon.DistributedToon, LocalAvatar.LocalAvatar):
         return
 
     def showClarabelleGui(self, mailboxItems):
-        self.loadClarabelleGui()
-        if mailboxItems:
-            self.__clarabelleButton['text'] = ['', TTLocalizer.CatalogNewDeliveryButton, TTLocalizer.CatalogNewDeliveryButton]
-        else:
-            self.__clarabelleButton['text'] = ['', TTLocalizer.CatalogNewCatalogButton, TTLocalizer.CatalogNewCatalogButton]
-        if not self.mailboxNotify and not self.awardNotify and self.catalogNotify == ToontownGlobals.OldItems and (self.simpleMailNotify != ToontownGlobals.NoItems or self.inviteMailNotify != ToontownGlobals.NoItems):
-            self.__clarabelleButton['text'] = ['', TTLocalizer.MailNewMailButton, TTLocalizer.MailNewMailButton]
-        if self.newsButtonMgr.isNewIssueButtonShown():
-            self.clarabelleNewsPageCollision(True)
-        self.__clarabelleButton.show()
-        self.__clarabelleFlash.resume()
+        return
 
     def hideClarabelleGui(self):
         if self.__clarabelleButton:

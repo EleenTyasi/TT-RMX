@@ -2122,7 +2122,7 @@ QuestDict = {
        Cont,
        (VisitQuest,),
        ToonHQ,
-       2001,
+       2005,
        NA,
        175,
        TTLocalizer.QuestDialogDict[150]),
