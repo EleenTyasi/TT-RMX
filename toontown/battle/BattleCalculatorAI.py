@@ -606,14 +606,14 @@ class BattleCalculatorAI:
                         self.notify.debug('Splitting heal among ' + str(len(targetList)) + ' targets')
                 if result > 0:
                     import math
-                    from toontown.battle.CritGlobals import roll_hit_type, HIT_TYPE_NAMES, HIT_NORMAL
+                    from toontown.battle.CritGlobals import roll_hit_type, HIT_TYPE_NAMES, HIT_NORMAL, HIT_CRITICAL, HIT_DIRECT, HIT_CRIT_DIRECT
                     hit_type, crit_mult = roll_hit_type(is_toon=True)
                     if toon and hasattr(toon, 'addStat'):
-                        if hit_type == DIRECT_HIT:
+                        if hit_type == HIT_DIRECT:
                             toon.addStat(0, 1)
-                        elif hit_type == CRITICAL_HIT:
+                        elif hit_type == HIT_CRITICAL:
                             toon.addStat(1, 1)
-                        elif hit_type == CRITICAL_DIRECT_HIT:
+                        elif hit_type == HIT_CRIT_DIRECT:
                             toon.addStat(2, 1)
 
                         if atkTrack == THROW:
