@@ -504,7 +504,7 @@ class ToggleSleeping(MagicWord):
     execLocation = MagicWordConfig.EXEC_LOC_CLIENT
 
     def handleWord(self, invoker, avId, toon, *args):
-        if not base.localAvatar.neverSleep:
+        if not getattr(base.localAvatar, 'neverSleep', 0):
             base.localAvatar.disableSleeping()
             return "Sleeping has been deactivated for the current session."
         else:

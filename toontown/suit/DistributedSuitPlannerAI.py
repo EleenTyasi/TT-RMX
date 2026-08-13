@@ -48,23 +48,20 @@ class DistributedSuitPlannerAI(DistributedObjectAI.DistributedObjectAI, SuitPlan
     SUIT_BUILDING_TIMEOUT = [
      None, None, None, None, None, None, 72, 60, 48, 36, 24, 12, 6, 3, 1, 0.5]
     TOTAL_SUIT_BUILDING_PCT = 18 * CogdoPopFactor
-    BUILDING_HEIGHT_DISTRIBUTION = [
-     14, 18, 25, 23, 20]
+    BUILDING_HEIGHT_DISTRIBUTION = [14, 18, 25, 23, 20, 18, 15, 12]
     TOTAL_BWEIGHT = 0
-    TOTAL_BWEIGHT_PER_TRACK = [
-     0, 0, 0, 0]
-    TOTAL_BWEIGHT_PER_HEIGHT = [
-     0, 0, 0, 0, 0]
+    TOTAL_BWEIGHT_PER_TRACK = [0, 0, 0, 0]
+    TOTAL_BWEIGHT_PER_HEIGHT = [0, 0, 0, 0, 0, 0, 0, 0]
     for currHoodInfo in SuitHoodInfo:
         weight = currHoodInfo[SUIT_HOOD_INFO_BWEIGHT]
         tracks = currHoodInfo[SUIT_HOOD_INFO_TRACK]
         levels = currHoodInfo[SUIT_HOOD_INFO_LVL]
-        heights = [
-         0, 0, 0, 0, 0]
+        heights = [0, 0, 0, 0, 0, 0, 0, 0]
         for level in levels:
             minFloors, maxFloors = SuitBuildingGlobals.SuitBuildingInfo[level - 1][0]
             for i in range(minFloors - 1, maxFloors):
-                heights[i] += 1
+                if i < 8:
+                    heights[i] += 1
 
         currHoodInfo[SUIT_HOOD_INFO_HEIGHTS] = heights
         TOTAL_BWEIGHT += weight
@@ -72,11 +69,8 @@ class DistributedSuitPlannerAI(DistributedObjectAI.DistributedObjectAI, SuitPlan
         TOTAL_BWEIGHT_PER_TRACK[1] += weight * tracks[1]
         TOTAL_BWEIGHT_PER_TRACK[2] += weight * tracks[2]
         TOTAL_BWEIGHT_PER_TRACK[3] += weight * tracks[3]
-        TOTAL_BWEIGHT_PER_HEIGHT[0] += weight * heights[0]
-        TOTAL_BWEIGHT_PER_HEIGHT[1] += weight * heights[1]
-        TOTAL_BWEIGHT_PER_HEIGHT[2] += weight * heights[2]
-        TOTAL_BWEIGHT_PER_HEIGHT[3] += weight * heights[3]
-        TOTAL_BWEIGHT_PER_HEIGHT[4] += weight * heights[4]
+        for h in range(8):
+            TOTAL_BWEIGHT_PER_HEIGHT[h] += weight * heights[h]
 
     defaultSuitName = simbase.config.GetString('suit-type', 'random')
     if defaultSuitName == 'random':
@@ -397,6 +391,7 @@ class DistributedSuitPlannerAI(DistributedObjectAI.DistributedObjectAI, SuitPlan
 
         # --- 5% Special Cog Variant Roll ---
         if not skelecog and not revives and random.randint(1, 100) <= 5:
+            zone_name = ToontownGlobals.StreetNames.get(self.zoneId, ('', '', f'zone {self.zoneId}'))[-1]
             variant_roll = random.randint(1, 100)
             if variant_roll <= 5:  # Supertype (5% of special spawns -> RARE)
                 newSuit.isSupertype = True
@@ -408,26 +403,26 @@ class DistributedSuitPlannerAI(DistributedObjectAI.DistributedObjectAI, SuitPlan
                 newSuit.maxHP *= 2
                 newSuit.currHP = newSuit.maxHP
                 if hasattr(simbase.air, 'newsManager') and simbase.air.newsManager:
-                    simbase.air.newsManager.sendUpdateToZone(self.zoneId, 'sendSystemMessage', [f"DANGEROUS ENEMY DETECTED: A Level {suitLevel+1} Supertype Cog has appeared on this street!", 0])
-                print(f"[SPECIAL SPAWN] SUPERTYPE COG SPAWNED in zone {self.zoneId} (Lvl {suitLevel+1}, 2x HP: {newSuit.maxHP}, Alphatype +30% Dmg, v2.0 Skelecog inside)!")
+                    simbase.air.newsManager.sendUpdate('sendSystemMessage', [f"DANGEROUS ENEMY DETECTED: A Level {suitLevel+1} Supertype Cog has appeared on {zone_name}!", 0])
+                print(f"[SPECIAL SPAWN] SUPERTYPE COG SPAWNED on {zone_name} (Lvl {suitLevel+1}, 2x HP: {newSuit.maxHP}, Alphatype +30% Dmg, v2.0 Skelecog inside)!")
             elif variant_roll <= 28: # v2.0 Cog
                 newSuit.isV20 = True
                 revives = 1
-                print(f"[SPECIAL SPAWN] v2.0 Cog spawned in zone {self.zoneId} (Lvl {suitLevel+1})")
+                print(f"[SPECIAL SPAWN] v2.0 Cog spawned on {zone_name} (Lvl {suitLevel+1})")
             elif variant_roll <= 52: # Prototype (Double HP)
                 newSuit.isPrototype = True
                 newSuit.maxHP *= 2
                 newSuit.currHP = newSuit.maxHP
-                print(f"[SPECIAL SPAWN] Prototype Cog spawned in zone {self.zoneId} (Lvl {suitLevel+1}, 2x HP: {newSuit.maxHP})")
+                print(f"[SPECIAL SPAWN] Prototype Cog spawned on {zone_name} (Lvl {suitLevel+1}, 2x HP: {newSuit.maxHP})")
             elif variant_roll <= 76: # Alphatype (+30% attack damage)
                 newSuit.isAlphatype = True
-                print(f"[SPECIAL SPAWN] Alphatype Cog spawned in zone {self.zoneId} (Lvl {suitLevel+1}, +30% Attack Damage)")
+                print(f"[SPECIAL SPAWN] Alphatype Cog spawned on {zone_name} (Lvl {suitLevel+1}, +30% Attack Damage)")
             else: # Skelecog
                 newSuit.isSkelecogVariant = True
                 skelecog = 1
                 newSuit.maxHP = max(1, int(newSuit.maxHP * 0.75))
                 newSuit.currHP = newSuit.maxHP
-                print(f"[SPECIAL SPAWN] Skelecog spawned in zone {self.zoneId} (Lvl {suitLevel+1}, 0.75x HP: {newSuit.maxHP}, +10% Crit Chance)")
+                print(f"[SPECIAL SPAWN] Skelecog spawned on {zone_name} (Lvl {suitLevel+1}, 0.75x HP: {newSuit.maxHP}, +10% Crit Chance)")
 
         newSuit.buildingHeight = buildingHeight
         gotDestination = self.chooseDestination(newSuit, startTime, toonBlockTakeover=toonBlockTakeover, cogdoTakeover=cogdoTakeover, minPathLen=minPathLen, maxPathLen=maxPathLen)
@@ -809,14 +804,11 @@ class DistributedSuitPlannerAI(DistributedObjectAI.DistributedObjectAI, SuitPlan
             numPerTrack['m'] += sp.pendingBuildingTracks.count('m')
             numPerTrack['s'] += sp.pendingBuildingTracks.count('s')
 
-        numPerHeight = {0: 0, 1: 0, 2: 0, 3: 0, 4: 0}
+        numPerHeight = {i: 0 for i in range(8)}
         for sp in list(self.air.suitPlanners.values()):
             sp.countNumBuildingsPerHeight(numPerHeight)
-            numPerHeight[0] += sp.pendingBuildingHeights.count(0)
-            numPerHeight[1] += sp.pendingBuildingHeights.count(1)
-            numPerHeight[2] += sp.pendingBuildingHeights.count(2)
-            numPerHeight[3] += sp.pendingBuildingHeights.count(3)
-            numPerHeight[4] += sp.pendingBuildingHeights.count(4)
+            for h in range(8):
+                numPerHeight[h] += sp.pendingBuildingHeights.count(h)
 
         while numToAssign > 0:
             smallestCount = None
@@ -839,7 +831,7 @@ class DistributedSuitPlannerAI(DistributedObjectAI.DistributedObjectAI, SuitPlan
             buildingTrackIndex = SuitDNA.suitDepts.index(buildingTrack)
             smallestCount = None
             smallestHeights = []
-            for height in range(5):
+            for height in range(min(8, len(self.BUILDING_HEIGHT_DISTRIBUTION))):
                 if totalWeightPerHeight[height]:
                     count = float(numPerHeight[height]) / float(self.BUILDING_HEIGHT_DISTRIBUTION[height])
                     if smallestCount == None or count < smallestCount:
@@ -882,11 +874,8 @@ class DistributedSuitPlannerAI(DistributedObjectAI.DistributedObjectAI, SuitPlan
                     totalWeightPerTrack[1] -= weight * tracks[1]
                     totalWeightPerTrack[2] -= weight * tracks[2]
                     totalWeightPerTrack[3] -= weight * tracks[3]
-                    totalWeightPerHeight[0] -= weight * heights[0]
-                    totalWeightPerHeight[1] -= weight * heights[1]
-                    totalWeightPerHeight[2] -= weight * heights[2]
-                    totalWeightPerHeight[3] -= weight * heights[3]
-                    totalWeightPerHeight[4] -= weight * heights[4]
+                    for h in range(min(8, len(heights))):
+                        totalWeightPerHeight[h] -= weight * heights[h]
                     if totalWeightPerTrack[buildingTrackIndex] <= 0:
                         buildingTrack = None
                     if totalWeightPerHeight[buildingHeight] <= 0:

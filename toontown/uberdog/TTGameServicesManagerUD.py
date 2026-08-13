@@ -169,7 +169,7 @@ class CreateAvatarOperation(GameOperation):
         self.index = None
         self.dna = None
 
-    def enterStart(self, dna, index):
+    def enterStart(self, dna, index, laffCap=0):
         # First, perform some basic sanity checking.
         if index >= 6:
             # This index is invalid! Kill the connection.
@@ -184,6 +184,7 @@ class CreateAvatarOperation(GameOperation):
         # Store these values.
         self.index = index
         self.dna = dna
+        self.laffCap = laffCap
 
         # Now we can query their account.
         self.demand('RetrieveAccount')
@@ -229,6 +230,11 @@ class CreateAvatarOperation(GameOperation):
                       'WishName': ('',),
                       'setDNAString': (self.dna,),
                       'setDISLid': (self.target,)}
+        if getattr(self, 'laffCap', 0) > 0:
+            toonFields['setLaffCap'] = (self.laffCap,)
+            startLaff = min(15, self.laffCap)
+            toonFields['setMaxHp'] = (startLaff,)
+            toonFields['setHp'] = (startLaff,)
 
         # Create this new Toon object in the database. self.__handleCreate is the
         # callback that will be called upon the completion of createObject.
@@ -359,10 +365,10 @@ class TTGameServicesManagerUD(GameServicesManagerUD):
         # Someone has typed a name; run a SetNameTypedOperation.
         self.runOperation(SetNameTypedOperation, avId, name)
 
-    def createAvatar(self, dna, index):
+    def createAvatar(self, dna, index, laffCap=0):
         # Someone wants to create a new avatar;
         # run a CreateAvatarOperation.
-        self.runOperation(CreateAvatarOperation, dna, index)
+        self.runOperation(CreateAvatarOperation, dna, index, laffCap)
 
     def acknowledgeAvatarName(self, avId):
         # Someone has acknowledged their name; run an AcknowledgeNameOperation.

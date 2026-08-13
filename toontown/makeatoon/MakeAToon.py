@@ -22,6 +22,7 @@ from . import GenderShop
 from . import BodyShop
 from . import ColorShop
 from . import MakeClothesGUI
+from . import UberShop
 from . import NameShop
 import random
 
@@ -47,6 +48,7 @@ class MakeAToon(StateData.StateData):
         self.slide = 0
         self.nameList = []
         self.warp = 0
+        self.laffCap = 0
         for av in avList:
             if av.position == index:
                 self.warp = 1
@@ -57,8 +59,9 @@ class MakeAToon(StateData.StateData):
          State.State('GenderShop', self.enterGenderShop, self.exitGenderShop, ['BodyShop']),
          State.State('BodyShop', self.enterBodyShop, self.exitBodyShop, ['GenderShop', 'ColorShop']),
          State.State('ColorShop', self.enterColorShop, self.exitColorShop, ['BodyShop', 'ClothesShop']),
-         State.State('ClothesShop', self.enterClothesShop, self.exitClothesShop, ['ColorShop', 'NameShop']),
-         State.State('NameShop', self.enterNameShop, self.exitNameShop, ['ClothesShop']),
+         State.State('ClothesShop', self.enterClothesShop, self.exitClothesShop, ['ColorShop', 'UberShop']),
+         State.State('UberShop', self.enterUberShop, self.exitUberShop, ['ClothesShop', 'NameShop']),
+         State.State('NameShop', self.enterNameShop, self.exitNameShop, ['UberShop']),
          State.State('Done', self.enterDone, self.exitDone, [])], 'Init', 'Done')
         self.parentFSM = parentFSM
         self.parentFSM.getStateNamed('createAvatar').addChild(self.fsm)
@@ -66,6 +69,7 @@ class MakeAToon(StateData.StateData):
         self.bs = BodyShop.BodyShop('BodyShop-done')
         self.cos = ColorShop.ColorShop('ColorShop-done')
         self.cls = MakeClothesGUI.MakeClothesGUI('ClothesShop-done')
+        self.ubs = UberShop.UberShop(self, 'UberShop-done')
         self.ns = NameShop.NameShop(self, 'NameShop-done', avList, index, self.isPaid)
         self.shop = GENDERSHOP
         self.shopsVisited = []
@@ -254,6 +258,7 @@ class MakeAToon(StateData.StateData):
         self.bs.load()
         self.cos.load()
         self.cls.load()
+        self.ubs.load()
         self.ns.load()
         self.music = base.loader.loadMusic('phase_3/audio/bgm/create_a_toon.ogg')
         self.musicVolume = base.config.GetFloat('makeatoon-music-volume', 1)
@@ -276,11 +281,13 @@ class MakeAToon(StateData.StateData):
         self.bs.unload()
         self.cos.unload()
         self.cls.unload()
+        self.ubs.unload()
         self.ns.unload()
         del self.gs
         del self.bs
         del self.cos
         del self.cls
+        del self.ubs
         del self.ns
         self.guiTopBar.destroy()
         self.guiBottomBar.destroy()
@@ -387,6 +394,8 @@ class MakeAToon(StateData.StateData):
             self.fsm.request('ColorShop')
         elif self.shop == COLORSHOP:
             self.fsm.request('ClothesShop')
+        elif self.shop == CLOTHESSHOP:
+            self.fsm.request('UberShop')
         else:
             self.fsm.request('NameShop')
 
@@ -398,8 +407,10 @@ class MakeAToon(StateData.StateData):
             self.fsm.request('BodyShop')
         elif self.shop == CLOTHESSHOP:
             self.fsm.request('ColorShop')
-        else:
+        elif self.shop == UBERSHOP:
             self.fsm.request('ClothesShop')
+        else:
+            self.fsm.request('UberShop')
 
     def charSez(self, char, statement, dialogue = None):
         import pdb
@@ -557,6 +568,39 @@ class MakeAToon(StateData.StateData):
             self.goToNextShop()
         else:
             self.cls.hideButtons()
+            self.goToLastShop()
+
+    def enterUberShop(self):
+        base.cr.centralLogger.writeClientEvent('MAT - enteringUberShop')
+        self.shop = UBERSHOP
+        self.guiTopBar['text'] = "Choose Laff Cap (Uber Mode)"
+        self.guiTopBar['text_fg'] = (1, 0.92, 0.2, 1)
+        self.guiTopBar['text_scale'] = 0.1
+        self.guiNextButton.show()
+        self.guiLastButton.show()
+        self.rotateLeftButton.show()
+        self.rotateRightButton.show()
+        self.accept('UberShop-done', self.__handleUberShopDone)
+        self.toon.setScale(self.toonScale)
+        self.toon.setPos(self.toonPosition)
+        if not self.progressing:
+            self.toon.setHpr(self.toonHpr)
+        self.ubs.enter()
+        if UBERSHOP not in self.shopsVisited:
+            self.shopsVisited.append(UBERSHOP)
+
+    def exitUberShop(self):
+        self.ubs.exit()
+        self.ignore('UberShop-done')
+
+    def __handleUberShopDone(self):
+        self.guiNextButton.hide()
+        self.guiLastButton.hide()
+        if self.ubs.doneStatus == 'next':
+            self.ubs.hideButtons()
+            self.goToNextShop()
+        else:
+            self.ubs.hideButtons()
             self.goToLastShop()
 
     def nameShopOpening(self, task):

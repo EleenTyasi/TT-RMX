@@ -812,10 +812,15 @@ class BattleCalculatorAI:
         else:
             return 0
 
-    def __addAttackExp(self, attack, track = -1, level = -1, attackerId = -1):
-        trk = -1
-        lvl = -1
-        id = -1
+    def __addSkillCredit(self, attack, track = -1, level = -1, attackerId = -1):
+        if attack:
+            tgt = attack[TOON_TGT_COL]
+            if tgt != -1 and tgt != None:
+                if isinstance(tgt, list):
+                    if any(getattr(s, 'isVirtual', False) for s in tgt if hasattr(s, 'isVirtual')):
+                        return
+                elif hasattr(tgt, 'isVirtual') and getattr(tgt, 'isVirtual', False):
+                    return
         if track != -1 and level != -1 and attackerId != -1:
             trk = track
             lvl = level
@@ -1599,29 +1604,31 @@ toonsHit, cogsMiss)
             del self.SuitAttackers[suitId]
         self.__removeSuitTrap(suitId)
 
-        # 5 Cog Defeat Progression -> Trinket Unlock or 100 Jellybeans
-        from toontown.toon.TrinketsConfig import ALL_TRINKET_IDS, get_trinket_info, TRINKET_LUCKY_CHARM
-        for toonId in self.battle.activeToons:
-            toon = self.battle.getToon(toonId)
-            if toon:
-                count = toon.getCogKillsCount() + 1
-                if count >= 5:
-                    count = 0
-                    unlocked = toon.getUnlockedTrinkets()
-                    unowned = [t_id for t_id in ALL_TRINKET_IDS if t_id not in unlocked]
-                    if unowned:
-                        new_trinket = random.choice(unowned)
-                        toon.unlockTrinket(new_trinket)
-                        info = get_trinket_info(new_trinket)
-                        trinket_name = info['name'] if info else f"Trinket #{new_trinket}"
-                        toon.d_setSystemMessage(0, f"+NEW TRINKET UNLOCKED: {trinket_name}!")
-                    else:
-                        jellybeans = 100
-                        if toon.hasTrinketEquipped(TRINKET_LUCKY_CHARM):
-                            jellybeans = 150
-                        toon.addMoney(jellybeans)
-                        toon.d_setSystemMessage(0, f"+{jellybeans} JELLYBEANS!")
-                toon.b_setCogKillsCount(count)
+        suit = self.battle.findSuit(suitId)
+        if suit and not getattr(suit, 'isVirtual', False):
+            # 5 Cog Defeat Progression -> Trinket Unlock or 100 Jellybeans
+            from toontown.toon.TrinketsConfig import ALL_TRINKET_IDS, get_trinket_info, TRINKET_LUCKY_CHARM
+            for toonId in self.battle.activeToons:
+                toon = self.battle.getToon(toonId)
+                if toon:
+                    count = toon.getCogKillsCount() + 1
+                    if count >= 5:
+                        count = 0
+                        unlocked = toon.getUnlockedTrinkets()
+                        unowned = [t_id for t_id in ALL_TRINKET_IDS if t_id not in unlocked]
+                        if unowned:
+                            new_trinket = random.choice(unowned)
+                            toon.unlockTrinket(new_trinket)
+                            info = get_trinket_info(new_trinket)
+                            trinket_name = info['name'] if info else f"Trinket #{new_trinket}"
+                            toon.d_setSystemMessage(0, f"+NEW TRINKET UNLOCKED: {trinket_name}!")
+                        else:
+                            jellybeans = 100
+                            if toon.hasTrinketEquipped(TRINKET_LUCKY_CHARM):
+                                jellybeans = 150
+                            toon.addMoney(jellybeans)
+                            toon.d_setSystemMessage(0, f"+{jellybeans} JELLYBEANS!")
+                    toon.b_setCogKillsCount(count)
 
     def __updateActiveToons(self):
         if self.notify.getDebug():

@@ -1002,12 +1002,22 @@ class LocalAvatar(DistributedAvatar.DistributedAvatar, DistributedSmoothNode.Dis
 
     def startSleepWatch(self, callback):
         self.sleepCallback = callback
-        taskMgr.doMethodLater(self.sleepTimeout, callback, self.uniqueName('sleepwatch'))
+        if not getattr(self, 'neverSleep', 0):
+            taskMgr.doMethodLater(self.sleepTimeout, callback, self.uniqueName('sleepwatch'))
 
     def stopSleepWatch(self):
         taskMgr.remove(self.uniqueName('sleepwatch'))
         self.sleepCallback = None
         return
+
+    def disableSleeping(self):
+        self.neverSleep = 1
+        self.stopSleepWatch()
+
+    def enableSleeping(self):
+        self.neverSleep = 0
+        if self.sleepCallback:
+            self.startSleepWatch(self.sleepCallback)
 
     def startSleepSwimTest(self):
         taskName = self.taskName('sleepSwimTest')

@@ -311,6 +311,29 @@ class DistributedToonAI(DistributedPlayerAI.DistributedPlayerAI, DistributedSmoo
         DistributedPlayerAI.DistributedPlayerAI.delete(self)
         return
 
+    def b_setLaffCap(self, laffCap):
+        self.d_setLaffCap(laffCap)
+        self.setLaffCap(laffCap)
+
+    def d_setLaffCap(self, laffCap):
+        self.sendUpdate('setLaffCap', [laffCap])
+
+    def setLaffCap(self, laffCap):
+        self.laffCap = laffCap
+        if hasattr(self, 'maxHp'):
+            self.setMaxHp(self.maxHp)
+
+    def getLaffCap(self):
+        return getattr(self, 'laffCap', 0)
+
+    def setMaxHp(self, maxHp):
+        laffCap = getattr(self, 'laffCap', 0)
+        if laffCap > 0:
+            maxHp = min(maxHp, laffCap)
+        DistributedPlayerAI.DistributedPlayerAI.setMaxHp(self, maxHp)
+        if getattr(self, 'hp', None) is not None and self.hp > self.maxHp:
+            self.b_setHp(self.maxHp)
+
     def deleteDummy(self):
         self.notify.debug('----deleteDummy DistributedToonAI %d ' % self.doId)
         if self.inventory:

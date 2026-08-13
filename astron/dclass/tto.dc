@@ -980,6 +980,7 @@ dclass DistributedToon : DistributedPlayer {
   setMoney(int16 = 0) required broadcast ownrecv db;
   setMaxHp(int16 = 15) required broadcast ownrecv db;
   setHp(int16 = 15) required broadcast ownrecv db;
+  setLaffCap(uint16 = 0) required broadcast ownrecv db;
   setTrinketSlots(int16 = 0, int16 = 0) required broadcast ownrecv db;
   setUnlockedTrinkets(int16[] = []) required broadcast ownrecv db;
   setCogKillsCount(uint16 = 0) required broadcast ownrecv db;
@@ -3825,7 +3826,7 @@ dclass TTGameServicesManager : GameServicesManager {
   namePatternResponse(uint32, uint8);
   setNameTyped(uint32, string) clsend;
   nameTypedResponse(uint32, uint8);
-  createAvatar(blob, uint8) clsend;
+  createAvatar(blob, uint8, uint16 = 0) clsend;
   createAvatarResponse(uint32);
   acknowledgeAvatarName(uint32) clsend;
   acknowledgeAvatarNameResponse();

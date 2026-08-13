@@ -46,7 +46,7 @@ class SuitPlannerInteriorAI:
             if self.dbg_nSuits1stRound:
                 numActive = min(self.dbg_nSuits1stRound, maxActive)
             else:
-                numActive = random.randint(1, maxActive)
+                numActive = max(2, min(random.randint(2, maxActive), maxActive)) if maxActive >= 2 else maxActive
             if currFloor + 1 == numFloors and len(lvls) > 1:
                 origBossSpot = len(lvls) - 1
                 if numActive == 1:
@@ -69,6 +69,7 @@ class SuitPlannerInteriorAI:
                 activeDict['track'] = bldgTrack
                 activeDict['level'] = level
                 activeDict['revives'] = revives
+                activeDict['isBoss'] = (currFloor + 1 == numFloors and currActive == numActive - 1)
                 activeDicts.append(activeDict)
 
             infoDict['activeSuits'] = activeDicts
@@ -84,6 +85,7 @@ class SuitPlannerInteriorAI:
                 reserveDict['level'] = level
                 reserveDict['revives'] = revives
                 reserveDict['joinChance'] = joinChances[currReserve]
+                reserveDict['isBoss'] = False
                 reserveDicts.append(reserveDict)
 
             infoDict['reserveSuits'] = reserveDicts
@@ -126,24 +128,68 @@ class SuitPlannerInteriorAI:
         return lvlList
 
     def __setupSuitInfo(self, suit, bldgTrack, suitLevel, suitType):
-        suitName, skeleton = simbase.air.suitInvasionManager.getInvadingCog()
-        if suitName and self.respectInvasions:
-            suitType = SuitDNA.getSuitType(suitName)
-            bldgTrack = SuitDNA.getSuitDept(suitName)
-            suitLevel = min(max(suitLevel, suitType), suitType + 4)
         dna = SuitDNA.SuitDNA()
         dna.newSuitRandom(suitType, bldgTrack)
         suit.dna = dna
         self.notify.debug('Creating suit type ' + suit.dna.name + ' of level ' + str(suitLevel) + ' from type ' + str(suitType) + ' and track ' + str(bldgTrack))
         suit.setLevel(suitLevel)
-        return skeleton
+        return False
 
-    def __genSuitObject(self, suitZone, suitType, bldgTrack, suitLevel, revives=0):
+    def __genSuitObject(self, suitZone, suitType, bldgTrack, suitLevel, revives=0, isBoss=False):
         newSuit = DistributedSuitAI.DistributedSuitAI(simbase.air, None)
         skel = self.__setupSuitInfo(newSuit, bldgTrack, suitLevel, suitType)
         if skel:
             newSuit.setSkelecog(1)
         newSuit.setSkeleRevives(revives)
+
+        # --- Building Special Cog Variant & RareSpawn Boss Roll ---
+        if isBoss:
+            boss_roll = random.randint(1, 100)
+            if boss_roll <= 25:  # Supertype Boss
+                newSuit.isSupertype = True
+                newSuit.isV20 = True
+                newSuit.isPrototype = True
+                newSuit.isAlphatype = True
+                newSuit.setSkeleRevives(1)
+                newSuit.maxHP *= 2
+                newSuit.currHP = newSuit.maxHP
+            elif boss_roll <= 60:  # v2.0 Boss
+                newSuit.isV20 = True
+                newSuit.setSkeleRevives(1)
+            else:  # Prototype Boss
+                newSuit.isPrototype = True
+                newSuit.maxHP *= 2
+                newSuit.currHP = newSuit.maxHP
+        elif random.randint(1, 100) <= 20:  # 20% boosted special spawn chance in buildings
+            variant_roll = random.randint(1, 100)
+            if variant_roll <= 10:  # Supertype
+                newSuit.isSupertype = True
+                newSuit.isV20 = True
+                newSuit.isPrototype = True
+                newSuit.isAlphatype = True
+                newSuit.setSkeleRevives(1)
+                newSuit.maxHP *= 2
+                newSuit.currHP = newSuit.maxHP
+            elif variant_roll <= 35:  # v2.0
+                newSuit.isV20 = True
+                newSuit.setSkeleRevives(1)
+            elif variant_roll <= 60:  # Prototype
+                newSuit.isPrototype = True
+                newSuit.maxHP *= 2
+                newSuit.currHP = newSuit.maxHP
+            elif variant_roll <= 80:  # Alphatype
+                newSuit.isAlphatype = True
+            else:  # Skelecog
+                newSuit.isSkelecogVariant = True
+                newSuit.setSkelecog(1)
+                newSuit.maxHP = max(1, int(newSuit.maxHP * 0.75))
+                newSuit.currHP = newSuit.maxHP
+
+        newSuit.setVariantFlags(
+            1 if getattr(newSuit, 'isAlphatype', False) else 0,
+            1 if getattr(newSuit, 'isPrototype', False) else 0,
+            1 if getattr(newSuit, 'isSupertype', False) else 0
+        )
         newSuit.generateWithRequired(suitZone)
         newSuit.node().setName('suit-%s' % newSuit.doId)
         return newSuit
@@ -165,13 +211,13 @@ class SuitPlannerInteriorAI:
         floorInfo = self.suitInfos[floor]
         activeSuits = []
         for activeSuitInfo in floorInfo['activeSuits']:
-            suit = self.__genSuitObject(self.zoneId, activeSuitInfo['type'], activeSuitInfo['track'], activeSuitInfo['level'], activeSuitInfo['revives'])
+            suit = self.__genSuitObject(self.zoneId, activeSuitInfo['type'], activeSuitInfo['track'], activeSuitInfo['level'], activeSuitInfo['revives'], activeSuitInfo.get('isBoss', False))
             activeSuits.append(suit)
 
         suitHandles['activeSuits'] = activeSuits
         reserveSuits = []
         for reserveSuitInfo in floorInfo['reserveSuits']:
-            suit = self.__genSuitObject(self.zoneId, reserveSuitInfo['type'], reserveSuitInfo['track'], reserveSuitInfo['level'], reserveSuitInfo['revives'])
+            suit = self.__genSuitObject(self.zoneId, reserveSuitInfo['type'], reserveSuitInfo['track'], reserveSuitInfo['level'], reserveSuitInfo['revives'], reserveSuitInfo.get('isBoss', False))
             reserveSuits.append((suit, reserveSuitInfo['joinChance']))
 
         suitHandles['reserveSuits'] = reserveSuits

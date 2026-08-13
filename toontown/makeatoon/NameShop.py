@@ -958,8 +958,9 @@ class NameShop(StateData.StateData):
             self.requestingSkipTutorial = True
         else:
             self.requestingSkipTutorial = False
+        laffCap = getattr(self.makeAToon, 'laffCap', 0)
         if not self.avExists or self.avExists and self.avId == 'deleteMe':
-            base.cr.gameServicesManager.sendCreateAvatar(style, '', self.index)
+            base.cr.gameServicesManager.sendCreateAvatar(style, '', self.index, laffCap)
             self.accept('nameShopCreateAvatarDone', self.handleCreateAvatarResponse)
         else:
             self.checkNameTyped()

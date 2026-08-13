@@ -20,91 +20,21 @@ class SuitPlannerBase:
      [1300, 1, 5, 0, 99, 100, 4, (1, 5, 10, 40, 60, 80), (25, 25, 25, 25), (2, 3, 4, 5), []],
      [5100, 1, 5, 0, 99, 100, 4, (1, 5, 10, 40, 60, 80), (25, 25, 25, 25), (3, 4, 5, 6), []],
      [5200, 1, 5, 0, 99, 100, 4, (1, 5, 10, 40, 60, 80), (25, 25, 25, 25), (3, 4, 5, 6), []],
-     [5300, 1, 5, 0, 99, 100, 4, (1, 5, 10, 40, 60, 80), (25, 25, 25, 25), (3, 4, 5, 6), []],
+     [5300, 1, 5, 0, 99, 100, 4, (1, 5, 10, 40, 60, 80), (2, 2, 2, 94), (3, 4, 5, 6), []],
      [3100, 1, 5, 0, 99, 100, 4, (1, 5, 10, 40, 60, 80), (25, 25, 25, 25), (5, 6, 7, 8), []],
      [3200, 1, 5, 0, 99, 100, 4, (1, 5, 10, 40, 60, 80), (25, 25, 25, 25), (5, 6, 7, 8), []],
      [3300, 1, 5, 0, 99, 100, 4, (1, 5, 10, 40, 60, 80), (25, 25, 25, 25), (5, 6, 7, 8), []],
-     [4100, 1, 5, 0, 99, 100, 4, (1, 5, 10, 40, 60, 80), (25, 25, 25, 25), (7, 8, 9, 10), []],
+     [4100, 1, 5, 0, 99, 100, 4, (1, 5, 10, 40, 60, 80), (2, 94, 2, 2), (7, 8, 9, 10), []],
      [4200, 1, 5, 0, 99, 100, 4, (1, 5, 10, 40, 60, 80), (25, 25, 25, 25), (7, 8, 9, 10), []],
      [4300, 1, 5, 0, 99, 100, 4, (1, 5, 10, 40, 60, 80), (25, 25, 25, 25), (7, 8, 9, 10), []],
      [9100, 1, 5, 0, 99, 100, 4, (1, 5, 10, 40, 60, 80), (25, 25, 25, 25), (8, 9, 10, 11, 12), []],
-     [9200, 1, 5, 0, 99, 100, 4, (1, 5, 10, 40, 60, 80), (25, 25, 25, 25), (8, 9, 10, 11, 12), []],
-     [11000,
-      3,
-      15,
-      0,
-      0,
-      0,
-      4,
-      (1,
-       5,
-       10,
-       40,
-       60,
-       80),
-      (0,
-       0,
-       0,
-       100),
-      (4, 5, 6),
-      []],
-     [11200,
-      10,
-      20,
-      0,
-      0,
-      0,
-      4,
-      (1,
-       5,
-       10,
-       40,
-       60,
-       80),
-      (0,
-       0,
-       0,
-       100),
-      (4, 5, 6),
-      []],
-     [12000,
-      10,
-      20,
-      0,
-      0,
-      0,
-      4,
-      (1,
-       5,
-       10,
-       40,
-       60,
-       80),
-      (0,
-       0,
-       100,
-       0),
-      (7, 8, 9),
-      []],
-     [13000,
-      10,
-      20,
-      0,
-      0,
-      0,
-      4,
-      (1,
-       5,
-       10,
-       40,
-       60,
-       80),
-      (0,
-       100,
-       0,
-       0),
-      (8, 9, 10),
-      []]]
+     [9200, 1, 5, 0, 99, 100, 4, (1, 5, 10, 40, 60, 80), (2, 2, 94, 2), (8, 9, 10, 11, 12), []],
+     [10000, 10, 20, 0, 0, 0, 4, (1, 5, 10, 40, 60, 80), (100, 0, 0, 0), (8, 9, 10), []],
+     [11000, 3, 15, 0, 0, 0, 4, (1, 5, 10, 40, 60, 80), (0, 0, 0, 100), (4, 5, 6), []],
+     [11200, 10, 20, 0, 0, 0, 4, (1, 5, 10, 40, 60, 80), (0, 0, 0, 100), (4, 5, 6), []],
+     [12000, 10, 20, 0, 0, 0, 4, (1, 5, 10, 40, 60, 80), (0, 0, 100, 0), (7, 8, 9), []],
+     [13000, 10, 20, 0, 0, 0, 4, (1, 5, 10, 40, 60, 80), (0, 100, 0, 0), (8, 9, 10), []]
+    ]
     SUIT_HOOD_INFO_ZONE = 0
     SUIT_HOOD_INFO_MIN = 1
     SUIT_HOOD_INFO_MAX = 2
@@ -117,28 +47,18 @@ class SuitPlannerBase:
     SUIT_HOOD_INFO_LVL = 9
     SUIT_HOOD_INFO_HEIGHTS = 10
     TOTAL_BWEIGHT = 0
-    TOTAL_BWEIGHT_PER_TRACK = [0,
-     0,
-     0,
-     0]
-    TOTAL_BWEIGHT_PER_HEIGHT = [0,
-     0,
-     0,
-     0,
-     0]
+    TOTAL_BWEIGHT_PER_TRACK = [0, 0, 0, 0]
+    TOTAL_BWEIGHT_PER_HEIGHT = [0, 0, 0, 0, 0, 0, 0, 0]
     for currHoodInfo in SuitHoodInfo:
         weight = currHoodInfo[SUIT_HOOD_INFO_BWEIGHT]
         tracks = currHoodInfo[SUIT_HOOD_INFO_TRACK]
         levels = currHoodInfo[SUIT_HOOD_INFO_LVL]
-        heights = [0,
-         0,
-         0,
-         0,
-         0]
+        heights = [0, 0, 0, 0, 0, 0, 0, 0]
         for level in levels:
             minFloors, maxFloors = SuitBuildingGlobals.SuitBuildingInfo[level - 1][0]
             for i in range(minFloors - 1, maxFloors):
-                heights[i] += 1
+                if i < 8:
+                    heights[i] += 1
 
         currHoodInfo[SUIT_HOOD_INFO_HEIGHTS] = heights
         TOTAL_BWEIGHT += weight
@@ -146,11 +66,8 @@ class SuitPlannerBase:
         TOTAL_BWEIGHT_PER_TRACK[1] += weight * tracks[1]
         TOTAL_BWEIGHT_PER_TRACK[2] += weight * tracks[2]
         TOTAL_BWEIGHT_PER_TRACK[3] += weight * tracks[3]
-        TOTAL_BWEIGHT_PER_HEIGHT[0] += weight * heights[0]
-        TOTAL_BWEIGHT_PER_HEIGHT[1] += weight * heights[1]
-        TOTAL_BWEIGHT_PER_HEIGHT[2] += weight * heights[2]
-        TOTAL_BWEIGHT_PER_HEIGHT[3] += weight * heights[3]
-        TOTAL_BWEIGHT_PER_HEIGHT[4] += weight * heights[4]
+        for h in range(8):
+            TOTAL_BWEIGHT_PER_HEIGHT[h] += weight * heights[h]
 
     def __init__(self):
         self.suitWalkSpeed = ToontownGlobals.SuitWalkSpeed
