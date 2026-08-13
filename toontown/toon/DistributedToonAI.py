@@ -6,6 +6,7 @@ from . import ToonDNA
 from toontown.suit import SuitDNA
 from . import InventoryBase
 from . import Experience
+from . import ToonLevelGlobals
 from otp.avatar import DistributedAvatarAI
 from otp.avatar import DistributedPlayerAI
 from direct.distributed import DistributedSmoothNodeAI
@@ -220,6 +221,7 @@ class DistributedToonAI(DistributedPlayerAI.DistributedPlayerAI, DistributedSmoo
         DistributedSmoothNodeAI.DistributedSmoothNodeAI.generate(self)
 
     def announceGenerate(self):
+        self.loginTime = globalClock.getRealTime()
         DistributedPlayerAI.DistributedPlayerAI.announceGenerate(self)
         DistributedSmoothNodeAI.DistributedSmoothNodeAI.announceGenerate(self)
         if self.isPlayerControlled():
@@ -307,6 +309,10 @@ class DistributedToonAI(DistributedPlayerAI.DistributedPlayerAI, DistributedSmoo
             PetLookerAI.PetLookerAI.destroy(self)
         del self.kart
         self._sendExitServerEvent()
+        if hasattr(self, 'loginTime'):
+            playTime = int(globalClock.getRealTime() - self.loginTime)
+            if playTime > 0:
+                self.addStat(6, playTime)
         DistributedSmoothNodeAI.DistributedSmoothNodeAI.delete(self)
         DistributedPlayerAI.DistributedPlayerAI.delete(self)
         return
@@ -325,6 +331,90 @@ class DistributedToonAI(DistributedPlayerAI.DistributedPlayerAI, DistributedSmoo
 
     def getLaffCap(self):
         return getattr(self, 'laffCap', 0)
+
+    def b_setToonLevel(self, level):
+        self.d_setToonLevel(level)
+        self.setToonLevel(level)
+
+    def d_setToonLevel(self, level):
+        self.sendUpdate('setToonLevel', [level])
+
+    def setToonLevel(self, level):
+        self.toonLevel = level
+
+    def getToonLevel(self):
+        return getattr(self, 'toonLevel', 1)
+
+    def b_setToonExp(self, exp):
+        self.d_setToonExp(exp)
+        self.setToonExp(exp)
+
+    def d_setToonExp(self, exp):
+        self.sendUpdate('setToonExp', [exp])
+
+    def setToonExp(self, exp):
+        self.toonExp = exp
+
+    def getToonExp(self):
+        return getattr(self, 'toonExp', 0)
+
+    def b_setToonStats(self, statsList):
+        self.d_setToonStats(statsList)
+        self.setToonStats(statsList)
+
+    def d_setToonStats(self, statsList):
+        self.sendUpdate('setToonStats', [statsList])
+
+    def setToonStats(self, statsList):
+        self.toonStats = list(statsList)
+
+    def getToonStats(self):
+        if not hasattr(self, 'toonStats') or len(self.toonStats) < 12:
+            self.toonStats = [0] * 12
+        return self.toonStats
+
+    def addStat(self, index, amount=1):
+        stats = list(self.getToonStats())
+        if 0 <= index < len(stats):
+            stats[index] += amount
+            self.b_setToonStats(stats)
+
+    def addToonExp(self, amount):
+        currentExp = getattr(self, 'toonExp', 0)
+        newExp = currentExp + amount
+        self.b_setToonExp(newExp)
+
+        oldLevel = getattr(self, 'toonLevel', 1)
+        newLevel = ToonLevelGlobals.getLevelForExp(newExp)
+        if newLevel != oldLevel:
+            self.b_setToonLevel(newLevel)
+            self.notify.info('Toon %d leveled up from %d to %d (EXP: %d)' % (self.doId, oldLevel, newLevel, newExp))
+            self.checkTrackUnlocks()
+
+    def checkTrackUnlocks(self):
+        level = getattr(self, 'toonLevel', 1)
+        targetTrackCount = ToonLevelGlobals.getTrackCountForLevel(level)
+        currentTrackCount = sum(self.trackArray)
+        if currentTrackCount < targetTrackCount:
+            self.sendUpdate('promptTrackChoice', [targetTrackCount - currentTrackCount])
+
+    def requestChooseTrack(self, trackId):
+        senderId = self.air.getAvatarIdFromSender()
+        if senderId != self.doId:
+            return
+        if trackId < 0 or trackId > 6:
+            return
+        if self.trackArray[trackId] == 1:
+            return
+        
+        newTracks = list(self.trackArray)
+        newTracks[trackId] = 1
+        self.b_setTrackAccess(newTracks)
+        self.notify.info('Toon %d unlocked track %d! TrackArray is now %s' % (self.doId, trackId, newTracks))
+        
+        self.inventory.zeroInv()
+        self.inventory.maxOutInv()
+        self.d_setInventory(self.inventory.makeNetString())
 
     def setMaxHp(self, maxHp):
         laffCap = getattr(self, 'laffCap', 0)
@@ -1139,6 +1229,7 @@ class DistributedToonAI(DistributedPlayerAI.DistributedPlayerAI, DistributedSmoo
     def setHp(self, hp):
         DistributedPlayerAI.DistributedPlayerAI.setHp(self, hp)
         if hp <= 0:
+            self.addStat(5, 1)
             messenger.send(self.getGoneSadMessage())
 
     def b_setTutorialAck(self, tutorialAck):
@@ -1618,10 +1709,27 @@ class DistributedToonAI(DistributedPlayerAI.DistributedPlayerAI, DistributedSmoo
         self.notify.debug('setting quests to %s' % flattenedQuests)
         questList = []
         questLen = 5
+        migrated = False
         for i in range(0, len(flattenedQuests), questLen):
-            questList.append(flattenedQuests[i:i + questLen])
+            q = list(flattenedQuests[i:i + questLen])
+            if len(q) >= 5:
+                if q[0] == 150:
+                    if q[1] != ToontownGlobals.ToonHQ or q[2] != 2001 or q[3] != Quests.NA:
+                        q[1] = ToontownGlobals.ToonHQ
+                        q[2] = 2001
+                        q[3] = Quests.NA
+                        migrated = True
+                elif q[0] == 175:
+                    if q[1] != 2001 or q[2] != 2001 or q[3] != 100:
+                        q[1] = 2001
+                        q[2] = 2001
+                        q[3] = 100
+                        migrated = True
+            questList.append(q)
 
         self.quests = questList
+        if migrated:
+            self.d_setQuests(self.getQuests())
 
     def getQuests(self):
         flattenedQuests = []

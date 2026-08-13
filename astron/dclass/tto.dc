@@ -811,6 +811,7 @@ struct PotentialAvatar {
   blob avDNA;
   uint8 avPosition;
   uint8 nameState;
+  uint16 laffCap;
 };
 
 dclass GameServicesManager : DistributedObject {
@@ -981,6 +982,10 @@ dclass DistributedToon : DistributedPlayer {
   setMaxHp(int16 = 15) required broadcast ownrecv db;
   setHp(int16 = 15) required broadcast ownrecv db;
   setLaffCap(uint16 = 0) required broadcast ownrecv db;
+  setToonLevel(uint16 = 1) required broadcast ownrecv db;
+  setToonExp(uint32 = 0) required broadcast ownrecv db;
+  setToonStats(uint32[] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]) required broadcast ownrecv db;
+  requestChooseTrack(uint8) airecv clsend;
   setTrinketSlots(int16 = 0, int16 = 0) required broadcast ownrecv db;
   setUnlockedTrinkets(int16[] = []) required broadcast ownrecv db;
   setCogKillsCount(uint16 = 0) required broadcast ownrecv db;

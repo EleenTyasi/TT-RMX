@@ -26,6 +26,7 @@ from toontown.toon import NPCToons
 from toontown.suit import SuitDNA
 from toontown.toon import Experience
 from toontown.toon import ToonDNA
+from toontown.toon import ToonLevelGlobals
 from toontown.toonbase import ToontownBattleGlobals
 from toontown.toonbase import ToontownGlobals
 from toontown.toonbase import TTLocalizer
@@ -253,6 +254,8 @@ class MaxToon(MagicWord):
             except:
                 return 'Missing Gag track is invalid!'
             gagTracks[index] = 0
+        toon.b_setToonLevel(ToonLevelGlobals.MAX_TOON_LEVEL)
+        toon.b_setToonExp(ToonLevelGlobals.getExpForLevel(ToonLevelGlobals.MAX_TOON_LEVEL))
         toon.b_setTrackAccess(gagTracks)
         toon.b_setMaxCarry(ToontownGlobals.MaxCarryLimit)
 

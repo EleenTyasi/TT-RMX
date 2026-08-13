@@ -436,12 +436,15 @@ class DistributedSuitInteriorAI(DistributedObjectAI.DistributedObjectAI):
         victors = self.toonIds[:]
         savedBy = []
         beanReward = 100 * self.numFloors
+        expReward = 25 * self.numFloors
         for v in victors:
             if v:
                 toon = self.air.doId2do.get(v)
                 if toon:
                     toon.addMoney(beanReward)
-                    toon.d_setSystemMessage(0, f"You earned {beanReward} Jellybeans for clearing the Cog Building!")
+                    if hasattr(toon, 'addToonExp'):
+                        toon.addToonExp(expReward)
+                    toon.d_setSystemMessage(0, f"You earned {beanReward} Jellybeans and {expReward} Toon EXP for clearing the Cog Building!")
             tuple = self.savedByMap.get(v)
             if tuple:
                 savedBy.append([v, tuple[0], tuple[1], tuple[2]])

@@ -30,7 +30,7 @@ class GameServicesManager(DistributedObjectGlobal):
 
     def avatarListResponse(self, avatarList):
         avList = []
-        for avNum, avName, avDNA, avPosition, nameState in avatarList:
+        for avNum, avName, avDNA, avPosition, nameState, laffCap in avatarList:
             nameOpen = int(nameState == 1)
             names = [avName, '', '', '']
             if nameState == 2:  # Pending
@@ -40,7 +40,7 @@ class GameServicesManager(DistributedObjectGlobal):
             elif nameState == 4:  # Rejected
                 names[3] = avName
 
-            avList.append(PotentialAvatar(avNum, names, avDNA, avPosition, nameOpen))
+            avList.append(PotentialAvatar(avNum, names, avDNA, avPosition, nameOpen, laffCap=laffCap))
 
         self.cr.handleAvatarsList(avList)
 

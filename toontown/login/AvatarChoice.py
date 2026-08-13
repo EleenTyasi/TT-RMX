@@ -50,6 +50,7 @@ class AvatarChoice(DirectButton):
             else:
                 self.mode = AvatarChoice.MODE_CHOOSE
                 self.name = av.name
+                self.laffCap = getattr(av, 'laffCap', 0)
                 self.dna = ToonDNA.ToonDNA(av.dna)
                 self.wantName = av.wantName
                 self.approvedName = av.approvedName
@@ -105,6 +106,8 @@ class AvatarChoice(DirectButton):
             self.nameText = DirectLabel(parent=self, relief=None, scale=0.08, pos=NAME_POSITIONS[position], text=self.name, hpr=(0, 0, NAME_ROTATIONS[position]), text_fg=(1, 1, 1, 1), text_shadow=(0, 0, 0, 1), text_wordwrap=8, text_font=ToontownGlobals.getToonFont(), state=DGG.DISABLED)
             if self.approvedName != '':
                 self.nameText['text'] = self.approvedName
+            if getattr(self, 'laffCap', 0) > 0:
+                self.nameText['text'] = self.nameText['text'] + f"\nUBER [{self.laffCap} Laff]"
             guiButton = loader.loadModel('phase_3/models/gui/quit_button')
             self.nameYourToonButton = DirectButton(parent=self, relief=None, image=(guiButton.find('**/QuitBtn_UP'), guiButton.find('**/QuitBtn_DN'), guiButton.find('**/QuitBtn_RLVR')), text=(TTLocalizer.AvatarChoiceNameYourToon, TTLocalizer.AvatarChoiceNameYourToon, TTLocalizer.AvatarChoiceNameYourToon), text_fg=(1, 1, 1, 1), text_shadow=(0, 0, 0, 1), text_scale=0.15, text_pos=(0, 0.03), text_font=ToontownGlobals.getInterfaceFont(), pos=(-0.2, 0, -0.3), scale=0.45, image_scale=(2, 1, 3), command=self.__handleNameYourToon)
             guiButton.removeNode()

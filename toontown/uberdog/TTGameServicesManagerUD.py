@@ -229,7 +229,10 @@ class CreateAvatarOperation(GameOperation):
                       'WishNameState': ('OPEN',),
                       'WishName': ('',),
                       'setDNAString': (self.dna,),
-                      'setDISLid': (self.target,)}
+                      'setDISLid': (self.target,),
+                      'setToonLevel': (1,),
+                      'setToonExp': (0,),
+                      'setToonStats': ([0] * 12,)}
         if getattr(self, 'laffCap', 0) > 0:
             toonFields['setLaffCap'] = (self.laffCap,)
             startLaff = min(15, self.laffCap)

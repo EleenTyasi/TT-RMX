@@ -244,6 +244,9 @@ class LocalToon(DistributedToon.DistributedToon, LocalAvatar.LocalAvatar):
         from otp.friends import FriendInfo
 
     def disable(self):
+        if hasattr(self, 'expGui') and self.expGui:
+            self.expGui.destroy()
+            del self.expGui
         self.laffMeter.destroy()
         del self.laffMeter
         self.questMap.destroy()
@@ -380,6 +383,8 @@ class LocalToon(DistributedToon.DistributedToon, LocalAvatar.LocalAvatar):
         else:
             self.laffMeter.setPos(0.133, 0.0, 0.13)
         self.laffMeter.stop()
+        from . import ToonExpGui
+        self.expGui = ToonExpGui.ToonExpGui()
         self.questMap = QuestMap.QuestMap(self)
         self.questMap.stop()
         if not base.cr.isPaid():

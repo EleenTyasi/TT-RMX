@@ -2119,13 +2119,13 @@ QuestDict = {
        175,
        DefaultDialog),
  150: (TT_TIER,
-       OBSOLETE,
-       (FriendQuest,),
-       Same,
-       Same,
+       Cont,
+       (VisitQuest,),
+       ToonHQ,
+       2001,
        NA,
        175,
-       DefaultDialog),
+       TTLocalizer.QuestDialogDict[150]),
  160: (TT_TIER,
        OBSOLETE,
        (CogTrackQuest,
@@ -2172,9 +2172,9 @@ QuestDict = {
        TTLocalizer.QuestDialogDict[163]),
  175: (TT_TIER,
        Cont,
-       (PhoneQuest,),
-       Same,
-       ToonHQ,
+       (VisitQuest,),
+       2001,
+       2001,
        100,
        NA,
        TTLocalizer.QuestDialogDict[175]),
@@ -18390,18 +18390,19 @@ class TrackTrainingReward(Reward):
         return track
 
     def sendRewardAI(self, av):
-        av.b_setTrackProgress(self.getTrack(), 0)
+        if hasattr(av, 'addToonExp'):
+            av.addToonExp(300)
+            av.d_setSystemMessage(0, "You earned 300 Toon EXP for completing the task!")
 
     def countReward(self, qrc):
         qrc.trackProgressId = self.getTrack()
         qrc.trackProgress = 0
 
     def getString(self):
-        trackName = ToontownBattleGlobals.Tracks[self.getTrack()].capitalize()
-        return TTLocalizer.QuestsTrackTrainingReward % trackName
+        return "300 Toon EXP"
 
     def getPosterString(self):
-        return TTLocalizer.QuestsTrackTrainingRewardPoster
+        return "300 Toon EXP"
 
 
 class TrackProgressReward(Reward):
@@ -18418,20 +18419,18 @@ class TrackProgressReward(Reward):
         return self.reward[1]
 
     def sendRewardAI(self, av):
-        av.addTrackProgress(self.getTrack(), self.getProgressIndex())
+        if hasattr(av, 'addToonExp'):
+            av.addToonExp(500)
+            av.d_setSystemMessage(0, "You earned 500 Toon EXP for completing the task!")
 
     def countReward(self, qrc):
-        qrc.addTrackProgress(self.getTrack(), self.getProgressIndex())
+        pass
 
     def getString(self):
-        trackName = ToontownBattleGlobals.Tracks[self.getTrack()].capitalize()
-        return TTLocalizer.QuestsTrackProgressReward % {'frameNum': self.getProgressIndex(),
-         'trackName': trackName}
+        return "500 Toon EXP"
 
     def getPosterString(self):
-        trackName = ToontownBattleGlobals.Tracks[self.getTrack()].capitalize()
-        return TTLocalizer.QuestsTrackProgressRewardPoster % {'trackName': trackName,
-         'frameNum': self.getProgressIndex()}
+        return "500 Toon EXP"
 
 
 class TrackCompleteReward(Reward):
@@ -18445,19 +18444,18 @@ class TrackCompleteReward(Reward):
         return track
 
     def sendRewardAI(self, av):
-        av.addTrackAccess(self.getTrack())
-        av.clearTrackProgress()
+        if hasattr(av, 'addToonExp'):
+            av.addToonExp(1000)
+            av.d_setSystemMessage(0, "You earned 1000 Toon EXP for completing the task!")
 
     def countReward(self, qrc):
-        qrc.addTrackAccess(self.getTrack())
-        qrc.clearTrackProgress()
+        pass
 
     def getString(self):
-        trackName = ToontownBattleGlobals.Tracks[self.getTrack()].capitalize()
-        return TTLocalizer.QuestsTrackCompleteReward % trackName
+        return "1000 Toon EXP"
 
     def getPosterString(self):
-        trackName = ToontownBattleGlobals.Tracks[self.getTrack()].capitalize()
+        return "1000 Toon EXP"
         return TTLocalizer.QuestsTrackCompleteRewardPoster % trackName
 
 

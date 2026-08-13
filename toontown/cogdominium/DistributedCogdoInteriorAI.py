@@ -934,6 +934,10 @@ class DistributedCogdoInteriorAI(DistributedObjectAI.DistributedObjectAI):
                 toon = self.air.doId2do.get(v)
                 if toon:
                     self.notify.info('Reward State: toonId:%d laff:%d/%d get ready for the victors to come outside' % (toon.doId, toon.hp, toon.maxHp))
+                    if hasattr(toon, 'addToonExp'):
+                        foExp = 200
+                        toon.addToonExp(foExp)
+                        toon.d_setSystemMessage(0, f"You earned {foExp} Toon EXP for clearing the Field Office!")
                     if self.bldg.track == 'l':
                         emblemReward = self.getEmblemReward()
                         toon.addEmblems(emblemReward)

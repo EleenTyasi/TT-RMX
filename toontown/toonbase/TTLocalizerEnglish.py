@@ -630,10 +630,15 @@ QuestDialogDict = {160: {GREETING: '',
  170: {QUEST: 'Nice work, now you know the difference between the 4 types of Cogs.\x07I think you are ready to start training for your third gag track.\x07Go talk to _toNpcName_ to choose your next gag track - he can give you some expert advice._where_'},
  171: {QUEST: 'Nice work, now you know the difference between the 4 types of Cogs.\x07I think you are ready to start training for your third gag track.\x07Go talk to _toNpcName_ to choose your next gag track - he can give you some expert advice._where_'},
  172: {QUEST: 'Nice work, now you know the difference between the 4 types of Cogs.\x07I think you are ready to start training for your third gag track.\x07Go talk to _toNpcName_ to choose your next gag track - she can give you some expert advice._where_'},
+ 150: {GREETING: '',
+       QUEST: "Head over to Toon Hall and talk to Flippy! He's eager to teach you about Critical Hits in battle.",
+       INCOMPLETE_PROGRESS: "Flippy is waiting for you at Toon Hall in Toontown Central.",
+       COMPLETE: "Welcome! Let me tell you about Critical Hits!\x07Attacks can trigger Special Hits: Direct Hits (+10% dmg), Critical Hits (+5% dmg), or Critical Direct Hits (+25% dmg)!\x07Be careful though—Cogs can ALSO land Critical Hits on Toons with their attacks!\x07Skelecogs are especially dangerous, with an extra 15% Critical Hit chance.\x07Keep your Laff meter high and stay alert!",
+       LEAVING: QuestsDefaultLeaving},
  175: {GREETING: '',
-       QUEST: "Did you know you have your very own Toon house?\x07Clarabelle Cow runs a phone catalog where you can order furniture to decorate your house.\x07You can also buy SpeedChat phrases, clothing, and other fun things!\x07I'll tell Clarabelle to send you your first catalog now.\x07You get a catalog with new items every week!\x07Go to your home and use your phone to call Clarabelle.",
-       INCOMPLETE_PROGRESS: 'Go home and use your phone to call Clarabelle.',
-       COMPLETE: 'Hope you have fun ordering things from Clarabelle!\x07I just finished redecorating my house. It looks Toontastic!\x07Keep doing ToonTasks to get more rewards!',
+       QUEST: "Flippy has one more important combat lesson for you about Trinkets!",
+       INCOMPLETE_PROGRESS: "Talk to Flippy in Toon Hall.",
+       COMPLETE: "Next up: Trinkets!\x07Every 5 Cogs you defeat in battle will unlock a new Trinket or award bonus Jellybeans!\x07Trinkets grant awesome passive stat boosts like extra Laff, bonus Gag accuracy, or extra Jellybeans.\x07Check your Shticker Book to equip them!",
        LEAVING: QuestsDefaultLeaving},
  400: {GREETING: '',
        QUEST: 'Throw and Squirt are great, but you will need more gags to fight higher level Cogs.\x07When you team up with other Toons against the Cogs, you can combine attacks for even more damage.\x07Try different combinations of gags to see what works best.\x07For your next track, choose between Sound and Toonup.\x07Sound is special because when it hits, it damages all Cogs.\x07Toonup lets you heal other Toons in battle.\x07When you are ready to decide, come back here and choose.',
@@ -4724,9 +4729,9 @@ CdrResultAlreadyBeingWorn = "You've already received this item, and you are wear
 CdrResultAlreadyReceived = "You've already received this item."
 CdrResultTooManyFails = "We're sorry. You've tried to enter an incorrect code too many times. Please try again after some time."
 CdrResultServiceUnavailable = "We're sorry. This feature is temporarily unavailable. Please try again during your next login."
-TrackPageTitle = 'Gag Track Training'
-TrackPageShortTitle = 'Gag Training'
-TrackPageSubtitle = 'Complete ToonTasks to learn how to use new gags!'
+TrackPageTitle = 'Toon Stats'
+TrackPageShortTitle = 'Stats'
+TrackPageSubtitle = 'Lifetime Combat & Progression Records'
 TrackPageTraining = 'You are training to use %s gags.\nWhen you complete all 16 tasks you\nwill be able to use %s gags in battle.'
 TrackPageClear = 'You are not training any Gag Tracks now.'
 TrackPageFilmTitle = '%s\nTraining\nFilm'

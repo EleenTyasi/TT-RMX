@@ -1026,7 +1026,17 @@ class DistributedToon(DistributedPlayer.DistributedPlayer, Toon.Toon, Distribute
         questList = []
         questLen = 5
         for i in range(0, len(flattenedQuests), questLen):
-            questList.append(flattenedQuests[i:i + questLen])
+            q = list(flattenedQuests[i:i + questLen])
+            if len(q) >= 5:
+                if q[0] == 150:
+                    q[1] = ToontownGlobals.ToonHQ
+                    q[2] = 2001
+                    q[3] = Quests.NA
+                elif q[0] == 175:
+                    q[1] = 2001
+                    q[2] = 2001
+                    q[3] = 100
+            questList.append(q)
 
         self.quests = questList
         if self == base.localAvatar:
@@ -1039,6 +1049,43 @@ class DistributedToon(DistributedPlayer.DistributedPlayer, Toon.Toon, Distribute
 
     def getQuestCarryLimit(self):
         return self.questCarryLimit
+
+    def setToonLevel(self, level):
+        self.toonLevel = level
+        if self == base.localAvatar:
+            messenger.send('toonLevelChanged', [level])
+
+    def getToonLevel(self):
+        return getattr(self, 'toonLevel', 1)
+
+    def setToonExp(self, exp):
+        self.toonExp = exp
+        if self == base.localAvatar:
+            messenger.send('toonExpChanged', [exp])
+
+    def getToonExp(self):
+        return getattr(self, 'toonExp', 0)
+
+    def setToonStats(self, statsList):
+        self.toonStats = list(statsList)
+        if self == base.localAvatar:
+            messenger.send('toonStatsChanged', [self.toonStats])
+
+    def getToonStats(self):
+        if not hasattr(self, 'toonStats') or len(self.toonStats) < 12:
+            self.toonStats = [0] * 12
+        return self.toonStats
+
+    def d_requestChooseTrack(self, trackId):
+        self.sendUpdate('requestChooseTrack', [trackId])
+
+    def promptTrackChoice(self, choicesLeft):
+        if self == base.localAvatar:
+            messenger.send('promptTrackChoice', [choicesLeft])
+            from . import TrackSelectionFrame
+            if hasattr(self, 'trackSelectionFrame') and self.trackSelectionFrame:
+                self.trackSelectionFrame.destroy()
+            self.trackSelectionFrame = TrackSelectionFrame.TrackSelectionFrame(choicesLeft)
 
     def d_requestDeleteQuest(self, questDesc):
         self.sendUpdate('requestDeleteQuest', [list(questDesc)])

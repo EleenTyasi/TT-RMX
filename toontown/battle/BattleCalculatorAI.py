@@ -608,6 +608,24 @@ class BattleCalculatorAI:
                     import math
                     from toontown.battle.CritGlobals import roll_hit_type, HIT_TYPE_NAMES, HIT_NORMAL
                     hit_type, crit_mult = roll_hit_type(is_toon=True)
+                    if toon and hasattr(toon, 'addStat'):
+                        if hit_type == DIRECT_HIT:
+                            toon.addStat(0, 1)
+                        elif hit_type == CRITICAL_HIT:
+                            toon.addStat(1, 1)
+                        elif hit_type == CRITICAL_DIRECT_HIT:
+                            toon.addStat(2, 1)
+
+                        if atkTrack == THROW:
+                            throwCalories = [150, 350, 500, 750, 1000, 2500, 6000]
+                            if 0 <= attackLevel < len(throwCalories):
+                                toon.addStat(3, throwCalories[attackLevel])
+
+                        if atkTrack == HEAL:
+                            toon.addStat(9, int(result))
+                        else:
+                            toon.addStat(7, int(result))
+
                     if hit_type != HIT_NORMAL:
                         result = max(result + 1, int(math.ceil(result * crit_mult)))
 
@@ -812,7 +830,10 @@ class BattleCalculatorAI:
         else:
             return 0
 
-    def __addSkillCredit(self, attack, track = -1, level = -1, attackerId = -1):
+    def __addAttackExp(self, attack, track = -1, level = -1, attackerId = -1):
+        trk = -1
+        lvl = -1
+        id = -1
         if attack:
             tgt = attack[TOON_TGT_COL]
             if tgt != -1 and tgt != None:
@@ -825,7 +846,7 @@ class BattleCalculatorAI:
             trk = track
             lvl = level
             id = attackerId
-        elif self.__attackHasHit(attack):
+        elif attack and self.__attackHasHit(attack):
             if self.notify.getDebug():
                 self.notify.debug('Attack ' + repr(attack) + ' has hit')
             trk = attack[TOON_TRACK_COL]
@@ -1358,9 +1379,13 @@ class BattleCalculatorAI:
                         self.notify.debug('Toon %d has died, removing' % t)
                     self.toonLeftBattle(t)
                     attack[TOON_DIED_COL] = attack[TOON_DIED_COL] | 1 << position
+                dmg = attack[SUIT_HP_COL][position]
                 if self.notify.getDebug():
-                    self.notify.debug('Toon ' + str(t) + ' takes ' + str(attack[SUIT_HP_COL][position]) + ' damage')
-                self.toonHPAdjusts[t] -= attack[SUIT_HP_COL][position]
+                    self.notify.debug('Toon ' + str(t) + ' takes ' + str(dmg) + ' damage')
+                self.toonHPAdjusts[t] -= dmg
+                toon = self.battle.getToon(t)
+                if toon and hasattr(toon, 'addStat'):
+                    toon.addStat(8, dmg)
                 self.notify.debug('Toon ' + str(t) + ' now has ' + str(self.__getToonHp(t)) + ' health')
 
     def __suitCanAttack(self, suitId):

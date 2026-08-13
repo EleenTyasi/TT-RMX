@@ -157,7 +157,19 @@ def assignRewards(activeToons, toonSkillPtsGained, suitsKilled, zoneId, helpfulT
         if toon != None:
             activeToonList.append(toon)
 
+    # Calculate Toon Level EXP gained from defeated suits
+    totalToonLevelExp = 0
+    for suitDict in suitsKilled:
+        suitLevel = suitDict.get('level', 1)
+        suitExp = max(1, int(suitLevel / 2) + 1)
+        if suitDict.get('isSkelecog', 0) or suitDict.get('isV2', 0):
+            suitExp = int(suitExp * 1.5)
+        totalToonLevelExp += suitExp
+
     for toon in activeToonList:
+        if totalToonLevelExp > 0 and hasattr(toon, 'addToonExp'):
+            toon.addToonExp(totalToonLevelExp)
+
         for i in range(len(ToontownBattleGlobals.Tracks)):
             uberIndex = ToontownBattleGlobals.LAST_REGULAR_GAG_LEVEL + 1
             exp = getSkillGained(toonSkillPtsGained, toon.doId, i)

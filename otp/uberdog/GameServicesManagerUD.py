@@ -375,7 +375,8 @@ class GetAvatarsOperation(AvatarOperation):
                 nameState = 0
 
             # Add those to potentialAvatars.
-            potentialAvatars.append([avId, name, fields['setDNAString'][0], index, nameState])
+            laffCap = fields.get('setLaffCap', [0])[0]
+            potentialAvatars.append([avId, name, fields['setDNAString'][0], index, nameState, laffCap])
 
         # We're done; send the avatarListResponse update through the
         # GameServicesManager, then we can set this operation's
