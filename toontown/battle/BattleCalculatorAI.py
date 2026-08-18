@@ -1438,6 +1438,29 @@ class BattleCalculatorAI:
                 if attack[SUIT_HP_COL][position] <= 0:
                     continue
                 toonHp = self.__getToonHp(t)
+                toonMaxHp = self.__getToonMaxHp(t)
+                incomingDmg = attack[SUIT_HP_COL][position]
+
+                # One Shot Protection (OSP):
+                # Only applies to Uber Toons (laffCap > 0), and specifically excluded for 1-Laff Ubers (maxHp > 1)
+                # Normal toons do NOT have OSP.
+                toonObj = self.battle.getToon(t)
+                isUberToon = toonObj and getattr(toonObj, 'isUber', lambda: getattr(toonObj, 'laffCap', 0) > 0)()
+                if isUberToon and toonMaxHp > 1 and (toonHp - incomingDmg) <= 0:
+                    halfHpThreshold = int(math.ceil(toonMaxHp * 0.50))
+                    quarterHpThreshold = int(math.ceil(toonMaxHp * 0.25))
+
+                    if toonHp > halfHpThreshold:
+                        # Dropped from above 50% HP -> survived with 50% HP
+                        incomingDmg = max(0, toonHp - halfHpThreshold)
+                        attack[SUIT_HP_COL][position] = incomingDmg
+                        self.notify.info('Uber Toon %d triggered OSP (Tier 1: 50%%)! Survived with %d HP' % (t, halfHpThreshold))
+                    elif toonHp > quarterHpThreshold:
+                        # Dropped from above 25% HP -> survived with 25% HP
+                        incomingDmg = max(0, toonHp - quarterHpThreshold)
+                        attack[SUIT_HP_COL][position] = incomingDmg
+                        self.notify.info('Uber Toon %d triggered OSP (Tier 2: 25%%)! Survived with %d HP' % (t, quarterHpThreshold))
+
                 if toonHp - attack[SUIT_HP_COL][position] <= 0:
                     if self.notify.getDebug():
                         self.notify.debug('Toon %d has died, removing' % t)

@@ -77,6 +77,10 @@ class DistributedSuitInterior(DistributedObject.DistributedObject):
 
     def generate(self):
         DistributedObject.DistributedObject.generate(self)
+        self.cr.suitInterior = self
+        place = base.cr.playGame.getPlace()
+        if place:
+            place.interior = self
         self.announceGenerateName = self.uniqueName('generate')
         self.accept(self.announceGenerateName, self.handleAnnounceGenerate)
         self.elevatorModelIn = loader.loadModel('phase_4/models/modules/elevator')
@@ -103,6 +107,11 @@ class DistributedSuitInterior(DistributedObject.DistributedObject):
         self.sendUpdate('setAvatarJoined', [])
 
     def disable(self):
+        if getattr(self.cr, 'suitInterior', None) == self:
+            self.cr.suitInterior = None
+        place = base.cr.playGame.getPlace()
+        if place and getattr(place, 'interior', None) == self:
+            place.interior = None
         self.__hideModifierBanner()
         self.fsm.requestFinalState()
         self.__cleanupIntervals()

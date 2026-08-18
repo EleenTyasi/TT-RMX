@@ -342,6 +342,9 @@ class DistributedToonAI(DistributedPlayerAI.DistributedPlayerAI, DistributedSmoo
     def getLaffCap(self):
         return getattr(self, 'laffCap', 0)
 
+    def isUber(self):
+        return getattr(self, 'laffCap', 0) > 0
+
     def b_setToonLevel(self, level):
         if self.isPlayerControlled():
             self.d_setToonLevel(level)
