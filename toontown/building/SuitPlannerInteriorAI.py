@@ -75,6 +75,8 @@ class SuitPlannerInteriorAI:
             infoDict['activeSuits'] = activeDicts
             reserveDicts = []
             numReserve = len(lvls) - numActive
+            # Solo Experience: Scale back reserves by 50%
+            numReserve = int(math.ceil(numReserve * 0.5))
             joinChances = self.__genJoinChances(numReserve)
             for currReserve in range(numReserve):
                 level = lvls[currReserve + numActive]
