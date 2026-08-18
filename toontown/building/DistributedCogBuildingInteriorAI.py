@@ -58,8 +58,9 @@ class DistributedCogBuildingInteriorAI(DistributedObjectAI.DistributedObjectAI):
         self.bldg = elevator.bldg
         self.elevator = elevator
         self.track = getattr(elevator.bldg, 'track', 'c')
-        self.numRooms = max(1, elevator.bldg.numFloors)  # height = difficulty = room count
-        self.modifier = getattr(elevator.bldg, 'buildingModifier', None) or             CogBuildingModifier.pick(self.track, elevator.bldg.difficulty)
+        self.numRooms = max(1, elevator.bldg.numFloors)  # total floors in building (e.g. 5)
+        self.modifier = getattr(elevator.bldg, 'buildingModifier', None) or \
+            CogBuildingModifier.pick(self.track, elevator.bldg.difficulty)
 
         self.toonIds = copy.copy(elevator.seats)
         self.toons = [t for t in self.toonIds if t is not None]
@@ -67,8 +68,8 @@ class DistributedCogBuildingInteriorAI(DistributedObjectAI.DistributedObjectAI):
         self.avatarExitEvents = []
         self.responses = {}
 
-        # Room / battle state
-        self.currentRoom = 0          # 0 .. numRooms-1 are traversal rooms; numRooms = boss
+        # Room / battle state (0-indexed: floors 0 to numRooms - 1; boss is floor index numRooms - 1)
+        self.currentRoom = 0
         self.roomSequence = []         # list of room IDs from the pool
         self.activeSuits = []
         self.reserveSuits = []
@@ -177,7 +178,7 @@ class DistributedCogBuildingInteriorAI(DistributedObjectAI.DistributedObjectAI):
         return active, reserve
 
     def _makeSupertypeBoss(self, suits):
-        """Mutate the highest-level suit in the list into a Supertype Building Manager."""
+        """Mutate the highest-level suit in the list into a Supertype Building Manager with HP scaling based on floor height."""
         if not suits:
             return
         boss = max(suits, key=lambda s: getattr(s, 'level', 0))
@@ -186,7 +187,11 @@ class DistributedCogBuildingInteriorAI(DistributedObjectAI.DistributedObjectAI):
         boss.isPrototype = True
         boss.isAlphatype = True
         boss.setSkeleRevives(1)
-        boss.maxHP = max(1, boss.maxHP * 2)
+
+        # Floor-based HP scaling: 2.0x base + 0.25x per additional floor above 1
+        # 1-floor = 2.0x HP, 3-floor = 2.5x HP, 5-floor = 3.0x HP
+        floor_scale = 2.0 + max(0, self.numRooms - 1) * 0.25
+        boss.maxHP = max(1, int(boss.maxHP * floor_scale))
         boss.currHP = boss.maxHP
         if hasattr(boss, 'setVariantFlags'):
             boss.setVariantFlags(1, 1, 1)
@@ -368,7 +373,7 @@ class DistributedCogBuildingInteriorAI(DistributedObjectAI.DistributedObjectAI):
     # ------------------------------------------------------------------
 
     def __createFloorBattle(self):
-        isBossRoom = (self.currentRoom == self.numRooms)
+        isBossRoom = (self.currentRoom == self.numRooms - 1)
         bossBattle = 1 if isBossRoom else 0
         self.battle = DistributedBattleBldgAI.DistributedBattleBldgAI(
             self.air, self.zoneId,
@@ -433,7 +438,7 @@ class DistributedCogBuildingInteriorAI(DistributedObjectAI.DistributedObjectAI):
         if not toonIds:
             taskMgr.doMethodLater(10, self.__doDeleteInterior,
                                   self.taskName('deleteInterior'))
-        elif self.currentRoom == self.numRooms:
+        elif self.currentRoom == self.numRooms - 1:
             self.fsm.request('Reward')
         else:
             self.b_setState('Resting')
@@ -465,7 +470,7 @@ class DistributedCogBuildingInteriorAI(DistributedObjectAI.DistributedObjectAI):
         self.__resetResponses()
 
     def enterElevator(self):
-        isBossRoom = (self.currentRoom == self.numRooms)
+        isBossRoom = (self.currentRoom == self.numRooms - 1)
         active, reserve = self._genRoomSuits(isBossRoom=isBossRoom)
         self.suits = active
         self.activeSuits = list(active)
@@ -527,7 +532,7 @@ class DistributedCogBuildingInteriorAI(DistributedObjectAI.DistributedObjectAI):
         if not self.toons:
             self.bldg.deleteSuitInterior()
             return
-        isBossRoom = (self.currentRoom == self.numRooms)
+        isBossRoom = (self.currentRoom == self.numRooms - 1)
         self.battle.resume(self.currentRoom, topFloor=1 if isBossRoom else 0)
 
     def exitBattleDone(self):

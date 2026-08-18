@@ -1,13 +1,13 @@
-﻿import random
+import random
 
 MODIFIERS = [
-    {'key': 'STANDARD',    'label': 'Standard Operation', 'desc': 'No special conditions in effect.',                                                           'weight': 30, 'hp_mult': 1.00, 'boss_hp_mult': 1.0, 'veteran_chance': 0,  'ambush': False, 'frenzied': False, 'lockdown': False},
-    {'key': 'OVERCLOCKED', 'label': 'Overclocked',        'desc': 'All Cogs are running hot. They have 25% more health.',                                       'weight': 20, 'hp_mult': 1.25, 'boss_hp_mult': 1.0, 'veteran_chance': 0,  'ambush': False, 'frenzied': False, 'lockdown': False},
-    {'key': 'REINFORCED',  'label': 'Reinforced',         'desc': 'The boss and elite Cogs have 50% additional health.',                                        'weight': 15, 'hp_mult': 1.00, 'boss_hp_mult': 1.5, 'veteran_chance': 0,  'ambush': False, 'frenzied': False, 'lockdown': False},
-    {'key': 'AMBUSH',      'label': 'Ambush Protocol',    'desc': 'All reserve Cogs have been ordered to join the fight immediately.',                          'weight': 12, 'hp_mult': 1.00, 'boss_hp_mult': 1.0, 'veteran_chance': 0,  'ambush': True,  'frenzied': False, 'lockdown': False},
-    {'key': 'FRENZIED',    'label': 'Frenzied',           'desc': 'Reserve Cogs are far more eager to join. Their join chance is doubled each room.',           'weight': 10, 'hp_mult': 1.00, 'boss_hp_mult': 1.0, 'veteran_chance': 0,  'ambush': False, 'frenzied': True,  'lockdown': False},
-    {'key': 'VETERAN',     'label': 'Veteran Force',      'desc': 'This building is staffed by seasoned operatives. Non-boss Cogs have a 50% chance to be v2.0.','weight': 8,  'hp_mult': 1.00, 'boss_hp_mult': 1.0, 'veteran_chance': 50, 'ambush': False, 'frenzied': False, 'lockdown': False},
-    {'key': 'LOCKDOWN',    'label': 'Lockdown',           'desc': 'Security has been tightened. The Building Manager has summoned an additional elite guard.',  'weight': 5,  'hp_mult': 1.00, 'boss_hp_mult': 1.0, 'veteran_chance': 0,  'ambush': False, 'frenzied': False, 'lockdown': True},
+    {'key': 'STANDARD',    'label': 'Standard Operations',   'desc': 'Business as usual. No special corporate directives in effect.',                               'weight': 30, 'hp_mult': 1.00, 'boss_hp_mult': 1.0, 'veteran_chance': 0,  'ambush': False, 'frenzied': False, 'lockdown': False},
+    {'key': 'OVERCLOCKED', 'label': 'Mandatory Overtime',    'desc': 'All Cogs are clocking extra hours. They have 25% increased health.',                          'weight': 20, 'hp_mult': 1.25, 'boss_hp_mult': 1.0, 'veteran_chance': 0,  'ambush': False, 'frenzied': False, 'lockdown': False},
+    {'key': 'REINFORCED',  'label': 'Executive Protection',  'desc': 'The Building Manager has secured additional capital, gaining 50% more health.',               'weight': 15, 'hp_mult': 1.00, 'boss_hp_mult': 1.5, 'veteran_chance': 0,  'ambush': False, 'frenzied': False, 'lockdown': False},
+    {'key': 'AMBUSH',      'label': 'Ambush Marketing',      'desc': 'Unsolicited promotions! All reserve Cogs have been deployed to the floor immediately.',       'weight': 12, 'hp_mult': 1.00, 'boss_hp_mult': 1.0, 'veteran_chance': 0,  'ambush': True,  'frenzied': False, 'lockdown': False},
+    {'key': 'FRENZIED',    'label': 'Aggressive Expansion',  'desc': 'Cogs are aggressively meeting quotas. Reserve join rate is doubled each room.',               'weight': 10, 'hp_mult': 1.00, 'boss_hp_mult': 1.0, 'veteran_chance': 0,  'ambush': False, 'frenzied': True,  'lockdown': False},
+    {'key': 'VETERAN',     'label': 'Senior Management',     'desc': 'Staffed by seasoned operatives. Non-boss Cogs have a 50% chance to be Version 2.0.',          'weight': 8,  'hp_mult': 1.00, 'boss_hp_mult': 1.0, 'veteran_chance': 50, 'ambush': False, 'frenzied': False, 'lockdown': False},
+    {'key': 'LOCKDOWN',    'label': 'Boardroom Quarantine',  'desc': 'Corporate security engaged. The Building Manager has summoned an additional elite guard.',    'weight': 5,  'hp_mult': 1.00, 'boss_hp_mult': 1.0, 'veteran_chance': 0,  'ambush': False, 'frenzied': False, 'lockdown': True},
 ]
 
 _TOTAL_WEIGHT = sum(m['weight'] for m in MODIFIERS)

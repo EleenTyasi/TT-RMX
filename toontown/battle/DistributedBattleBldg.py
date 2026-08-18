@@ -14,7 +14,7 @@ from direct.fsm import State
 from toontown.suit import Suit
 from . import SuitBattleGlobals
 import random
-from direct.gui.DirectGui import DirectFrame, DirectLabel, DGG
+from direct.gui.DirectGui import DirectFrame, DirectLabel, DirectWaitBar, DGG
 from toontown.toonbase import ToontownGlobals
 
 class DistributedBattleBldg(DistributedBattleBase.DistributedBattleBase):
@@ -47,14 +47,17 @@ class DistributedBattleBldg(DistributedBattleBase.DistributedBattleBase):
         if not interior:
             return
 
-        currentFloor = getattr(interior, 'currentFloor', 0) + 1
+        rawFloor = getattr(interior, 'currentFloor', 0)
         numFloors = getattr(interior, 'numFloors', 1)
-        activeCogs = len(self.activeSuits)
+        # currentFloor is 0-indexed on the interior; clamp to [1, numFloors]
+        currentFloor = min(max(1, rawFloor + 1), numFloors)
+
+        activeCogs = len(self.activeSuits) if len(self.activeSuits) > 0 else len(self.suits)
         reserveCogs = len(getattr(interior, 'reserveSuits', []))
         totalFloorCogs = activeCogs + reserveCogs
 
         # Check if boss floor
-        isBoss = (currentFloor == numFloors)
+        isBoss = (currentFloor >= numFloors)
         floorTitle = f"BOSS FLOOR ({currentFloor}/{numFloors})" if isBoss else f"FLOOR {currentFloor}/{numFloors}"
 
         # Modifier info
@@ -166,6 +169,70 @@ class DistributedBattleBldg(DistributedBattleBase.DistributedBattleBase):
             pos=(0.02, 0, -0.15)
         )
 
+    def updateBossHpBar(self):
+        self.cleanupBossHpBar()
+        if not getattr(self, 'bossBattle', 0):
+            return
+
+        # Find the boss Cog among the battle's suits
+        bossSuit = None
+        for suit in self.suits:
+            if getattr(suit, 'isSupertype', False) or getattr(suit, 'isPrototype', False) or getattr(suit, 'isAlphatype', False):
+                bossSuit = suit
+                break
+        if not bossSuit and len(self.suits) > 0:
+            bossSuit = max(self.suits, key=lambda s: getattr(s, 'currHP', 0) if hasattr(s, 'currHP') else getattr(s, 'maxHP', 0))
+
+        if not bossSuit:
+            return
+
+        currHp = getattr(bossSuit, 'currHP', getattr(bossSuit, 'maxHP', 100))
+        maxHp = getattr(bossSuit, 'maxHP', 100)
+        bossName = getattr(bossSuit, '_name', 'BUILDING MANAGER')
+        bossLevel = getattr(bossSuit, 'getActualLevel', lambda: getattr(bossSuit, 'level', 12))()
+
+        self.bossHpFrame = DirectFrame(
+            parent=base.a2dTopCenter,
+            relief=DGG.RAISED,
+            borderWidth=(0.008, 0.008),
+            frameColor=(0.12, 0.08, 0.08, 0.90),
+            frameSize=(-0.55, 0.55, -0.09, 0.05),
+            pos=(0, 0, -0.10)
+        )
+
+        DirectLabel(
+            parent=self.bossHpFrame,
+            relief=None,
+            text=f"{bossName.upper()} (LVL {bossLevel})",
+            text_scale=0.040,
+            text_fg=(1.0, 0.35, 0.35, 1),
+            text_shadow=(0, 0, 0, 1),
+            text_font=ToontownGlobals.getSignFont(),
+            pos=(0, 0, 0.005)
+        )
+
+        self.bossWaitBar = DirectWaitBar(
+            parent=self.bossHpFrame,
+            relief=DGG.SUNKEN,
+            frameSize=(-0.50, 0.50, -0.025, 0.025),
+            borderWidth=(0.004, 0.004),
+            frameColor=(0.25, 0.1, 0.1, 0.8),
+            barColor=(0.85, 0.15, 0.15, 1.0),
+            range=max(1, maxHp),
+            value=max(0, currHp),
+            text=f"{max(0, currHp)} / {maxHp} HP",
+            text_scale=0.035,
+            text_fg=(1, 1, 1, 1),
+            text_shadow=(0, 0, 0, 1),
+            text_pos=(0, -0.010),
+            pos=(0, 0, -0.045)
+        )
+
+    def cleanupBossHpBar(self):
+        if hasattr(self, 'bossHpFrame') and self.bossHpFrame:
+            self.bossHpFrame.destroy()
+            self.bossHpFrame = None
+
     def cleanupWaveIndicator(self):
         if hasattr(self, 'modTooltip') and self.modTooltip:
             self.modTooltip.destroy()
@@ -173,14 +240,21 @@ class DistributedBattleBldg(DistributedBattleBase.DistributedBattleBase):
         if self.waveIndicator:
             self.waveIndicator.destroy()
             self.waveIndicator = None
+        self.cleanupBossHpBar()
 
     def generate(self):
         DistributedBattleBase.DistributedBattleBase.generate(self)
+        self.accept('suit-hp-change', self.__handleSuitHpChange)
+
+    def __handleSuitHpChange(self, suit):
+        if getattr(self, 'bossBattle', 0):
+            self.updateBossHpBar()
 
     def setBossBattle(self, value):
         self.bossBattle = value
         if self.bossBattle:
             self.battleMusic = base.loader.loadMusic('phase_7/audio/bgm/encntr_suit_winning_indoor.ogg')
+            self.updateBossHpBar()
         else:
             self.battleMusic = base.loader.loadMusic('phase_7/audio/bgm/encntr_general_bg_indoor.ogg')
         base.playMusic(self.battleMusic, looping=1, volume=0.9)
@@ -191,15 +265,21 @@ class DistributedBattleBldg(DistributedBattleBase.DistributedBattleBase):
     def setMembers(self, suits, suitsJoining, suitsPending, suitsActive, suitsLured, suitTraps, toons, toonsJoining, toonsPending, toonsActive, toonsRunning, timestamp):
         res = DistributedBattleBase.DistributedBattleBase.setMembers(self, suits, suitsJoining, suitsPending, suitsActive, suitsLured, suitTraps, toons, toonsJoining, toonsPending, toonsActive, toonsRunning, timestamp)
         self.updateWaveIndicator()
+        if getattr(self, 'bossBattle', 0):
+            self.updateBossHpBar()
         return res
 
     def disable(self):
         self.cleanupWaveIndicator()
+        self.cleanupBossHpBar()
+        self.ignore('suit-hp-change')
         DistributedBattleBase.DistributedBattleBase.disable(self)
         self.battleMusic.stop()
 
     def delete(self):
         self.cleanupWaveIndicator()
+        self.cleanupBossHpBar()
+        self.ignore('suit-hp-change')
         DistributedBattleBase.DistributedBattleBase.delete(self)
         del self.battleMusic
 

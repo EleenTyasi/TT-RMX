@@ -90,6 +90,8 @@ class DistributedSuitBase(DistributedAvatar.DistributedAvatar, Suit.Suit, SuitBa
         self.isAlphatype = bool(isAlphatype)
         self.isPrototype = bool(isPrototype)
         self.isSupertype = bool(isSupertype)
+        if self.isSupertype:
+            self.setColorScale(1.0, 0.45, 0.45, 1.0)
         self.updateMaxHP()
         self.updateNameText()
         messenger.send('suit-hp-change', [self])
