@@ -922,7 +922,21 @@ class InventoryNew(InventoryBase.InventoryBase, DirectFrame):
                 self.fireButton['image_color'] = Vec4(0, 0.6, 1, 1)
             else:
                 self.fireButton['state'] = DGG.DISABLED
-                self.fireButton['image_color'] = Vec4(0.4, 0.4, 0.4, 1)
+        is_frozen = False
+        if hasattr(localAvatar, 'statusEffects'):
+            is_frozen = any('FREEZE' in str(eff).upper() for eff in localAvatar.statusEffects)
+        elif hasattr(localAvatar, 'prevCleanStatusEffects'):
+            is_frozen = any('FREEZE' in str(eff).upper() for eff in localAvatar.prevCleanStatusEffects)
+
+        if is_frozen:
+            self.sosButton['state'] = DGG.DISABLED
+            self.sosButton['image_color'] = Vec4(0.4, 0.4, 0.4, 1)
+            self.fireButton['state'] = DGG.DISABLED
+            self.fireButton['image_color'] = Vec4(0.4, 0.4, 0.4, 1)
+            if hasattr(self, 'runButton'):
+                self.runButton['state'] = DGG.DISABLED
+                self.runButton['image_color'] = Vec4(0.4, 0.4, 0.4, 1)
+
         for track in range(len(Tracks)):
             if self.toon.hasTrackAccess(track):
                 self.showTrack(track)
@@ -931,7 +945,9 @@ class InventoryNew(InventoryBase.InventoryBase, DirectFrame):
                     if self.itemIsUsable(track, level):
                         unpaid = not base.cr.isPaid()
                         button.show()
-                        if self.numItem(track, level) <= 0 or track == HEAL_TRACK and not self.heal or track == TRAP_TRACK and not self.trap or track == LURE_TRACK and not self.lure:
+                        if is_frozen:
+                            self.makeUnpressable(button, track, level)
+                        elif self.numItem(track, level) <= 0 or track == HEAL_TRACK and not self.heal or track == TRAP_TRACK and not self.trap or track == LURE_TRACK and not self.lure:
                             self.makeUnpressable(button, track, level)
                         elif unpaid and gagIsVelvetRoped(track, level):
                             self.makeDisabledPressable(button, track, level)

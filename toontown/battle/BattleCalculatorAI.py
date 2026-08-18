@@ -1406,7 +1406,8 @@ class BattleCalculatorAI:
                 atkName = atkInfo['name']
                 if atkName in SUIT_ATTACK_STATUS_EFFECTS:
                     eff_cfg = SUIT_ATTACK_STATUS_EFFECTS[atkName]
-                    proc_chance = self.statusEffectMgr.calc_proc_chance(eff_cfg.get('chance', 100), 0, HIT_TYPE_NAMES[hit_type])
+                    hit_name = HIT_TYPE_NAMES.get(hit_type, 'NORMAL')
+                    proc_chance = self.statusEffectMgr.calc_proc_chance(eff_cfg.get('chance', 100), 0, hit_name)
                     if random.randint(1, 100) <= proc_chance:
                         self.statusEffectMgr.apply_effect(toonId, eff_cfg['effect'], eff_cfg['rounds'], eff_cfg)
             targetIndex = self.battle.activeToons.index(toonId)

@@ -21,9 +21,12 @@ class DeathForceAcknowledge:
             fadeModel.removeNode()
         else:
             print('Problem loading fadeModel.')
-            self.fade = None
+        msg = TTLocalizer.PlaygroundDeathAckMessage
+        av = base.localAvatar
+        if av and getattr(av, 'maxHp', 15) <= 1:
+            msg = getattr(TTLocalizer, 'UberOneLaffDeathAckMessage', msg)
         self.dialog = TTDialog.TTGlobalDialog(
-            message=TTLocalizer.PlaygroundDeathAckMessage,
+            message=msg,
             doneEvent=doneEvent,
             style=TTDialog.Acknowledge,
             suppressKeys=True)
