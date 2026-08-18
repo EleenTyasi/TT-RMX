@@ -418,9 +418,8 @@ class DistributedCogBuildingInteriorAI(DistributedObjectAI.DistributedObjectAI):
             self.joinedReserves = []
             hpPercent = 100 - (totalHp / totalMaxHp * 100.0) if totalMaxHp else 100
             for info in list(self.reserveSuits):
-                if info[1] <= hpPercent and len(self.activeSuits) < 4:
+                if info[1] <= hpPercent and len(self.activeSuits) + len(self.joinedReserves) < 4:
                     self.suits.append(info[0])
-                    self.activeSuits.append(info[0])
                     self.joinedReserves.append(info)
             for info in self.joinedReserves:
                 self.reserveSuits.remove(info)

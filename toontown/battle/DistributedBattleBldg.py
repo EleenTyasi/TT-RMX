@@ -19,7 +19,7 @@ from toontown.toonbase import ToontownGlobals
 
 class DistributedBattleBldg(DistributedBattleBase.DistributedBattleBase):
     notify = DirectNotifyGlobal.directNotify.newCategory('DistributedBattleBldg')
-    camFOFov = 30.0
+    camFOFov = ToontownGlobals.DefaultCameraFov
     camFOPos = Point3(0, -10, 4)
 
     def __init__(self, cr):
