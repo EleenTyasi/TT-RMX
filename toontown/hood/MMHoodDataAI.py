@@ -29,5 +29,5 @@ class MMHoodDataAI(HoodDataAI.HoodDataAI):
         # self.classicChar.start()
         # self.addDistObj(self.classicChar)
         from toontown.toon import NPCToons
-        self.healerHank = NPCToons.createHealerHank(self.air, self.zoneId, (-73.7262, 25.2264, 6.525), 45.0)
+        self.healerHank = NPCToons.createHealerHank(self.air, self.zoneId, (-71.2336, 22.9706, 6.525), -140.0)
         self.addDistObj(self.healerHank)

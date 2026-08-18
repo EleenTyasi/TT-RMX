@@ -35,6 +35,6 @@ class DGHoodDataAI(HoodDataAI.HoodDataAI):
         flower.start()
         self.addDistObj(flower)
         from toontown.toon import NPCToons
-        self.healerHank = NPCToons.createHealerHank(self.air, self.zoneId, (-25.1167, 213.575, 10.026), 0.0)
+        self.healerHank = NPCToons.createHealerHank(self.air, self.zoneId, (-26.0032, 211.707, 10.0274), 170.0)
         self.addDistObj(self.healerHank)
         self.createButterflies(ButterflyGlobals.DG)
