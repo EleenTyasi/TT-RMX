@@ -182,6 +182,12 @@ class DistributedSuitInteriorAI(DistributedObjectAI.DistributedObjectAI):
     def getState(self):
         return [self.fsm.getCurrentState().getName(), globalClockDelta.getRealNetworkTime()]
 
+    def getBuildingModifier(self):
+        return ['STANDARD', 'Standard Operation', 'No special conditions in effect.']
+
+    def d_setBuildingModifier(self):
+        self.sendUpdate('setBuildingModifier', self.getBuildingModifier())
+
     def setAvatarJoined(self):
         avId = self.air.getAvatarIdFromSender()
         if self.toons.count(avId) == 0:

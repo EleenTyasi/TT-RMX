@@ -182,9 +182,14 @@ def createNpcsInZone(air, zoneId):
     for i in range(len(npcIdList)):
         npcId = npcIdList[i]
         npcDesc = NPCToonDict.get(npcId)
-        npcs.append(createNPC(air, npcId, npcDesc, zoneId, posIndex=i))
-
+        # Skip removed Party Planners
+        if npcDesc and npcDesc[5] == NPC_PARTYPERSON:
+            continue
+        npc = createNPC(air, npcId, npcDesc, zoneId, posIndex=i)
+        if npc:
+            npcs.append(npc)
     return npcs
+
 
 
 def createHealerHank(air, zoneId, pos, h):

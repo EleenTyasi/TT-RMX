@@ -1,5 +1,7 @@
 from direct.interval.IntervalGlobal import *
 from direct.distributed.ClockDelta import *
+from direct.gui.DirectGui import DirectFrame, DirectLabel, DGG
+from panda3d.core import TextNode
 from .ElevatorConstants import *
 from . import ElevatorUtils
 from toontown.toonbase import ToontownGlobals
@@ -29,6 +31,10 @@ class DistributedSuitInterior(DistributedObject.DistributedObject):
         self.elevatorName = self.__uniqueName('elevator')
         self.floorModel = None
         self.elevatorOutOpen = 0
+        self.modifierKey = 'STANDARD'
+        self.modifierLabel = 'Standard Operation'
+        self.modifierDesc = 'No special conditions in effect.'
+        self.modifierBanner = None
         self.BottomFloor_SuitPositions = [Point3(0, 15, 0),
          Point3(10, 20, 0),
          Point3(-7, 24, 0),
@@ -97,6 +103,7 @@ class DistributedSuitInterior(DistributedObject.DistributedObject):
         self.sendUpdate('setAvatarJoined', [])
 
     def disable(self):
+        self.__hideModifierBanner()
         self.fsm.requestFinalState()
         self.__cleanupIntervals()
         self.ignoreAll()
@@ -104,6 +111,7 @@ class DistributedSuitInterior(DistributedObject.DistributedObject):
         DistributedObject.DistributedObject.disable(self)
 
     def delete(self):
+        self.__hideModifierBanner()
         del self.waitMusic
         del self.elevatorMusic
         del self.openSfx
@@ -225,6 +233,66 @@ class DistributedSuitInterior(DistributedObject.DistributedObject):
         if len(self.joiningReserves) > 0:
             self.fsm.request('ReservesJoining')
 
+    def setBuildingModifier(self, key, label, desc):
+        self.modifierKey = key
+        self.modifierLabel = label
+        self.modifierDesc = desc
+        if self.fsm.getCurrentState().getName() == 'Elevator':
+            self.__showModifierBanner()
+
+    def __showModifierBanner(self):
+        self.__hideModifierBanner()
+        if not self.modifierLabel:
+            return
+
+        # Color codes by modifier type
+        colorMap = {
+            'AMBUSH': (0.85, 0.25, 0.25, 0.85),       # Red
+            'LOCKDOWN': (0.9, 0.45, 0.1, 0.85),       # Orange
+            'VETERAN': (0.6, 0.2, 0.7, 0.85),        # Purple
+            'OVERCLOCKED': (0.85, 0.75, 0.15, 0.85),  # Yellow
+            'REINFORCED': (0.2, 0.6, 0.85, 0.85),    # Blue
+            'FRENZIED': (0.85, 0.35, 0.65, 0.85),    # Pink
+            'STANDARD': (0.15, 0.15, 0.15, 0.80)     # Dark Gray
+        }
+        bgColor = colorMap.get(self.modifierKey, (0.2, 0.2, 0.2, 0.85))
+
+        self.modifierBanner = DirectFrame(
+            parent=aspect2d,
+            relief=DGG.RAISED,
+            borderWidth=(0.01, 0.01),
+            frameColor=bgColor,
+            frameSize=(-0.75, 0.75, -0.15, 0.15),
+            pos=(0, 0, 0.68)
+        )
+
+        DirectLabel(
+            parent=self.modifierBanner,
+            relief=None,
+            text=self.modifierLabel.upper(),
+            text_scale=0.07,
+            text_fg=(1, 1, 0.4, 1),
+            text_shadow=(0, 0, 0, 1),
+            text_font=ToontownGlobals.getSignFont(),
+            pos=(0, 0, 0.04)
+        )
+
+        DirectLabel(
+            parent=self.modifierBanner,
+            relief=None,
+            text=self.modifierDesc,
+            text_scale=0.045,
+            text_fg=(1, 1, 1, 1),
+            text_shadow=(0, 0, 0, 1),
+            text_wordwrap=28,
+            pos=(0, 0, -0.05)
+        )
+
+    def __hideModifierBanner(self):
+        if self.modifierBanner:
+            self.modifierBanner.destroy()
+            self.modifierBanner = None
+
     def setState(self, state, timestamp):
         self.fsm.request(state, [globalClockDelta.localElapsedTime(timestamp)])
 
@@ -267,8 +335,9 @@ class DistributedSuitInterior(DistributedObject.DistributedObject):
         elevIn = self.floorModel.find('**/elevator-in')
         elevOut = self.floorModel.find('**/elevator-out')
         for index in range(len(self.suits)):
-            self.suits[index].setPos(SuitPositions[index])
-            if len(self.suits) > 2:
+            if index < len(SuitPositions):
+                self.suits[index].setPos(SuitPositions[index])
+            if len(self.suits) > 2 and index < len(SuitHs):
                 self.suits[index].setH(SuitHs[index])
             else:
                 self.suits[index].setH(170)
@@ -305,6 +374,7 @@ class DistributedSuitInterior(DistributedObject.DistributedObject):
         self.cr.playGame.getPlace().currentFloor = self.currentFloor
         self.setElevatorLights(self.elevatorModelIn)
         self.setElevatorLights(self.elevatorModelOut)
+        self.__showModifierBanner()
         self.__playElevator(ts, self.elevatorName, self.__handleElevatorDone)
         mult = ToontownBattleGlobals.getCreditMultiplier(self.currentFloor)
         base.localAvatar.inventory.setBattleCreditMultiplier(mult)
@@ -314,6 +384,7 @@ class DistributedSuitInterior(DistributedObject.DistributedObject):
 
     def exitElevator(self):
         self.elevatorMusic.stop()
+        self.__hideModifierBanner()
         self.__finishInterval(self.elevatorName)
         return None
 

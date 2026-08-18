@@ -2177,6 +2177,7 @@ dclass DistributedSuitInterior : DistributedObject {
   setToons(uint32[], uint16) broadcast ram;
   setSuits(uint32[], uint32[], uint16[]) broadcast ram;
   setState(string, int16) required broadcast ram;
+  setBuildingModifier(string, string, string) broadcast ram;
   setAvatarJoined() airecv clsend;
   elevatorDone() airecv clsend;
   reserveJoinDone() airecv clsend;

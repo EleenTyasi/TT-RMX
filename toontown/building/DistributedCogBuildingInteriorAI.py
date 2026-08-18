@@ -164,11 +164,10 @@ class DistributedCogBuildingInteriorAI(DistributedObjectAI.DistributedObjectAI):
             if self.modifier.get('lockdown'):
                 self._addLockdownGuard(active)
 
-        # AMBUSH modifier: force all reserves to join immediately
+        # AMBUSH modifier: move reserves into active up to max capacity (4), rest stay as fast reserves
         if self.modifier.get('ambush') and not isBossRoom:
-            for info in reserve:
-                active.append(info[0])
-            reserve = []
+            while len(active) < 4 and len(reserve) > 0:
+                active.append(reserve.pop(0)[0])
 
         # FRENZIED modifier: double join chance
         if self.modifier.get('frenzied') and not isBossRoom:
@@ -319,10 +318,20 @@ class DistributedCogBuildingInteriorAI(DistributedObjectAI.DistributedObjectAI):
         from direct.distributed.ClockDelta import globalClockDelta
         return [self.fsm.getCurrentState().getName(), globalClockDelta.getRealNetworkTime()]
 
+    def getBuildingModifier(self):
+        key = self.modifier.get('key', 'STANDARD') if self.modifier else 'STANDARD'
+        label = self.modifier.get('label', 'Standard Operation') if self.modifier else 'Standard Operation'
+        desc = self.modifier.get('desc', 'No special conditions in effect.') if self.modifier else 'No special conditions in effect.'
+        return [key, label, desc]
+
+    def d_setBuildingModifier(self):
+        self.sendUpdate('setBuildingModifier', self.getBuildingModifier())
+
     def setAvatarJoined(self):
         avId = self.air.getAvatarIdFromSender()
         if avId not in self.toons:
             return
+        self.d_setBuildingModifier()
         avatar = self.air.doId2do.get(avId)
         if avatar:
             self.savedByMap[avId] = (
