@@ -2,20 +2,22 @@
 # specific to developer instances of Toontown Online.
 
 # Window settings
-window-title Toontown Online [DEV]
+window-title Toontown Remix [GitHub Build]
 
 # Notify settings
 console-output true
 
 # Server settings
-server-version tto-dev
+server-version tt-rmx-dvl
 
 # Developer settings
-want-dev false
+want-dev true
 schellgames-dev false
 exec-chat true
 log-private-info true
 want-qa-regression true
+ai-log-stack-dump true
+log-stack-dump true
 
 # Chat settings
 want-whitelist false
