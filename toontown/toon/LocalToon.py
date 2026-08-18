@@ -13,6 +13,7 @@ from direct.showbase import PythonUtil
 from direct.directnotify import DirectNotifyGlobal
 from direct.gui import DirectGuiGlobals
 from panda3d.core import *
+from direct.showbase.InputStateGlobal import inputState
 from otp.avatar import LocalAvatar
 from otp.login import LeaveToPayDialog
 from otp.avatar import PositionExaminer
@@ -461,12 +462,13 @@ class LocalToon(DistributedToon.DistributedToon, LocalAvatar.LocalAvatar):
             is_safe_zone = True
 
         is_moving = False
-        if hasattr(self, 'controlManager') and self.controlManager.isEnabled:
+        if hasattr(self, 'controlManager') and getattr(self.controlManager, 'isEnabled', 0):
             curr = getattr(self.controlManager, 'currentControls', None)
-            if curr and hasattr(curr, 'isAirborne') and not curr.isAirborne:
-                forward = inputState.isSet('forward')
-                reverse = inputState.isSet('reverse')
-                slide = inputState.isSet('slide')
+            is_airborne = getattr(curr, 'isAirborne', 0) if curr else 0
+            if not is_airborne:
+                forward = inputState.isSet('forward') if hasattr(inputState, 'isSet') else False
+                reverse = inputState.isSet('reverse') if hasattr(inputState, 'isSet') else False
+                slide = inputState.isSet('slide') if hasattr(inputState, 'isSet') else False
                 if forward or reverse or slide:
                     is_moving = True
 
