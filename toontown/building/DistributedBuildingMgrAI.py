@@ -166,6 +166,8 @@ class DistributedBuildingMgrAI:
                 if simbase.air.wantCogdominiums:
                     building.numFloors = DistributedBuildingAI.DistributedBuildingAI.FieldOfficeNumFloors + (1 if blockData.get('track', 'c') == 'l' else 0)
                     building.setState('cogdo')
+                else:
+                    building.setState('suit')
             else:
                 building.setState('toon')
         else:
@@ -180,6 +182,7 @@ class DistributedBuildingMgrAI:
             building.track = blockData.get('track', 'c')
             building.difficulty = blockData.get('difficulty', 1)
             building.numFloors = blockData.get('numFloors', 1)
+            building.numFloors = max(1, min(5, building.numFloors))
             if not ZoneUtil.isWelcomeValley(building.zoneId):
                 building.updateSavedBy(blockData.get('savedBy'))
             else:
@@ -187,6 +190,12 @@ class DistributedBuildingMgrAI:
             building.becameSuitTime = blockData.get('becameSuitTime', time.time())
             if blockData['state'] == 'suit':
                 building.setState('suit')
+            elif blockData['state'] == 'cogdo':
+                if simbase.air.wantCogdominiums:
+                    building.numFloors = DistributedBuildingAI.DistributedBuildingAI.FieldOfficeNumFloors + (1 if blockData.get('track', 'c') == 'l' else 0)
+                    building.setState('cogdo')
+                else:
+                    building.setState('suit')
             else:
                 building.setState('toon')
         else:

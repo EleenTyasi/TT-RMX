@@ -7,9 +7,9 @@ from direct.distributed import DistributedObjectAI
 from direct.fsm import State
 from direct.fsm import ClassicFSM, State
 from toontown.toonbase.ToontownGlobals import ToonHall
-from . import DistributedToonInteriorAI, DistributedToonHallInteriorAI, DistributedSuitInteriorAI, DistributedDoorAI, DoorTypes, DistributedElevatorExtAI, DistributedKnockKnockDoorAI, SuitPlannerInteriorAI, SuitBuildingGlobals, FADoorCodes
+from . import DistributedToonInteriorAI, DistributedToonHallInteriorAI, DistributedSuitInteriorAI, DistributedDoorAI, DoorTypes, DistributedElevatorExtAI, DistributedKnockKnockDoorAI, SuitPlannerInteriorAI, SuitBuildingGlobals, FADoorCodes, CogBuildingModifier, DistributedCogBuildingInteriorAI
 from toontown.hood import ZoneUtil
-import random, time
+import random, time, traceback
 from toontown.cogdominium.DistributedCogdoInteriorAI import DistributedCogdoInteriorAI
 from toontown.cogdominium.SuitPlannerCogdoInteriorAI import SuitPlannerCogdoInteriorAI
 from toontown.cogdominium.CogdoLayout import CogdoLayout
@@ -100,18 +100,13 @@ class DistributedBuildingAI(DistributedObjectAI.DistributedObjectAI):
         if not self.isToonBlock():
             return
         self.updateSavedBy(None)
-        difficulty = min(difficulty, len(SuitBuildingGlobals.SuitBuildingInfo) - 1)
         minFloors, maxFloors = self._getMinMaxFloors(difficulty)
-        if buildingHeight == None:
-            numFloors = random.randint(minFloors, maxFloors)
-        else:
-            numFloors = buildingHeight + 1
-            if numFloors < minFloors or numFloors > maxFloors:
-                numFloors = random.randint(minFloors, maxFloors)
+        numFloors = max(minFloors, min(buildingHeight, maxFloors))
         self.track = suitTrack
         self.difficulty = difficulty
         self.numFloors = numFloors
         self.becameSuitTime = time.time()
+        self.buildingModifier = CogBuildingModifier.pick(suitTrack, difficulty)
         self.fsm.request('clearOutToonInterior')
         return
 
@@ -567,7 +562,16 @@ class DistributedBuildingAI(DistributedObjectAI.DistributedObjectAI):
         return DistributedCogdoInteriorAI(self.air, self.elevator)
 
     def createSuitInterior(self):
-        self.interior = self._createSuitInterior()
+        try:
+            self.interior = DistributedCogBuildingInteriorAI.DistributedCogBuildingInteriorAI(self.air, self.elevator)
+            modKey = getattr(self.interior, 'modifier', {}).get('key', 'NONE')
+            self.notify.info('[MINI-DUNGEON] Successfully loaded DistributedCogBuildingInteriorAI for block=%s zone=%s track=%s diff=%s floors=%s mod=%s' % (
+                self.block, self.zoneId, self.track, self.difficulty, self.numFloors, modKey))
+        except Exception as e:
+            self.notify.warning('[FALLBACK TRIGGERED] Failed to create DistributedCogBuildingInteriorAI for block=%s zone=%s track=%s diff=%s floors=%s: %s' % (
+                self.block, self.zoneId, self.track, self.difficulty, self.numFloors, e))
+            self.notify.warning('[FALLBACK TRACEBACK]\n%s' % traceback.format_exc())
+            self.interior = self._createSuitInterior()
         dummy, interiorZoneId = self.getExteriorAndInteriorZoneId()
         self.interior.fsm.request('WaitForAllToonsInside')
         self.interior.generateWithRequired(interiorZoneId)

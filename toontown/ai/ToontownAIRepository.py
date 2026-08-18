@@ -72,6 +72,9 @@ class ToontownAIRepository(ToontownInternalRepository):
         self.wantCogdominiums = self.config.GetBool('want-cogdominiums', True)
         self.wantEmblems = self.config.GetBool('want-emblems', True)
         self.useAllMinigames = self.config.GetBool('want-all-minigames', True)
+        self.wantLazySimulation = self.config.GetBool('want-lazy-zone-simulation', True)
+        self.zonePlayerCounts = {}
+        self.playerToZone = {}
         self.districtId = None
         self.district = None
         self.districtStats = None
@@ -134,6 +137,12 @@ class ToontownAIRepository(ToontownInternalRepository):
         datagram.addServerHeader(self.districtId, self.ourChannel, STATESERVER_OBJECT_SET_AI)
         datagram.addChannel(self.ourChannel)
         self.send(datagram)
+
+        # Alias mini-dungeon class to DistributedSuitInterior in dclassesByName
+        targetDClass = self.dclassesByName.get('DistributedSuitInteriorAI') or self.dclassesByName.get('DistributedSuitInterior')
+        if targetDClass:
+            self.dclassesByName['DistributedCogBuildingInterior'] = targetDClass
+            self.dclassesByName['DistributedCogBuildingInteriorAI'] = targetDClass
 
         # Create our local objects.
         self.notify.info('Creating local objects...')
@@ -553,3 +562,66 @@ class ToontownAIRepository(ToontownInternalRepository):
             leaderboards.extend(foundLeaderBoards)
 
         return leaderboards
+
+    def registerPlayerLocation(self, avId, newZoneId):
+        if not hasattr(self, 'zonePlayerCounts'):
+            self.zonePlayerCounts = {}
+            self.playerToZone = {}
+
+        oldZoneId = self.playerToZone.get(avId)
+        if oldZoneId == newZoneId:
+            return
+
+        oldBranch = ZoneUtil.getCanonicalBranchZone(oldZoneId) if oldZoneId is not None else None
+        newBranch = ZoneUtil.getCanonicalBranchZone(newZoneId) if newZoneId is not None else None
+
+        self.playerToZone[avId] = newZoneId
+
+        if oldBranch != newBranch:
+            if oldBranch is not None and oldBranch in self.zonePlayerCounts:
+                self.zonePlayerCounts[oldBranch] = max(0, self.zonePlayerCounts[oldBranch] - 1)
+                if self.zonePlayerCounts[oldBranch] == 0:
+                    self.zonePlayerCounts.pop(oldBranch, None)
+                    if getattr(self, 'wantLazySimulation', True):
+                        self.notify.info('[LAZY-SPAWN] Branch %d is now dormant (0 players). Suit planner sleeping.' % oldBranch)
+
+            if newBranch is not None:
+                oldCount = self.zonePlayerCounts.get(newBranch, 0)
+                self.zonePlayerCounts[newBranch] = oldCount + 1
+                if oldCount == 0:
+                    if getattr(self, 'wantLazySimulation', True):
+                        self.notify.info('[LAZY-SPAWN] Branch %d activated by Toon %d (players in branch: %d).' % (
+                            newBranch, avId, self.zonePlayerCounts[newBranch]))
+                    if hasattr(self, 'suitPlanners'):
+                        planner = self.suitPlanners.get(newBranch)
+                        if planner and hasattr(planner, 'wakeUp'):
+                            planner.wakeUp()
+
+    def unregisterPlayer(self, avId):
+        if not hasattr(self, 'playerToZone'):
+            return
+        oldZoneId = self.playerToZone.pop(avId, None)
+        if oldZoneId is not None:
+            oldBranch = ZoneUtil.getCanonicalBranchZone(oldZoneId)
+            if hasattr(self, 'zonePlayerCounts') and oldBranch in self.zonePlayerCounts:
+                self.zonePlayerCounts[oldBranch] = max(0, self.zonePlayerCounts[oldBranch] - 1)
+                if self.zonePlayerCounts[oldBranch] == 0:
+                    self.zonePlayerCounts.pop(oldBranch, None)
+                    if getattr(self, 'wantLazySimulation', True):
+                        self.notify.info('[LAZY-SPAWN] Branch %d is now dormant (0 players). Suit planner sleeping.' % oldBranch)
+
+    def isZoneActive(self, zoneId):
+        if not getattr(self, 'wantLazySimulation', True):
+            return True
+        branch = ZoneUtil.getCanonicalBranchZone(zoneId)
+        return self.zonePlayerCounts.get(branch, 0) > 0
+
+    def isHoodActive(self, hoodId):
+        if not getattr(self, 'wantLazySimulation', True):
+            return True
+        canonicalHood = ZoneUtil.getCanonicalHoodId(hoodId)
+        for branchId in self.zonePlayerCounts:
+            if ZoneUtil.getCanonicalHoodId(branchId) == canonicalHood:
+                return True
+        return False
+

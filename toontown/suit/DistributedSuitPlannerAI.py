@@ -614,15 +614,31 @@ class DistributedSuitPlannerAI(DistributedObjectAI.DistributedObjectAI, SuitPlan
 
         return count
 
-    def __waitForNextUpkeep(self):
-        t = random.random() * 2.0 + self.POP_UPKEEP_DELAY
+    def isZoneActive(self):
+        if not getattr(self.air, 'wantLazySimulation', True):
+            return True
+        return self.air.isZoneActive(self.canonicalZoneId)
+
+    def wakeUp(self):
+        if getattr(self.air, 'wantLazySimulation', True):
+            self.notify.info('[LAZY-SPAWN] SuitPlanner for zone %d woke up — populating street Cogs on demand.' % self.zoneId)
+        taskMgr.remove(self.taskName('sptUpkeepPopulation'))
+        taskMgr.doMethodLater(0.1, self.upkeepSuitPopulation, self.taskName('sptUpkeepPopulation'))
+
+    def __waitForNextUpkeep(self, dormant=False):
+        delay = (self.POP_UPKEEP_DELAY * 4) if dormant else self.POP_UPKEEP_DELAY
+        t = random.random() * 2.0 + delay
         taskMgr.doMethodLater(t, self.upkeepSuitPopulation, self.taskName('sptUpkeepPopulation'))
 
-    def __waitForNextAdjust(self):
-        t = random.random() * 10.0 + self.POP_ADJUST_DELAY
+    def __waitForNextAdjust(self, dormant=False):
+        delay = (self.POP_ADJUST_DELAY * 2) if dormant else self.POP_ADJUST_DELAY
+        t = random.random() * 10.0 + delay
         taskMgr.doMethodLater(t, self.adjustSuitPopulation, self.taskName('sptAdjustPopulation'))
 
-    def upkeepSuitPopulation(self, task):
+    def upkeepSuitPopulation(self, task=None):
+        if not self.isZoneActive():
+            self.__waitForNextUpkeep(dormant=True)
+            return Task.done if task is not None else None
         targetFlyInNum = self.calcDesiredNumFlyInSuits()
         targetFlyInNum = min(targetFlyInNum, self.TOTAL_MAX_SUITS - self.numBuildingSuits)
         streetPoints = self.streetPointList[:]
@@ -679,6 +695,9 @@ class DistributedSuitPlannerAI(DistributedObjectAI.DistributedObjectAI, SuitPlan
         return Task.done
 
     def adjustSuitPopulation(self, task):
+        if not self.isZoneActive():
+            self.__waitForNextAdjust(dormant=True)
+            return Task.done
         hoodInfo = self.SuitHoodInfo[self.hoodInfoIdx]
         if hoodInfo[self.SUIT_HOOD_INFO_MAX] == 0:
             self.__waitForNextAdjust()
@@ -1093,9 +1112,25 @@ class DistributedSuitPlannerAI(DistributedObjectAI.DistributedObjectAI, SuitPlan
                 return 1
             jChanceList = self.SuitHoodInfo[self.hoodInfoIdx][self.SUIT_HOOD_INFO_JCHANCE]
             ratioIdx = len(battle.toons) - battle.numSuitsEver + 2
+
+            totalHp = sum(s.getHP() for s in battle.suits if hasattr(s, 'getHP'))
+            totalMaxHp = sum(s.getMaxHP() for s in battle.suits if hasattr(s, 'getMaxHP'))
+            isInjured = any(hasattr(s, 'getHP') and hasattr(s, 'getMaxHP') and s.getHP() < s.getMaxHP() for s in battle.suits)
+            missingRatio = 0.0
+            if totalMaxHp > 0:
+                missingRatio = max(0.0, float(totalMaxHp - totalHp) / float(totalMaxHp))
+
+            bonusChance = 0
+            if isInjured:
+                bonusChance = int(missingRatio * 50) + 30
+
             if ratioIdx >= 0:
                 if ratioIdx < len(jChanceList):
-                    if random.randint(0, 99) < jChanceList[ratioIdx]:
+                    baseChance = jChanceList[ratioIdx]
+                    finalChance = baseChance + bonusChance
+                    if random.randint(0, 99) < finalChance:
+                        if isInjured:
+                            self.notify.info('Cog reinforcement joining battle in zone %s! Allies injured (missing HP: %d/%d, bonus chance: +%d%%)' % (zoneId, totalMaxHp - totalHp, totalMaxHp, bonusChance))
                         return 1
                 else:
                     self.notify.warning('__suitCanJoinBattle idx out of range!')

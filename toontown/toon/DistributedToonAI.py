@@ -66,6 +66,11 @@ class DistributedToonAI(DistributedPlayerAI.DistributedPlayerAI, DistributedSmoo
                                    CogDisguiseGlobals.torsoIndex,
                                    CogDisguiseGlobals.leftArmIndex,
                                    CogDisguiseGlobals.rightArmIndex),
+     0: (CogDisguiseGlobals.leftLegIndex,
+         CogDisguiseGlobals.rightLegIndex,
+         CogDisguiseGlobals.torsoIndex,
+         CogDisguiseGlobals.leftArmIndex,
+         CogDisguiseGlobals.rightArmIndex),
      ToontownGlobals.FT_Leg: (CogDisguiseGlobals.leftLegIndex, CogDisguiseGlobals.rightLegIndex),
      ToontownGlobals.FT_Arm: (CogDisguiseGlobals.leftArmIndex, CogDisguiseGlobals.rightArmIndex),
      ToontownGlobals.FT_Torso: (CogDisguiseGlobals.torsoIndex,)}
@@ -251,6 +256,8 @@ class DistributedToonAI(DistributedPlayerAI.DistributedPlayerAI, DistributedSmoo
 
     def setLocation(self, parentId, zoneId):
         DistributedPlayerAI.DistributedPlayerAI.setLocation(self, parentId, zoneId)
+        if self.isPlayerControlled() and hasattr(self, 'air') and self.air:
+            self.air.registerPlayerLocation(self.doId, zoneId)
         from toontown.toon.DistributedNPCToonBaseAI import DistributedNPCToonBaseAI
         if not isinstance(self, DistributedNPCToonBaseAI):
             if 100 <= zoneId < ToontownGlobals.DynamicZonesBegin:
@@ -309,7 +316,9 @@ class DistributedToonAI(DistributedPlayerAI.DistributedPlayerAI, DistributedSmoo
             PetLookerAI.PetLookerAI.destroy(self)
         del self.kart
         self._sendExitServerEvent()
-        if hasattr(self, 'loginTime'):
+        if self.isPlayerControlled() and hasattr(self, 'air') and self.air:
+            self.air.unregisterPlayer(self.doId)
+        if self.isPlayerControlled() and hasattr(self, 'loginTime'):
             playTime = int(globalClock.getRealTime() - self.loginTime)
             if playTime > 0:
                 self.addStat(6, playTime)
@@ -318,7 +327,8 @@ class DistributedToonAI(DistributedPlayerAI.DistributedPlayerAI, DistributedSmoo
         return
 
     def b_setLaffCap(self, laffCap):
-        self.d_setLaffCap(laffCap)
+        if self.isPlayerControlled():
+            self.d_setLaffCap(laffCap)
         self.setLaffCap(laffCap)
 
     def d_setLaffCap(self, laffCap):
@@ -333,7 +343,8 @@ class DistributedToonAI(DistributedPlayerAI.DistributedPlayerAI, DistributedSmoo
         return getattr(self, 'laffCap', 0)
 
     def b_setToonLevel(self, level):
-        self.d_setToonLevel(level)
+        if self.isPlayerControlled():
+            self.d_setToonLevel(level)
         self.setToonLevel(level)
 
     def d_setToonLevel(self, level):
@@ -346,7 +357,8 @@ class DistributedToonAI(DistributedPlayerAI.DistributedPlayerAI, DistributedSmoo
         return getattr(self, 'toonLevel', 1)
 
     def b_setToonExp(self, exp):
-        self.d_setToonExp(exp)
+        if self.isPlayerControlled():
+            self.d_setToonExp(exp)
         self.setToonExp(exp)
 
     def d_setToonExp(self, exp):
@@ -359,7 +371,8 @@ class DistributedToonAI(DistributedPlayerAI.DistributedPlayerAI, DistributedSmoo
         return getattr(self, 'toonExp', 0)
 
     def b_setToonStats(self, statsList):
-        self.d_setToonStats(statsList)
+        if self.isPlayerControlled():
+            self.d_setToonStats(statsList)
         self.setToonStats(statsList)
 
     def d_setToonStats(self, statsList):
@@ -374,12 +387,16 @@ class DistributedToonAI(DistributedPlayerAI.DistributedPlayerAI, DistributedSmoo
         return self.toonStats
 
     def addStat(self, index, amount=1):
+        if not self.isPlayerControlled():
+            return
         stats = list(self.getToonStats())
         if 0 <= index < len(stats):
             stats[index] += amount
             self.b_setToonStats(stats)
 
     def addToonExp(self, amount):
+        if not self.isPlayerControlled():
+            return
         currentExp = getattr(self, 'toonExp', 0)
         newExp = currentExp + amount
         self.b_setToonExp(newExp)
@@ -1475,7 +1492,9 @@ class DistributedToonAI(DistributedPlayerAI.DistributedPlayerAI, DistributedSmoo
             return 0
 
     def giveGenericCogPart(self, factoryType, dept):
-        for partTypeId in self.partTypeIds[factoryType]:
+        partTypeList = self.partTypeIds.get(factoryType, self.partTypeIds.get(ToontownGlobals.FT_FullSuit, ()))
+        nextPart = None
+        for partTypeId in partTypeList:
             nextPart = CogDisguiseGlobals.getNextPart(self.getCogParts(), partTypeId, dept)
             if nextPart:
                 break
@@ -1485,7 +1504,6 @@ class DistributedToonAI(DistributedPlayerAI.DistributedPlayerAI, DistributedSmoo
             return nextPart
         else:
             return None
-        return None
 
     def takeCogPart(self, part, dept):
         dept = CogDisguiseGlobals.dept2deptIndex(dept)

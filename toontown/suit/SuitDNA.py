@@ -143,7 +143,8 @@ def getSuitType(name):
 
 
 def getRandomSuitType(level, rng = random):
-    return random.randint(max(level - 4, 1), min(level, 8))
+    clamped_lvl = max(1, min(8, level))
+    return random.randint(max(clamped_lvl - 4, 1), min(clamped_lvl, 8))
 
 
 def getRandomSuitByDept(dept):

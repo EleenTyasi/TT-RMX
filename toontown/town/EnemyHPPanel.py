@@ -8,6 +8,7 @@ from panda3d.core import *
 from direct.gui.DirectGui import *
 from direct.showbase.DirectObject import DirectObject
 from toontown.toonbase import ToontownGlobals, TTLocalizer
+from toontown.battle import SuitBattleGlobals
 
 STATUS_DESCRIPTIONS = {
     'SLOW': ("Slow Debuff", "-15% Accuracy penalty on all attacks."),
@@ -158,10 +159,52 @@ class EnemyHPPanel(DirectObject):
 
         name = suit.getName() if hasattr(suit, 'getName') else 'Cog'
         actualLevel = suit.getActualLevel() if hasattr(suit, 'getActualLevel') else 1
-        currHP = getattr(suit, 'currHP', 0)
-        maxHP = getattr(suit, 'maxHP', 1)
 
-        self.nameLabel['text'] = f"{name} (Lvl {actualLevel})"
+        baseMaxHP = getattr(suit, 'maxHP', 1)
+        if hasattr(suit, 'dna') and suit.dna and hasattr(suit, 'level'):
+            attributes = SuitBattleGlobals.SuitAttributes.get(suit.dna.name)
+            if attributes and 'hp' in attributes:
+                try:
+                    baseMaxHP = attributes['hp'][suit.level]
+                except:
+                    baseMaxHP = attributes['hp'][-1]
+
+        isSuper = getattr(suit, 'isSupertype', False)
+        isProto = getattr(suit, 'isPrototype', False)
+        isAlpha = getattr(suit, 'isAlphatype', False)
+        isSkele = bool(getattr(suit, 'isSkelecog', False) or getattr(suit, 'isSkelecogVariant', False) or (hasattr(suit, 'getSkelecog') and suit.getSkelecog()))
+        revives = getattr(suit, 'skeleRevives', 0) if not hasattr(suit, 'getSkeleRevives') else suit.getSkeleRevives()
+        isV2 = revives > 0 or getattr(suit, 'isV20', False)
+
+        if isSuper or isProto:
+            maxHP = baseMaxHP * 2
+        elif isSkele:
+            maxHP = max(1, int(baseMaxHP * 0.75))
+        else:
+            maxHP = baseMaxHP
+
+        suit.maxHP = maxHP
+        currHP = getattr(suit, 'currHP', maxHP)
+        if currHP > maxHP:
+            currHP = maxHP
+            suit.currHP = currHP
+
+        levelStr = str(actualLevel)
+        if isSuper:
+            levelStr += '.S'
+        elif isAlpha and isProto:
+            levelStr += '.A.P'
+        elif isAlpha:
+            levelStr += '.A'
+        elif isProto:
+            levelStr += '.P'
+
+        if isV2:
+            levelStr += ' v2.0'
+        elif isSkele and not isSuper:
+            levelStr += ' (Skele)'
+
+        self.nameLabel['text'] = f"{name} (Lvl {levelStr})"
         self.hpLabel['text'] = f"HP: {currHP} / {maxHP}"
         
         pct = float(currHP) / float(maxHP) if maxHP > 0 else 0

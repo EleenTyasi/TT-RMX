@@ -90,10 +90,43 @@ class LevelSuitPlannerAI(DirectObject.DirectObject):
     def genSuits(self):
         suitHandles = {}
         activeSuits = []
+        bossCell = None
         for activeSuitInfo in self.suitInfos['activeSuits']:
             suit = self.__genSuitObject(activeSuitInfo, 0)
             suit.setBattleCellIndex(activeSuitInfo['battleCell'])
             activeSuits.append(suit)
+            if getattr(suit, 'boss', False):
+                bossCell = activeSuitInfo['battleCell']
+
+        bossCellNonBosses = [s for s in activeSuits if s.battleCellIndex == bossCell and not getattr(s, 'boss', False)]
+        if bossCellNonBosses:
+            hasSpecial = any(getattr(s, 'isAlphatype', False) or getattr(s, 'isPrototype', False) or getattr(s, 'isSupertype', False) or getattr(s, 'isV20', False) for s in bossCellNonBosses)
+            if not hasSpecial:
+                targetSuit = random.choice(bossCellNonBosses)
+                roll = random.randint(1, 100)
+                if roll <= 25:
+                    targetSuit.isSupertype = True
+                    targetSuit.isV20 = True
+                    targetSuit.isPrototype = True
+                    targetSuit.isAlphatype = True
+                    targetSuit.setSkeleRevives(1)
+                    targetSuit.maxHP *= 2
+                    targetSuit.currHP = targetSuit.maxHP
+                elif roll <= 50:
+                    targetSuit.isAlphatype = True
+                elif roll <= 75:
+                    targetSuit.isPrototype = True
+                    targetSuit.maxHP *= 2
+                    targetSuit.currHP = targetSuit.maxHP
+                else:
+                    targetSuit.isV20 = True
+                    targetSuit.setSkeleRevives(1)
+                
+                targetSuit.setVariantFlags(
+                    1 if getattr(targetSuit, 'isAlphatype', False) else 0,
+                    1 if getattr(targetSuit, 'isPrototype', False) else 0,
+                    1 if getattr(targetSuit, 'isSupertype', False) else 0
+                )
 
         suitHandles['activeSuits'] = activeSuits
         reserveSuits = []

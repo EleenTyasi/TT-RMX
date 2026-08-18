@@ -435,8 +435,9 @@ class DistributedSuitInteriorAI(DistributedObjectAI.DistributedObjectAI):
     def enterReward(self):
         victors = self.toonIds[:]
         savedBy = []
-        beanReward = 100 * self.numFloors
-        expReward = 25 * self.numFloors
+        beanReward = 150 * self.numFloors
+        expReward = 300 * self.numFloors
+        track = getattr(self.bldg, 'track', 's')
         for v in victors:
             if v:
                 toon = self.air.doId2do.get(v)
@@ -444,7 +445,12 @@ class DistributedSuitInteriorAI(DistributedObjectAI.DistributedObjectAI):
                     toon.addMoney(beanReward)
                     if hasattr(toon, 'addToonExp'):
                         toon.addToonExp(expReward)
-                    toon.d_setSystemMessage(0, f"You earned {beanReward} Jellybeans and {expReward} Toon EXP for clearing the Cog Building!")
+                    msg = f"Mini Factory Cleared! +{beanReward} Jellybeans, +{expReward} Toon EXP!"
+                    if hasattr(toon, 'giveGenericCogPart'):
+                        partGiven = toon.giveGenericCogPart(0, track)
+                        if partGiven:
+                            msg += " Recovered a Cog Suit Part!"
+                    toon.d_setSystemMessage(0, msg)
             tuple = self.savedByMap.get(v)
             if tuple:
                 savedBy.append([v, tuple[0], tuple[1], tuple[2]])

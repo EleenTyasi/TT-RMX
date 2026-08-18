@@ -55,6 +55,8 @@ def getSuitVitals(name, level = -1):
 
 
 def pickSuitAttack(attacks, suitLevel):
+    if not attacks:
+        return 0
     attackNum = None
     randNum = random.randint(0, 99)
     notify.debug('pickSuitAttack: rolled %d' % randNum)
@@ -62,15 +64,20 @@ def pickSuitAttack(attacks, suitLevel):
     index = 0
     total = 0
     for c in attacks:
-        total = total + c[3][suitLevel]
+        lvl = min(max(0, suitLevel), len(c[3]) - 1)
+        total = total + c[3][lvl]
 
     for c in attacks:
-        count = count + c[3][suitLevel]
+        lvl = min(max(0, suitLevel), len(c[3]) - 1)
+        count = count + c[3][lvl]
         if randNum < count:
             attackNum = index
             notify.debug('picking attack %d' % attackNum)
             break
         index = index + 1
+
+    if attackNum is None:
+        attackNum = random.randint(0, len(attacks) - 1)
 
     configAttackName = simbase.config.GetString('attack-type', 'random')
     if configAttackName == 'random':
@@ -93,7 +100,7 @@ def pickSuitAttack(attacks, suitLevel):
 
 def getSuitAttack(suitName, suitLevel, attackNum = -1):
     attackChoices = SuitAttributes[suitName]['attacks']
-    if attackNum == -1:
+    if attackNum == -1 or attackNum >= len(attackChoices):
         notify.debug('getSuitAttack: picking attacking for %s' % suitName)
         attackNum = pickSuitAttack(attackChoices, suitLevel)
     attack = attackChoices[attackNum]
@@ -103,9 +110,10 @@ def getSuitAttack(suitName, suitLevel, attackNum = -1):
     adict['name'] = name
     adict['id'] = list(SuitAttacks.keys()).index(name)
     adict['animName'] = SuitAttacks[name][0]
-    adict['hp'] = attack[1][suitLevel]
-    adict['acc'] = attack[2][suitLevel]
-    adict['freq'] = attack[3][suitLevel]
+    lvl = min(max(0, suitLevel), len(attack[1]) - 1)
+    adict['hp'] = attack[1][lvl]
+    adict['acc'] = attack[2][lvl]
+    adict['freq'] = attack[3][lvl]
     adict['group'] = SuitAttacks[name][1]
     return adict
 

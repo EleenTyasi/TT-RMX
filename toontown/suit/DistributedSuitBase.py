@@ -65,11 +65,34 @@ class DistributedSuitBase(DistributedAvatar.DistributedAvatar, Suit.Suit, SuitBa
     def getVirtual(self):
         return 0
 
+    def updateMaxHP(self):
+        if not hasattr(self, 'dna') or not self.dna:
+            return
+        from toontown.battle import SuitBattleGlobals
+        attributes = SuitBattleGlobals.SuitAttributes.get(self.dna.name)
+        if not attributes or 'hp' not in attributes:
+            return
+        try:
+            baseHP = attributes['hp'][self.level]
+        except:
+            baseHP = attributes['hp'][-1]
+        
+        if getattr(self, 'isSupertype', False) or getattr(self, 'isPrototype', False):
+            self.maxHP = baseHP * 2
+        elif getattr(self, 'isSkelecog', False) or getattr(self, 'isSkelecogVariant', False):
+            self.maxHP = max(1, int(baseHP * 0.75))
+        else:
+            self.maxHP = baseHP
+        if not hasattr(self, 'currHP') or self.currHP > self.maxHP or self.currHP == baseHP:
+            self.currHP = self.maxHP
+
     def setVariantFlags(self, isAlphatype, isPrototype, isSupertype=0):
         self.isAlphatype = bool(isAlphatype)
         self.isPrototype = bool(isPrototype)
         self.isSupertype = bool(isSupertype)
+        self.updateMaxHP()
         self.updateNameText()
+        messenger.send('suit-hp-change', [self])
 
     def getVariantFlags(self):
         return (1 if getattr(self, 'isAlphatype', False) else 0, 1 if getattr(self, 'isPrototype', False) else 0, 1 if getattr(self, 'isSupertype', False) else 0)
@@ -102,6 +125,7 @@ class DistributedSuitBase(DistributedAvatar.DistributedAvatar, Suit.Suit, SuitBa
         if num > self.maxSkeleRevives:
             self.maxSkeleRevives = num
         self.updateNameText()
+        messenger.send('suit-hp-change', [self])
         return
 
     def getSkeleRevives(self):
@@ -172,6 +196,8 @@ class DistributedSuitBase(DistributedAvatar.DistributedAvatar, Suit.Suit, SuitBa
         if self.notify.getDebug():
             self.notify.debug('Got level %d from server for suit %d' % (level, self.getDoId()))
         self.setLevel(level)
+        self.updateMaxHP()
+        self.updateNameText()
 
     def attachPropeller(self):
         if self.prop == None:
@@ -375,6 +401,9 @@ class DistributedSuitBase(DistributedAvatar.DistributedAvatar, Suit.Suit, SuitBa
         SuitBase.SuitBase.setSkelecog(self, flag)
         if flag:
             Suit.Suit.makeSkeleton(self)
+        self.updateMaxHP()
+        self.updateNameText()
+        messenger.send('suit-hp-change', [self])
 
     def showHpText(self, number, bonus = 0, scale = 1, attackTrack = -1, crit_type = 0):
         if self.HpTextEnabled and not self.ghostMode:

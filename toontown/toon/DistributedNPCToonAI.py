@@ -93,7 +93,12 @@ class DistributedNPCToonAI(DistributedNPCToonBaseAI):
             return
         for track in self.pendingTracks:
             if trackId == track:
-                self.air.questManager.avatarChoseTrack(avId, self, self.pendingTrackQuest, trackId)
+                if hasattr(self.air.questManager, 'avatarChoseTrack'):
+                    self.air.questManager.avatarChoseTrack(avId, self, self.pendingTrackQuest, trackId)
+                else:
+                    av = self.air.doId2do.get(avId)
+                    if av:
+                        av.b_setToonExp(av.getToonExp() + 300)
                 self.pendingAvId = None
                 self.pendingTracks = None
                 self.pendingTrackQuest = None

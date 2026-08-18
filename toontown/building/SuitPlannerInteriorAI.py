@@ -106,7 +106,7 @@ class SuitPlannerInteriorAI:
         lvlPoolRange = bldgInfo[SuitBuildingGlobals.SUIT_BLDG_INFO_LVL_POOL]
         maxFloors = bldgInfo[SuitBuildingGlobals.SUIT_BLDG_INFO_FLOORS][1]
         lvlPoolMults = bldgInfo[SuitBuildingGlobals.SUIT_BLDG_INFO_LVL_POOL_MULTS]
-        floorIdx = min(currFloor, maxFloors - 1)
+        floorIdx = min(currFloor, len(lvlPoolMults) - 1)
         lvlPoolMin = lvlPoolRange[0] * lvlPoolMults[floorIdx]
         lvlPoolMax = lvlPoolRange[1] * lvlPoolMults[floorIdx]
         lvlPool = random.randint(int(lvlPoolMin), int(lvlPoolMax))
@@ -142,10 +142,10 @@ class SuitPlannerInteriorAI:
             newSuit.setSkelecog(1)
         newSuit.setSkeleRevives(revives)
 
-        # --- Building Special Cog Variant & RareSpawn Boss Roll ---
+        # --- Building Special Cog Variant & Mini-Factory Foreman Boss Roll ---
         if isBoss:
             boss_roll = random.randint(1, 100)
-            if boss_roll <= 25:  # Supertype Boss
+            if boss_roll <= 40:  # Supertype Foreman Boss (2x HP, +30% Dmg, v2.0 Revive)
                 newSuit.isSupertype = True
                 newSuit.isV20 = True
                 newSuit.isPrototype = True
@@ -153,16 +153,16 @@ class SuitPlannerInteriorAI:
                 newSuit.setSkeleRevives(1)
                 newSuit.maxHP *= 2
                 newSuit.currHP = newSuit.maxHP
-            elif boss_roll <= 60:  # v2.0 Boss
+            elif boss_roll <= 70:  # v2.0 Foreman Boss
                 newSuit.isV20 = True
                 newSuit.setSkeleRevives(1)
-            else:  # Prototype Boss
+            else:  # Prototype Foreman Boss (2x HP)
                 newSuit.isPrototype = True
                 newSuit.maxHP *= 2
                 newSuit.currHP = newSuit.maxHP
-        elif random.randint(1, 100) <= 20:  # 20% boosted special spawn chance in buildings
+        elif random.randint(1, 100) <= 40:  # 40% Mini Factory special spawn chance
             variant_roll = random.randint(1, 100)
-            if variant_roll <= 10:  # Supertype
+            if variant_roll <= 15:  # Supertype
                 newSuit.isSupertype = True
                 newSuit.isV20 = True
                 newSuit.isPrototype = True
@@ -170,14 +170,14 @@ class SuitPlannerInteriorAI:
                 newSuit.setSkeleRevives(1)
                 newSuit.maxHP *= 2
                 newSuit.currHP = newSuit.maxHP
-            elif variant_roll <= 35:  # v2.0
+            elif variant_roll <= 40:  # v2.0
                 newSuit.isV20 = True
                 newSuit.setSkeleRevives(1)
-            elif variant_roll <= 60:  # Prototype
+            elif variant_roll <= 65:  # Prototype
                 newSuit.isPrototype = True
                 newSuit.maxHP *= 2
                 newSuit.currHP = newSuit.maxHP
-            elif variant_roll <= 80:  # Alphatype
+            elif variant_roll <= 85:  # Alphatype
                 newSuit.isAlphatype = True
             else:  # Skelecog
                 newSuit.isSkelecogVariant = True
