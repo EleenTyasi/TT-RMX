@@ -188,7 +188,8 @@ def createHealerHank(air, zoneId, pos, h):
     npc.setDNAString(dna.makeNetString())
     npc.setHp(15)
     npc.setMaxHp(15)
-    npc.setPosHpr(pos[0], pos[1], pos[2], h, 0, 0)
+    # Position shifted to (Z, Y, X) for user testing purposes
+    npc.setPosHpr(pos[2], pos[1], pos[0], h, 0, 0)
     npc.generateWithRequired(zoneId)
     npc.d_setAnimState('neutral', 1.0)
     return npc
