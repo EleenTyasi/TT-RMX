@@ -397,6 +397,32 @@ class DistributedSuitBase(DistributedAvatar.DistributedAvatar, Suit.Suit, SuitBa
     def exitWaitForBattle(self):
         pass
 
+    def applySprintImpact(self, toon):
+        try:
+            # Cog takes 10% max HP damage (min 1 HP remaining)
+            cog_max_hp = getattr(self, 'maxHP', 50)
+            cog_damage = max(1, int(cog_max_hp * 0.10))
+            cog_curr_hp = getattr(self, 'currHP', cog_max_hp)
+            new_cog_hp = max(1, cog_curr_hp - cog_damage)
+            self.currHP = new_cog_hp
+            if hasattr(self, 'updateHealthBar'):
+                self.updateHealthBar(new_cog_hp, 1)
+            if hasattr(self, 'showHpText'):
+                self.showHpText(-cog_damage)
+
+            # Toon takes 5% max HP damage (min 1 HP remaining)
+            toon_max_hp = getattr(toon, 'maxHp', 100)
+            toon_damage = max(1, int(toon_max_hp * 0.05))
+            toon_curr_hp = getattr(toon, 'hp', toon_max_hp)
+            new_toon_hp = max(1, toon_curr_hp - toon_damage)
+            toon.hp = new_toon_hp
+            if hasattr(toon, 'laffMeter') and toon.laffMeter:
+                toon.laffMeter.adjustFace(toon.hp, toon.maxHp)
+            if hasattr(toon, 'showHpText'):
+                toon.showHpText(-toon_damage)
+        except Exception as e:
+            self.notify.warning('applySprintImpact failed: %s' % e)
+
     def setSkelecog(self, flag):
         SuitBase.SuitBase.setSkelecog(self, flag)
         if flag:

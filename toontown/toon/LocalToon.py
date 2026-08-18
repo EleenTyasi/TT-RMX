@@ -77,6 +77,13 @@ class LocalToon(DistributedToon.DistributedToon, LocalAvatar.LocalAvatar):
             self.numFlowers = 0
             self.maxFlowerBasket = 0
             DistributedToon.DistributedToon.__init__(self, cr)
+            self.stamina = 100.0
+            self.maxStamina = 100.0
+            self.isSprinting = False
+            self.shiftPressed = False
+            self.staminaExhausted = False
+            self.tireless = False
+            self.staminaBar = None
             chatMgr = ToontownChatManager.ToontownChatManager(cr, self)
             talkAssistant = TTTalkAssistant.TTTalkAssistant()
             LocalAvatar.LocalAvatar.__init__(self, cr, chatMgr, talkAssistant, passMessagesThrough=True)
@@ -244,6 +251,10 @@ class LocalToon(DistributedToon.DistributedToon, LocalAvatar.LocalAvatar):
         from otp.friends import FriendInfo
 
     def disable(self):
+        self.stopStaminaTask()
+        if hasattr(self, 'staminaBar') and self.staminaBar:
+            self.staminaBar.destroy()
+            del self.staminaBar
         if hasattr(self, 'expGui') and self.expGui:
             self.expGui.destroy()
             del self.expGui
@@ -385,6 +396,14 @@ class LocalToon(DistributedToon.DistributedToon, LocalAvatar.LocalAvatar):
         self.laffMeter.stop()
         from . import ToonExpGui
         self.expGui = ToonExpGui.ToonExpGui()
+        from . import StaminaBar
+        self.staminaBar = StaminaBar.StaminaBar(self.stamina, self.maxStamina)
+        self.staminaBar.setScale(0.85)
+        self.staminaBar.reparentTo(base.a2dBottomLeft)
+        if self.style.getAnimal() == 'monkey':
+            self.staminaBar.setPos(0.20, 0.0, 0.035)
+        else:
+            self.staminaBar.setPos(0.18, 0.0, 0.035)
         self.questMap = QuestMap.QuestMap(self)
         self.questMap.stop()
         if not base.cr.isPaid():
@@ -397,14 +416,100 @@ class LocalToon(DistributedToon.DistributedToon, LocalAvatar.LocalAvatar):
         self.accept('time-delete-up', self.__endTossPie)
         self.accept('pieHit', self.__pieHit)
         self.accept('interrupt-pie', self.interruptPie)
+        self.accept('shift', self.__startSprint)
+        self.accept('shift-up', self.__stopSprint)
+        self.accept('lshift', self.__startSprint)
+        self.accept('lshift-up', self.__stopSprint)
+        self.accept('rshift', self.__startSprint)
+        self.accept('rshift-up', self.__stopSprint)
         self.accept('InputState-jump', self.__toonMoved)
         self.accept('InputState-forward', self.__toonMoved)
         self.accept('InputState-reverse', self.__toonMoved)
         self.accept('InputState-turnLeft', self.__toonMoved)
         self.accept('InputState-turnRight', self.__toonMoved)
         self.accept('InputState-slide', self.__toonMoved)
+        self.startStaminaTask()
         QuestParser.init()
         return
+
+    def __startSprint(self):
+        self.shiftPressed = True
+
+    def __stopSprint(self):
+        self.shiftPressed = False
+
+    def startStaminaTask(self):
+        self.stopStaminaTask()
+        taskMgr.add(self.__staminaTask, self.taskName('staminaTask'))
+
+    def stopStaminaTask(self):
+        taskMgr.remove(self.taskName('staminaTask'))
+
+    def __staminaTask(self, task):
+        from toontown.toon import ToonLevelGlobals
+        lvl = getattr(self, 'toonLevel', 1) if hasattr(self, 'toonLevel') else 1
+        self.maxStamina = float(ToonLevelGlobals.getMaxStaminaForLevel(lvl))
+
+        zoneId = self.getZoneId() if hasattr(self, 'getZoneId') else 0
+        cog_hq_zones = (10000, 11000, 12000, 13000, 10100, 10200, 11100, 11200, 12100, 12200, 13100, 13200)
+        is_safe_zone = False
+        if zoneId and zoneId not in cog_hq_zones:
+            if (zoneId % 1000 == 0) or (zoneId % 100 == 0 and zoneId < 10000 and zoneId not in ToontownGlobals.StreetBranchZones):
+                is_safe_zone = True
+
+        if getattr(self, 'tireless', False):
+            is_safe_zone = True
+
+        is_moving = False
+        if hasattr(self, 'controlManager') and self.controlManager.isEnabled:
+            curr = getattr(self.controlManager, 'currentControls', None)
+            if curr and hasattr(curr, 'isAirborne') and not curr.isAirborne:
+                forward = inputState.isSet('forward')
+                reverse = inputState.isSet('reverse')
+                slide = inputState.isSet('slide')
+                if forward or reverse or slide:
+                    is_moving = True
+
+        dt = globalClock.getDt()
+
+        if self.shiftPressed and is_moving and not self.staminaExhausted:
+            if is_safe_zone:
+                self.isSprinting = True
+                self.stamina = self.maxStamina
+                speed_mult = 1.5
+            else:
+                if self.stamina > 0.0:
+                    self.isSprinting = True
+                    speed_mult = 1.5
+                    self.stamina = max(0.0, self.stamina - 20.0 * dt)
+                    if self.stamina <= 0.0:
+                        self.staminaExhausted = True
+                        self.isSprinting = False
+                        speed_mult = 1.0
+                else:
+                    self.staminaExhausted = True
+                    self.isSprinting = False
+                    speed_mult = 1.0
+        else:
+            self.isSprinting = False
+            speed_mult = 1.0
+            if self.stamina < self.maxStamina:
+                self.stamina = min(self.maxStamina, self.stamina + 25.0 * dt)
+                if self.stamina >= 20.0:
+                    self.staminaExhausted = False
+
+        if hasattr(self, 'controlManager') and self.controlManager.isEnabled:
+            self.controlManager.setSpeeds(
+                OTPGlobals.ToonForwardSpeed * speed_mult,
+                OTPGlobals.ToonJumpForce,
+                OTPGlobals.ToonReverseSpeed * speed_mult,
+                OTPGlobals.ToonRotateSpeed
+            )
+
+        if hasattr(self, 'staminaBar') and self.staminaBar:
+            self.staminaBar.update(self.stamina, self.maxStamina, is_unlimited=is_safe_zone)
+
+        return task.cont
 
     def __handlePurchase(self):
         self.purchaseButton.hide()

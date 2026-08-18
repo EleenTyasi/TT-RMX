@@ -210,6 +210,17 @@ class ToggleRun(MagicWord):
         return "Run mode has been toggled."
 
 
+class ToggleTireless(MagicWord):
+    aliases = ["tireless", "infinitestamina", "infstamina", "toggletireless"]
+    desc = "Toggles tireless mode for infinite sprinting stamina anywhere."
+    execLocation = MagicWordConfig.EXEC_LOC_CLIENT
+
+    def handleWord(self, invoker, avId, toon, *args):
+        base.localAvatar.tireless = not getattr(base.localAvatar, 'tireless', False)
+        status = "ENABLED (Infinite Stamina)" if base.localAvatar.tireless else "DISABLED (Normal Stamina)"
+        return f"Tireless mode has been {status}."
+
+
 class SetSpeed(MagicWord):
     aliases = ["speed"]
     desc = "Sets your running speed."
@@ -327,7 +338,15 @@ class MaxToon(MagicWord):
         if hasattr(toon, 'b_setUnlockedTrinkets'):
             toon.b_setUnlockedTrinkets(list(ALL_TRINKET_IDS))
 
-        return "Maxed out {}'s stats and unlocked all trinkets.".format(toon.getName())
+        from toontown.toon import ToonLevelGlobals
+        maxStam = float(ToonLevelGlobals.getMaxStaminaForLevel(ToonLevelGlobals.MAX_TOON_LEVEL))
+        if hasattr(toon, 'maxStamina'):
+            toon.maxStamina = maxStam
+            toon.stamina = maxStam
+        if hasattr(toon, 'staminaBar') and toon.staminaBar:
+            toon.staminaBar.update(maxStam, maxStam)
+
+        return "Maxed out {}'s stats, unlocked all trinkets, and maxed stamina.".format(toon.getName())
 
 
 class UnlockTrinkets(MagicWord):

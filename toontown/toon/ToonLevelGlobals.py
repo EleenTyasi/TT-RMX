@@ -65,3 +65,7 @@ def getTrackCountForLevel(level):
         return 6
     else:
         return 7
+
+
+def getMaxStaminaForLevel(level):
+    return 100 + max(0, level - 1) * 10
