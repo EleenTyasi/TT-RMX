@@ -1586,10 +1586,10 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
                                                 if otherSuit.doId in trapDict:
                                                     del trapDict[otherSuit.doId]
 
-                                died = attack[SUIT_DIED_COL] & 1 << targetIndex
-                                if died != 0:
-                                    if deadSuits.count(target) == 0:
-                                        deadSuits.append(target)
+                                for s_idx, s in enumerate(self.activeSuits):
+                                    if attack[SUIT_DIED_COL] & (1 << s_idx):
+                                        if deadSuits.count(s) == 0:
+                                            deadSuits.append(s)
 
         self.exitedToons = []
         for suitKey in list(trapDict.keys()):

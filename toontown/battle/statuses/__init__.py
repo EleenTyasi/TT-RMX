@@ -1,5 +1,6 @@
 from .StatusBase import StatusBase
 from .SlowStatus import SlowStatus
+from .WetStatus import WetStatus
 from .FreezeStatus import FreezeStatus
 from .WeakenStatus import WeakenStatus
 from .PoisonStatus import PoisonStatus
@@ -10,6 +11,7 @@ from .RalliedStatus import RalliedStatus
 
 STATUS_CLASSES = {
     'SLOW': SlowStatus,
+    'WET': WetStatus,
     'FREEZE': FreezeStatus,
     'WEAKEN': WeakenStatus,
     'POISON': PoisonStatus,

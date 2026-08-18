@@ -150,7 +150,7 @@ def __getSplashTrack(point, scale, delay, battle, splashHold = 0.01):
     return Sequence(Func(battle.movie.needRestoreRenderProp, splash), Wait(delay), Func(prepSplash, splash, point), ActorInterval(splash, 'splash-from-splat'), Wait(splashHold), Func(MovieUtil.removeProp, splash), Func(battle.movie.clearRenderProp, splash))
 
 
-def __getSuitTrack(suit, tContact, tDodge, hp, hpbonus, kbbonus, anim, died, leftSuits, rightSuits, battle, toon, fShowStun, beforeStun = 0.5, afterStun = 1.8, geyser = 0, uberRepeat = 0, revived = 0, crit_type = 0):
+def __getSuitTrack(suit, tContact, tDodge, hp, hpbonus, kbbonus, anim, died, leftSuits, rightSuits, battle, toon, fShowStun, beforeStun = 0.5, afterStun = 1.8, geyser = 0, uberRepeat = 0, revived = 0, crit_type = 0, extraSuits = None):
     if hp > 0:
         suitTrack = Sequence()
         sival = ActorInterval(suit, anim)
@@ -216,7 +216,27 @@ def __getSuitTrack(suit, tContact, tDodge, hp, hpbonus, kbbonus, anim, died, lef
             suitTrack.append(Func(suit.loop, 'neutral'))
         if revived != 0:
             suitTrack.append(MovieUtil.createSuitReviveTrack(suit, toon, battle))
-        return Parallel(suitTrack, bonusTrack)
+        resultTrack = Parallel(suitTrack, bonusTrack)
+        if extraSuits:
+            for extra in extraSuits:
+                extraSuit = extra['suit']
+                extraHp = extra['hp']
+                extraDied = extra['died']
+                extraRevived = extra['revived']
+                extraTrack = Sequence(
+                    Wait(tContact),
+                    Func(extraSuit.showHpText, -extraHp, openEnded=0, attackTrack=SQUIRT_TRACK),
+                    Func(extraSuit.updateHealthBar, extraHp),
+                    ActorInterval(extraSuit, anim, duration=0.4),
+                )
+                if extraRevived != 0:
+                    extraTrack.append(MovieUtil.createSuitReviveTrack(extraSuit, toon, battle))
+                elif extraDied != 0:
+                    extraTrack.append(MovieUtil.createSuitDeathTrack(extraSuit, toon, battle))
+                else:
+                    extraTrack.append(Func(extraSuit.loop, 'neutral'))
+                resultTrack = Parallel(resultTrack, extraTrack)
+        return resultTrack
     else:
         return MovieUtil.createSuitDodgeMultitrack(tDodge, suit, leftSuits, rightSuits)
 
@@ -307,7 +327,8 @@ def __doFlower(squirt, delay, fShowStun):
     if hp > 0:
         tracks.append(__getSplashTrack(targetPoint, scale, tSprayStarts + dSprayScale, battle))
     if hp > 0 or delay <= 0:
-        tracks.append(__getSuitTrack(suit, tContact, tSuitDodges, hp, hpbonus, kbbonus, 'squirt-small-react', died, leftSuits, rightSuits, battle, toon, fShowStun, revived=revived, crit_type=crit_type))
+        extraSuits = target.get('extraSuits', []) if isinstance(target, dict) else []
+        tracks.append(__getSuitTrack(suit, tContact, tSuitDodges, hp, hpbonus, kbbonus, 'squirt-small-react', died, leftSuits, rightSuits, battle, toon, fShowStun, revived=revived, crit_type=crit_type, extraSuits=extraSuits))
     return tracks
 
 
@@ -352,13 +373,21 @@ def __doWaterGlass(squirt, delay, fShowStun):
     def getSprayStartPos(toon = toon):
         toon.update(0)
         lod0 = toon.getLOD(toon.getLODNames()[0])
+        joint = None
         if base.config.GetBool('want-new-anims', 1):
             if not lod0.find('**/def_head').isEmpty():
                 joint = lod0.find('**/def_head')
-            else:
+            elif not lod0.find('**/def_joint_head').isEmpty():
+                joint = lod0.find('**/def_joint_head')
+            elif not lod0.find('**/joint_head').isEmpty():
                 joint = lod0.find('**/joint_head')
         else:
+            if not lod0.find('**/joint_head').isEmpty():
+                joint = lod0.find('**/joint_head')
+        if joint is None or joint.isEmpty():
             joint = lod0.find('**/joint_head')
+        if joint is None or joint.isEmpty():
+            return toon.getPos(render) + Point3(0, 0.3, toon.getHeight() * 0.75)
         n = hidden.attachNewNode('pointInFrontOfHead')
         n.reparentTo(toon)
         n.setPos(joint.getPos(toon) + Point3(0, 0.3, -0.2))
@@ -372,7 +401,8 @@ def __doWaterGlass(squirt, delay, fShowStun):
     if hp > 0:
         tracks.append(__getSplashTrack(targetPoint, scale, tSpray + dSprayScale, battle))
     if hp > 0 or delay <= 0:
-        tracks.append(__getSuitTrack(suit, tContact, tSuitDodges, hp, hpbonus, kbbonus, 'squirt-small-react', died, leftSuits, rightSuits, battle, toon, fShowStun, revived=revived, crit_type=crit_type))
+        extraSuits = target.get('extraSuits', []) if isinstance(target, dict) else []
+        tracks.append(__getSuitTrack(suit, tContact, tSuitDodges, hp, hpbonus, kbbonus, 'squirt-small-react', died, leftSuits, rightSuits, battle, toon, fShowStun, revived=revived, crit_type=crit_type, extraSuits=extraSuits))
     return tracks
 
 
@@ -434,7 +464,8 @@ def __doWaterGun(squirt, delay, fShowStun):
     if hp > 0:
         tracks.append(__getSplashTrack(targetPoint, 0.3, tSpray + dSprayScale, battle))
     if hp > 0 or delay <= 0:
-        tracks.append(__getSuitTrack(suit, tContact, tSuitDodges, hp, hpbonus, kbbonus, 'squirt-small-react', died, leftSuits, rightSuits, battle, toon, fShowStun, revived=revived))
+        extraSuits = target.get('extraSuits', []) if isinstance(target, dict) else []
+        tracks.append(__getSuitTrack(suit, tContact, tSuitDodges, hp, hpbonus, kbbonus, 'squirt-small-react', died, leftSuits, rightSuits, battle, toon, fShowStun, revived=revived, extraSuits=extraSuits))
     return tracks
 
 
@@ -497,7 +528,8 @@ def __doSeltzerBottle(squirt, delay, fShowStun):
     if hp > 0:
         tracks.append(__getSplashTrack(targetPoint, scale, tSpray + dSprayScale, battle))
     if (hp > 0 or delay <= 0) and suit:
-        tracks.append(__getSuitTrack(suit, tContact, tSuitDodges, hp, hpbonus, kbbonus, 'squirt-small-react', died, leftSuits, rightSuits, battle, toon, fShowStun, revived=revived))
+        extraSuits = target.get('extraSuits', []) if isinstance(target, dict) else []
+        tracks.append(__getSuitTrack(suit, tContact, tSuitDodges, hp, hpbonus, kbbonus, 'squirt-small-react', died, leftSuits, rightSuits, battle, toon, fShowStun, revived=revived, extraSuits=extraSuits))
     return tracks
 
 
@@ -581,7 +613,8 @@ def __doFireHose(squirt, delay, fShowStun):
     if hp > 0:
         tracks.append(__getSplashTrack(targetPoint, 0.4, 2.7, battle, splashHold=1.5))
     if hp > 0 or delay <= 0:
-        tracks.append(__getSuitTrack(suit, tContact, tSuitDodges, hp, hpbonus, kbbonus, 'squirt-small-react', died, leftSuits, rightSuits, battle, toon, fShowStun, revived=revived, crit_type=crit_type))
+        extraSuits = target.get('extraSuits', []) if isinstance(target, dict) else []
+        tracks.append(__getSuitTrack(suit, tContact, tSuitDodges, hp, hpbonus, kbbonus, 'squirt-small-react', died, leftSuits, rightSuits, battle, toon, fShowStun, revived=revived, crit_type=crit_type, extraSuits=extraSuits))
     return tracks
 
 
@@ -661,7 +694,8 @@ def __doStormCloud(squirt, delay, fShowStun):
     tracks.append(getCloudTrack(cloud, suit, cloudPosPoint, scaleUpPoint, rainEffects, rainDelay, effectDelay, cloudHold, useEffect=1))
     tracks.append(getCloudTrack(cloud2, suit, cloudPosPoint, scaleUpPoint, rainEffects, rainDelay, effectDelay, cloudHold, useEffect=0))
     if hp > 0 or delay <= 0:
-        tracks.append(__getSuitTrack(suit, tContact, tSuitDodges, hp, hpbonus, kbbonus, 'soak', died, leftSuits, rightSuits, battle, toon, fShowStun, beforeStun=2.6, afterStun=2.3, revived=revived, crit_type=crit_type))
+        extraSuits = target.get('extraSuits', []) if isinstance(target, dict) else []
+        tracks.append(__getSuitTrack(suit, tContact, tSuitDodges, hp, hpbonus, kbbonus, 'soak', died, leftSuits, rightSuits, battle, toon, fShowStun, beforeStun=2.6, afterStun=2.3, revived=revived, crit_type=crit_type, extraSuits=extraSuits))
     return tracks
 
 

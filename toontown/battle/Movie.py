@@ -757,10 +757,19 @@ class Movie(DirectObject.DirectObject):
                         sdict['kbbonus'] = kbbonuses[targetIndex]
                         sdict['died'] = ta[SUIT_DIED_COL] & 1 << targetIndex
                         sdict['revived'] = ta[SUIT_REVIVE_COL] & 1 << targetIndex
-                        if sdict['revived'] != 0:
-                            pass
-                        if sdict['died'] != 0:
-                            pass
+                        extraSuits = []
+                        for si in range(len(suits)):
+                            if si != targetIndex and si < len(hps) and hps[si] > 0 and suits[si] != -1:
+                                extraSuit = self.battle.findSuit(suits[si])
+                                if extraSuit:
+                                    extraSuits.append({
+                                        'suit': extraSuit,
+                                        'hp': hps[si],
+                                        'kbbonus': kbbonuses[si] if si < len(kbbonuses) else 0,
+                                        'died': ta[SUIT_DIED_COL] & (1 << si),
+                                        'revived': ta[SUIT_REVIVE_COL] & (1 << si),
+                                    })
+                        sdict['extraSuits'] = extraSuits
                         if track == DROP or track == TRAP:
                             adict['target'] = [sdict]
                         else:

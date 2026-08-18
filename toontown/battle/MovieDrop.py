@@ -418,10 +418,26 @@ def __createSuitTrack(drop, delay, level, alreadyDodged, alreadyTeased, target, 
             suitTrack.append(MovieUtil.createSuitReviveTrack(suit, toon, battle, npcs))
         elif died != 0:
             suitTrack.append(MovieUtil.createSuitDeathTrack(suit, toon, battle, npcs))
-        else:
-            suitTrack.append(Func(suit.loop, 'neutral'))
         if bonusTrack != None:
             suitTrack = Parallel(suitTrack, bonusTrack)
+        for extra in drop.get('extraSuits', []):
+            extraSuit = extra['suit']
+            extraHp = extra['hp']
+            extraDied = extra['died']
+            extraRevived = extra['revived']
+            extraTrack = Sequence(
+                Wait(delay + tObjectAppears),
+                Func(extraSuit.showHpText, -extraHp, openEnded=0),
+                Func(extraSuit.updateHealthBar, extraHp),
+                ActorInterval(extraSuit, anim, duration=0.4),
+            )
+            if extraRevived != 0:
+                extraTrack.append(MovieUtil.createSuitReviveTrack(extraSuit, toon, battle, npcs))
+            elif extraDied != 0:
+                extraTrack.append(MovieUtil.createSuitDeathTrack(extraSuit, toon, battle, npcs))
+            else:
+                extraTrack.append(Func(extraSuit.loop, 'neutral'))
+            suitTrack = Parallel(suitTrack, extraTrack)
     elif kbbonus == 0:
         suitTrack = Sequence(Wait(delay + tObjectAppears), Func(MovieUtil.indicateMissed, suit, 0.6), Func(suit.loop, 'neutral'))
     else:

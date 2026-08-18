@@ -379,6 +379,24 @@ def __throwPie(throw, delay, hitCount):
         else:
             suitResponseTrack.append(Func(suit.loop, 'neutral'))
         suitResponseTrack = Parallel(suitResponseTrack, bonusTrack)
+        for extra in target.get('extraSuits', []):
+            extraSuit = extra['suit']
+            extraHp = extra['hp']
+            extraDied = extra['died']
+            extraRevived = extra['revived']
+            extraTrack = Sequence(
+                Wait(delay + tPieHitsSuit),
+                Func(extraSuit.showHpText, -extraHp, openEnded=0, attackTrack=THROW_TRACK),
+                Func(extraSuit.updateHealthBar, extraHp),
+                ActorInterval(extraSuit, 'pie-small-react', duration=0.4),
+            )
+            if extraRevived != 0:
+                extraTrack.append(MovieUtil.createSuitReviveTrack(extraSuit, toon, battle))
+            elif extraDied != 0:
+                extraTrack.append(MovieUtil.createSuitDeathTrack(extraSuit, toon, battle))
+            else:
+                extraTrack.append(Func(extraSuit.loop, 'neutral'))
+            suitResponseTrack = Parallel(suitResponseTrack, extraTrack)
     else:
         suitResponseTrack = MovieUtil.createSuitDodgeMultitrack(delay + tSuitDodges, suit, leftSuits, rightSuits)
     if not hitSuit and delay > 0:

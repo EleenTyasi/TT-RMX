@@ -23,9 +23,9 @@
 
 # Track status mappings for Toon Gags:
 GAG_TRACK_STATUS_EFFECTS = {
-    # 5 (Squirt) → Slows Cogs (reduces Cog defense by 30%, making them less likely to dodge)
+    # 5 (Squirt) → Drenches Cogs with WET (reduces Cog defense by 30% and increases Freeze proc chance)
     5: {
-        'effect': 'SLOW',
+        'effect': 'WET',
         'chance': 100,        # Proc chance % (0 to 100)
         'rounds': 3,          # Duration in turns
         'defense_reduction': 30, # Cog loses 30% dodge defense

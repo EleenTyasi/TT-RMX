@@ -12,6 +12,7 @@ from toontown.battle import SuitBattleGlobals
 
 STATUS_DESCRIPTIONS = {
     'SLOW': ("Slow Debuff", "-15% Accuracy penalty on all attacks."),
+    'WET': ("Wet Status", "Drenched! -30% Cog defense & highly susceptible to Freeze."),
     'FREEZE': ("Freeze Stun", "Frozen solid! Skips attack turn."),
     'WEAKEN': ("Weaken Debuff", "-10% Defense penalty, takes extra damage."),
     'POISON': ("Poison DoT", "Takes Damage Over Time at round start."),

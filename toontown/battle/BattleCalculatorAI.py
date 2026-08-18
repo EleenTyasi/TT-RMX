@@ -664,19 +664,8 @@ class BattleCalculatorAI:
                         if toon and toon.hasTrinketEquipped(TRINKET_RALLYING_TU):
                             self.statusEffectMgr.apply_effect(targetId, 'RALLIED', 2)
                         if toon and toon.hasTrinketEquipped(TRINKET_CLEANSING_TU):
-                            for neg_eff in ['POISON', 'BURN', 'WEAKEN', 'SLOW']:
+                            for neg_eff in ['POISON', 'BURN', 'WEAKEN', 'SLOW', 'WET']:
                                 self.statusEffectMgr.remove_effect(targetId, neg_eff)
-
-                    if toon and toon.hasTrinketEquipped(TRINKET_SHATTERING_FREEZING) and self.statusEffectMgr.is_frozen(targetId):
-                        shatter_dmg = max(1, int(result * 0.5))
-                        targetSuit = self.battle.findSuit(targetId)
-                        if targetSuit and targetSuit in self.battle.activeSuits:
-                            idx = self.battle.activeSuits.index(targetSuit)
-                            for adj_idx in [idx - 1, idx + 1]:
-                                if 0 <= adj_idx < len(self.battle.activeSuits):
-                                    adj_suit = self.battle.activeSuits[adj_idx]
-                                    adj_suit.setHP(max(0, adj_suit.getHP() - shatter_dmg))
-                                    self.notify.info('Shattering Freezing dealt %d area damage to adjacent suit %d' % (shatter_dmg, adj_suit.doId))
 
                     if toon and toon.hasTrinketEquipped(TRINKET_VAMPIRIC_GAGS) and result > 0 and atkTrack != HEAL:
                         vamp_heal = max(1, int(result * 0.1))
@@ -686,6 +675,10 @@ class BattleCalculatorAI:
                     if atkTrack in GAG_TRACK_STATUS_EFFECTS:
                         eff_cfg = GAG_TRACK_STATUS_EFFECTS[atkTrack]
                         proc_chance = self.statusEffectMgr.calc_proc_chance(eff_cfg.get('chance', 100), atkLevel, HIT_TYPE_NAMES[hit_type])
+                        # Wet + Freeze Synergy: Drenched Cogs freeze much more easily (+40% proc chance)
+                        if eff_cfg.get('effect') == 'FREEZE' and self.statusEffectMgr.is_wet(targetId):
+                            proc_chance = min(100, proc_chance + 40)
+                            self.notify.info(f"Target suit {targetId} is WET! Freeze proc chance boosted to {proc_chance}%")
                         if random.randint(1, 100) <= proc_chance:
                             rounds = eff_cfg.get('rounds', 2)
                             if toon and toon.hasTrinketEquipped(TRINKET_STATUS_CATALYST):
@@ -817,6 +810,34 @@ class BattleCalculatorAI:
                 targetId = currTarget.getDoId()
                 self.notify.info(f"Toon attack applied {damageDone} damage to suit {targetId} (HP: {prev_hp} -> {currTarget.getHP()})")
                 totalDamages = totalDamages + damageDone
+
+                # Ice Shatter: If target is frozen and attacker has TRINKET_SHATTERING_FREEZING, deal 50% damage to adjacent Cogs
+                if self.statusEffectMgr.is_frozen(targetId):
+                    toonObj = self.battle.getToon(toonId)
+                    from toontown.toon.TrinketsConfig import TRINKET_SHATTERING_FREEZING
+                    if toonObj and hasattr(toonObj, 'hasTrinketEquipped') and toonObj.hasTrinketEquipped(TRINKET_SHATTERING_FREEZING):
+                        shatter_dmg = max(1, int(damageDone * 0.5))
+                        self.notify.info(f"Shattering Freezing triggered on suit {targetId}! Dealing {shatter_dmg} damage to adjacent suits.")
+                        for adj_pos in [position - 1, position + 1]:
+                            if 0 <= adj_pos < len(targets):
+                                adj_suit = targets[adj_pos]
+                                if adj_suit.getHP() > 0:
+                                    adj_prev = adj_suit.getHP()
+                                    adj_suit.setHP(adj_prev - shatter_dmg)
+                                    self.notify.info(f"Shatter hit adjacent suit {adj_suit.doId} (HP: {adj_prev} -> {adj_suit.getHP()})")
+                                    while len(attack[TOON_HP_COL]) <= adj_pos:
+                                        attack[TOON_HP_COL].append(0)
+                                    attack[TOON_HP_COL][adj_pos] += shatter_dmg
+                                    totalDamages += shatter_dmg
+                                    if adj_suit.getHP() <= 0:
+                                        if adj_suit.getSkeleRevives() >= 1:
+                                            adj_suit.useSkeleRevive()
+                                            attack[SUIT_REVIVE_COL] |= (1 << adj_pos)
+                                        else:
+                                            self.suitLeftBattle(adj_suit.getDoId())
+                                            attack[SUIT_DIED_COL] |= (1 << adj_pos)
+                                            self.notify.debug('Adjacent Suit %d died to Ice Shatter!' % adj_suit.doId)
+
                 if currTarget.getHP() <= 0:
                     if currTarget.getSkeleRevives() >= 1:
                         currTarget.useSkeleRevive()

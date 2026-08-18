@@ -102,6 +102,15 @@ class StatusEffectManager:
                     return True
         return False
 
+    def is_wet(self, avatar_id):
+        if avatar_id in self.effects:
+            for entry in self.effects[avatar_id].values():
+                if 'inst' in entry and hasattr(entry['inst'], 'is_wet') and entry['inst'].is_wet():
+                    return True
+                if entry.get('effect') == 'WET':
+                    return True
+        return False
+
     def tick_round(self):
         """
         Ticks down all active status durations by 1 round.

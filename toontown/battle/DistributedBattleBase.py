@@ -1416,6 +1416,7 @@ class DistributedBattleBase(DistributedNode.DistributedNode, BattleBase):
             'BURN': (1.0, 0.4, 0.0, 1.0),
             'FREEZE': (0.2, 0.8, 1.0, 1.0),
             'SLOW': (0.9, 0.9, 0.1, 1.0),
+            'WET': (0.1, 0.6, 1.0, 1.0),
             'WEAKEN': (0.8, 0.3, 0.9, 1.0),
             'SHIELD': (0.3, 0.6, 1.0, 1.0),
             'LUCKY': (1.0, 0.84, 0.0, 1.0),

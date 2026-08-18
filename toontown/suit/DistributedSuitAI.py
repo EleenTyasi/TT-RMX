@@ -20,7 +20,7 @@ class DistributedSuitAI(DistributedSuitBaseAI.DistributedSuitBaseAI):
     myId = 0
     notify = DirectNotifyGlobal.directNotify.newCategory('DistributedSuitAI')
 
-    def __init__(self, air, suitPlanner):
+    def __init__(self, air, suitPlanner = None):
         DistributedSuitBaseAI.DistributedSuitBaseAI.__init__(self, air, suitPlanner)
         self.bldgTrack = None
         self.branchId = None

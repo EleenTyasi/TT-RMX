@@ -66,6 +66,7 @@ TRACK_DISPLAY_NAMES = {
 DEFAULT_STATUS_EFFECTS = {
     'FREEZE': {'description': 'Target skips attack turn', 'default_rounds': 1},
     'SLOW':   {'description': 'Reduces target defense and dodge chance', 'defense_reduction': 30, 'default_rounds': 3},
+    'WET':    {'description': 'Reduces Cog defense and increases Freeze susceptibility', 'defense_reduction': 30, 'default_rounds': 3},
     'WEAKEN': {'description': 'Reduces target attack power and defense', 'defense_reduction': 10, 'default_rounds': 2},
     'BURN':   {'description': 'Amplifies incoming damage', 'damage_multiplier': 1.5, 'default_rounds': 2},
     'POISON': {'description': 'Deals damage over time at turn start', 'damage_per_round': 15, 'default_rounds': 3},
@@ -80,7 +81,7 @@ DEFAULT_SUIT_ATTACK_STATUS = {
 DEFAULT_GAG_TRACK_STATUS = {
     3: {'effect': 'WEAKEN', 'chance': 75, 'rounds': 2, 'defense_reduction': 10},
     4: {'effect': 'BURN', 'chance': 60, 'rounds': 2, 'damage_multiplier': 1.5},
-    5: {'effect': 'SLOW', 'chance': 100, 'rounds': 3, 'defense_reduction': 30},
+    5: {'effect': 'WET', 'chance': 100, 'rounds': 3, 'defense_reduction': 30},
     6: {'effect': 'FREEZE', 'chance': 50, 'rounds': 1},
 }
 
