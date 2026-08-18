@@ -109,16 +109,19 @@ class BattleCalculatorAI:
                 attack[TOON_ACCBONUS_COL] = 1
                 return (0, 0)
         elif atkTrack == DROP:
-            allLured = True
-            for i in range(len(atkTargets)):
-                if self.__suitIsLured(atkTargets[i].getDoId()):
-                    pass
-                else:
-                    allLured = False
+            from toontown.toon.TrinketsConfig import TRINKET_LURED_DROP
+            has_lured_drop = toon and hasattr(toon, 'hasTrinketEquipped') and toon.hasTrinketEquipped(TRINKET_LURED_DROP)
+            if not has_lured_drop:
+                allLured = True
+                for i in range(len(atkTargets)):
+                    if self.__suitIsLured(atkTargets[i].getDoId()):
+                        pass
+                    else:
+                        allLured = False
 
-            if allLured:
-                attack[TOON_ACCBONUS_COL] = 1
-                return (0, 0)
+                if allLured:
+                    attack[TOON_ACCBONUS_COL] = 1
+                    return (0, 0)
         elif atkTrack == PETSOS:
             return self.__calculatePetTrickSuccess(attack)
         tgtDef = 0
@@ -566,7 +569,11 @@ class BattleCalculatorAI:
                     attackDamage = getAvPropDamage(attackTrack, attackLevel, toon.experience.getExp(attackTrack), organicBonus, propBonus, self.propAndOrganicBonusStack)
                 if not self.__combatantDead(targetId, toon=toonTarget):
                     if self.__suitIsLured(targetId) and atkTrack == DROP:
-                        self.notify.debug('not setting validTargetAvail, since drop on a lured suit')
+                        from toontown.toon.TrinketsConfig import TRINKET_LURED_DROP
+                        if toon and hasattr(toon, 'hasTrinketEquipped') and toon.hasTrinketEquipped(TRINKET_LURED_DROP):
+                            validTargetAvail = 1
+                        else:
+                            self.notify.debug('not setting validTargetAvail, since drop on a lured suit')
                     else:
                         validTargetAvail = 1
             if attackLevel == -1 and not atkTrack == FIRE:
@@ -587,8 +594,17 @@ class BattleCalculatorAI:
                         self.notify.debug('toon does ' + str(result) + ' healing to toon(s)')
                 else:
                     if self.__suitIsLured(targetId) and atkTrack == DROP:
-                        result = 0
-                        self.notify.debug('setting damage to 0, since drop on a lured suit')
+                        from toontown.toon.TrinketsConfig import TRINKET_LURED_DROP
+                        if toon and hasattr(toon, 'hasTrinketEquipped') and toon.hasTrinketEquipped(TRINKET_LURED_DROP):
+                            self.notify.debug('dealing drop damage on lured suit due to Lured Drop trinket')
+                        else:
+                            result = 0
+                            self.notify.debug('setting damage to 0, since drop on a lured suit')
+                    elif self.__suitIsLured(targetId) and atkTrack == SOUND:
+                        from toontown.toon.TrinketsConfig import TRINKET_LOUDER_SOUND
+                        if toon and hasattr(toon, 'hasTrinketEquipped') and toon.hasTrinketEquipped(TRINKET_LOUDER_SOUND):
+                            result = int(round(result * 0.5))
+                            self.notify.debug('Louder Sound dealing half damage on lured suit')
                     if self.notify.getDebug():
                         self.notify.debug('toon does ' + str(result) + ' damage to suit')
             else:
@@ -1190,19 +1206,39 @@ class BattleCalculatorAI:
         return
 
     def __knockBackAtk(self, attackIndex, toon=1):
-        if toon and (self.battle.toonAttacks[attackIndex][TOON_TRACK_COL] == THROW or self.battle.toonAttacks[attackIndex][TOON_TRACK_COL] == SQUIRT):
-            if self.notify.getDebug():
-                self.notify.debug('attack is a knockback')
-            return 1
+        if toon:
+            track = self.battle.toonAttacks[attackIndex][TOON_TRACK_COL]
+            if track == THROW or track == SQUIRT:
+                if self.notify.getDebug():
+                    self.notify.debug('attack is a knockback')
+                return 1
+            elif track == SOUND:
+                toonObj = self.battle.getToon(attackIndex)
+                from toontown.toon.TrinketsConfig import TRINKET_LOUDER_SOUND
+                if toonObj and hasattr(toonObj, 'hasTrinketEquipped') and toonObj.hasTrinketEquipped(TRINKET_LOUDER_SOUND):
+                    if self.notify.getDebug():
+                        self.notify.debug('Louder Sound knockback proc!')
+                    return 1
         return 0
 
     def __unlureAtk(self, attackIndex, toon=1):
         attack = self.battle.toonAttacks[attackIndex]
         track = self.__getActualTrack(attack)
-        if toon and (track == THROW or track == SQUIRT or track == SOUND):
-            if self.notify.getDebug():
-                self.notify.debug('attack is an unlure')
-            return 1
+        if toon:
+            toonObj = self.battle.getToon(attackIndex)
+            from toontown.toon.TrinketsConfig import TRINKET_GENTLE_WATER, TRINKET_LURED_DROP
+            if track == SQUIRT:
+                if toonObj and hasattr(toonObj, 'hasTrinketEquipped') and toonObj.hasTrinketEquipped(TRINKET_GENTLE_WATER):
+                    if random.random() < 0.30:
+                        if self.notify.getDebug():
+                            self.notify.debug('Gentle Water proc! Squirt does not unlure')
+                        return 0
+                return 1
+            elif track == THROW or track == SOUND:
+                return 1
+            elif track == DROP:
+                if toonObj and hasattr(toonObj, 'hasTrinketEquipped') and toonObj.hasTrinketEquipped(TRINKET_LURED_DROP):
+                    return 1
         return 0
 
     def __calcSuitAtkType(self, attackIndex):
@@ -1327,6 +1363,12 @@ class BattleCalculatorAI:
                 dmg_mult = self.statusEffectMgr.get_damage_multiplier(toonId)
                 if getattr(theSuit, 'isAlphatype', False) or getattr(theSuit, 'isSupertype', False):
                     dmg_mult *= 1.3
+                from toontown.toon.TrinketsConfig import TRINKET_ORGANIC_ALL, TRINKET_GLASS_CANNON
+                if toon and hasattr(toon, 'hasTrinketEquipped'):
+                    if toon.hasTrinketEquipped(TRINKET_ORGANIC_ALL):
+                        dmg_mult *= 1.5
+                    if toon.hasTrinketEquipped(TRINKET_GLASS_CANNON):
+                        dmg_mult *= 1.25
                 result = int(raw_hp * crit_mult * dmg_mult)
                 if hit_type != HIT_NORMAL:
                     result = max(result + 1, int(math.ceil(raw_hp * crit_mult * dmg_mult)))

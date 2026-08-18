@@ -30,6 +30,10 @@ TRINKET_STATUS_CATALYST = 17
 TRINKET_SECOND_WIND = 18
 TRINKET_LUCKY_CHARM = 19
 TRINKET_PATIENT_LURING = 20
+TRINKET_ORGANIC_ALL = 21
+TRINKET_LURED_DROP = 22
+TRINKET_LOUDER_SOUND = 23
+TRINKET_GENTLE_WATER = 24
 
 TRINKET_CATALOG = {
     TRINKET_ORGANIC_THROW: {
@@ -138,6 +142,26 @@ TRINKET_CATALOG = {
         'id': TRINKET_PATIENT_LURING,
         'name': 'Patient Luring',
         'desc': 'Lured Cogs stay mesmerized for +1 additional turn.',
+    },
+    TRINKET_ORGANIC_ALL: {
+        'id': TRINKET_ORGANIC_ALL,
+        'name': 'Organic-ize',
+        'desc': 'All Gag tracks are permanently Organic (+10% power / accuracy), but you take +50% more damage.',
+    },
+    TRINKET_LURED_DROP: {
+        'id': TRINKET_LURED_DROP,
+        'name': 'Lured Drop',
+        'desc': 'Drop can target Lured Cogs. Drop can still miss, but missing will not unlure the Cog.',
+    },
+    TRINKET_LOUDER_SOUND: {
+        'id': TRINKET_LOUDER_SOUND,
+        'name': 'Louder Sound',
+        'desc': 'Sound deals Lure Knockback bonus damage, but deals half damage to Lured Cogs.',
+    },
+    TRINKET_GENTLE_WATER: {
+        'id': TRINKET_GENTLE_WATER,
+        'name': 'Gentle Water',
+        'desc': 'Squirt has a 30% chance to not unlure Cogs on hit.',
     },
 }
 

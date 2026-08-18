@@ -2057,6 +2057,25 @@ class DistributedToon(DistributedPlayer.DistributedPlayer, Toon.Toon, Distribute
         return
 
     def checkGagBonus(self, track, level):
+        from toontown.toon.TrinketsConfig import (
+            TRINKET_ORGANIC_ALL, TRINKET_ORGANIC_TOONUP, TRINKET_ORGANIC_TRAP,
+            TRINKET_ORGANIC_SOUND, TRINKET_ORGANIC_LURE, TRINKET_ORGANIC_THROW,
+            TRINKET_ORGANIC_SQUIRT, TRINKET_ORGANIC_DROP
+        )
+        if hasattr(self, 'hasTrinketEquipped'):
+            if self.hasTrinketEquipped(TRINKET_ORGANIC_ALL):
+                return True
+            track_trinket_map = {
+                0: TRINKET_ORGANIC_TOONUP,
+                1: TRINKET_ORGANIC_TRAP,
+                2: TRINKET_ORGANIC_SOUND,
+                3: TRINKET_ORGANIC_LURE,
+                4: TRINKET_ORGANIC_THROW,
+                5: TRINKET_ORGANIC_SQUIRT,
+                6: TRINKET_ORGANIC_DROP,
+            }
+            if track in track_trinket_map and self.hasTrinketEquipped(track_trinket_map[track]):
+                return True
         trackBonus = self.getTrackBonusLevel(track)
         return trackBonus >= level
 
