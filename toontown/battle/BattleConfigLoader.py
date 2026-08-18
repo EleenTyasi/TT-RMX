@@ -77,6 +77,13 @@ DEFAULT_SUIT_ATTACK_STATUS = {
     'Demotion': {'effect': 'WEAKEN', 'rounds': 2, 'defense_reduction': 10, 'chance': 75},
 }
 
+DEFAULT_GAG_TRACK_STATUS = {
+    3: {'effect': 'WEAKEN', 'chance': 75, 'rounds': 2, 'defense_reduction': 10},
+    4: {'effect': 'BURN', 'chance': 60, 'rounds': 2, 'damage_multiplier': 1.5},
+    5: {'effect': 'SLOW', 'chance': 100, 'rounds': 3, 'defense_reduction': 30},
+    6: {'effect': 'FREEZE', 'chance': 50, 'rounds': 1},
+}
+
 
 def _clean_str(s):
     return re.sub(r'[\s\-_\.\&]', '', str(s).lower())
@@ -234,15 +241,30 @@ def load_or_create_config(suit_attributes, gag_damage, gag_accuracy, gag_xp, max
         try:
             with open(ATTACKS_FILE, 'r', encoding='utf-8') as f:
                 cog_attacks_db = json.load(f)
+            from toontown.battle import StatusEffectsConfig
             # Update SUIT_ATTACKS anim / target and status effects
             for atk_name, atk_data in cog_attacks_db.items():
                 anim = atk_data.get('anim', 'magic1')
                 tgt = 3 if atk_data.get('target') == 'group' else 2
                 SUIT_ATTACKS[atk_name] = (anim, tgt)
                 status = atk_data.get('status_effect')
-                if status:
-                    from toontown.battle import StatusEffectsConfig
-                    StatusEffectsConfig.SUIT_ATTACK_STATUS_EFFECTS[atk_name] = status
+                if status is not None:
+                    if isinstance(status, str):
+                        eff_name = status.upper()
+                        if eff_name in ('NONE', 'OFF', 'FALSE', 'DISABLED'):
+                            StatusEffectsConfig.SUIT_ATTACK_STATUS_EFFECTS.pop(atk_name, None)
+                        else:
+                            StatusEffectsConfig.SUIT_ATTACK_STATUS_EFFECTS[atk_name] = {
+                                'effect': eff_name, 'rounds': 1, 'chance': 100
+                            }
+                    elif isinstance(status, dict):
+                        StatusEffectsConfig.SUIT_ATTACK_STATUS_EFFECTS[atk_name] = status
+                    elif status is False:
+                        StatusEffectsConfig.SUIT_ATTACK_STATUS_EFFECTS.pop(atk_name, None)
+                else:
+                    # Fallback to base status effect if defined in defaults
+                    if atk_name in DEFAULT_SUIT_ATTACK_STATUS:
+                        StatusEffectsConfig.SUIT_ATTACK_STATUS_EFFECTS[atk_name] = DEFAULT_SUIT_ATTACK_STATUS[atk_name]
         except Exception as e:
             print('[BATTLE-CONFIG] Warning: Could not read %s: %s' % (ATTACKS_FILE, e))
 
@@ -321,6 +343,7 @@ def load_or_create_config(suit_attributes, gag_damage, gag_accuracy, gag_xp, max
                 with open(track_file, 'r', encoding='utf-8') as f:
                     track_data = json.load(f)
                 gags_list = track_data.get('gags', [])
+                has_custom_status = False
                 for lvl_idx in range(7):
                     gag_entry = gags_list[lvl_idx] if lvl_idx < len(gags_list) else {}
                     dmg_min = gag_entry.get('damage_min', gag_damage[track_idx][lvl_idx][0][0])
@@ -333,9 +356,26 @@ def load_or_create_config(suit_attributes, gag_damage, gag_accuracy, gag_xp, max
 
                     # Optional per-gag status effect
                     status_proc = gag_entry.get('status_effect')
-                    if status_proc:
-                        from toontown.battle import StatusEffectsConfig
-                        StatusEffectsConfig.GAG_TRACK_STATUS_EFFECTS[track_idx] = status_proc
+                    from toontown.battle import StatusEffectsConfig
+                    if status_proc is not None:
+                        has_custom_status = True
+                        if isinstance(status_proc, str):
+                            eff_name = status_proc.upper()
+                            if eff_name in ('NONE', 'OFF', 'FALSE', 'DISABLED'):
+                                StatusEffectsConfig.GAG_TRACK_STATUS_EFFECTS.pop(track_idx, None)
+                            else:
+                                StatusEffectsConfig.GAG_TRACK_STATUS_EFFECTS[track_idx] = {
+                                    'effect': eff_name, 'rounds': 1, 'chance': 60
+                                }
+                        elif isinstance(status_proc, dict):
+                            StatusEffectsConfig.GAG_TRACK_STATUS_EFFECTS[track_idx] = status_proc
+                        elif status_proc is False:
+                            StatusEffectsConfig.GAG_TRACK_STATUS_EFFECTS.pop(track_idx, None)
+
+                # Fallback to base status effect if none specified
+                if not has_custom_status and track_idx in DEFAULT_GAG_TRACK_STATUS:
+                    from toontown.battle import StatusEffectsConfig
+                    StatusEffectsConfig.GAG_TRACK_STATUS_EFFECTS[track_idx] = DEFAULT_GAG_TRACK_STATUS[track_idx]
 
             except Exception as e:
                 print('[BATTLE-CONFIG] Warning: Could not read %s: %s' % (track_file, e))
