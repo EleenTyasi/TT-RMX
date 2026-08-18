@@ -1,4 +1,5 @@
-﻿from panda3d.core import *
+from panda3d.core import *
+from libotp import CFSpeech, CFTimeout
 from direct.task.Task import Task
 from direct.distributed import ClockDelta
 from toontown.toonbase import TTLocalizer, ToontownGlobals
@@ -12,6 +13,23 @@ class DistributedNPCHealer(DistributedNPCToonBase):
         DistributedNPCToonBase.__init__(self, cr)
         self.isLocalToon = 0
         self.dialog = None
+
+    def initToonState(self):
+        self.setAnimState('neutral', 0.9, None, None)
+        self.reparentTo(render)
+        gagShop = render.find('**/*gag_shop*')
+        if not gagShop.isEmpty():
+            doorOrigin = gagShop.find('**/door_origin')
+            if not doorOrigin.isEmpty():
+                self.setPos(doorOrigin, 4.0, -3.5, 0.0)
+                self.setHpr(doorOrigin, 180, 0, 0)
+            else:
+                self.setPos(gagShop, 4.0, -8.0, 0.0)
+                self.setHpr(gagShop, 0, 0, 0)
+            self.setP(0)
+            self.setR(0)
+        else:
+            self.notify.warning('Could not find gag shop for Healer Hank positioning!')
 
     def disable(self):
         self.ignoreAll()
