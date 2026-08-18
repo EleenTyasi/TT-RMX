@@ -399,12 +399,9 @@ class LocalToon(DistributedToon.DistributedToon, LocalAvatar.LocalAvatar):
         self.expGui = ToonExpGui.ToonExpGui()
         from . import StaminaBar
         self.staminaBar = StaminaBar.StaminaBar(self.stamina, self.maxStamina)
-        self.staminaBar.setScale(0.85)
-        self.staminaBar.reparentTo(base.a2dBottomLeft)
-        if self.style.getAnimal() == 'monkey':
-            self.staminaBar.setPos(0.20, 0.0, 0.035)
-        else:
-            self.staminaBar.setPos(0.18, 0.0, 0.035)
+        self.staminaBar.setScale(1.0)
+        self.staminaBar.reparentTo(base.a2dBottomCenter)
+        self.staminaBar.setPos(0.0, 0.0, 0.07)
         self.questMap = QuestMap.QuestMap(self)
         self.questMap.stop()
         if not base.cr.isPaid():
