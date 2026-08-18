@@ -9991,3 +9991,12 @@ AccessoriesPageBackpack = 'Backpack IDs'
 AccessoriesPageShoes = 'Shoes IDs'
 TeleportGUITitle = 'Teleport'
 TeleportGUITeleport = 'Go!'
+
+# Healer Hank
+HealerHankName = 'Healer Hank'
+HealerHankPrompt = 'Would you like to recover to full laff for 20 Jellybeans?'
+HealerHankSad = 'Hey %s... You might want to cheer up a bit more first...'
+HealerHankFullHp = "You're already at full Laff! Keep up the good work!"
+HealerHankNoMoney = 'You need 20 Jellybeans to recover to full Laff.'
+HealerHankHealed = 'All patched up! Stay safe out there!'
+HealerHankCancel = 'Come back if you need a quick patch up!'

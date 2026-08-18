@@ -146,6 +146,7 @@ from toontown.toon import DistributedNPCFisherman/AI
 from toontown.toon import DistributedNPCPartyPerson/AI
 from toontown.toon import DistributedNPCPetclerk/AI
 from toontown.toon import DistributedNPCKartClerk/AI
+from toontown.toon import DistributedNPCHealer/AI
 from toontown.building import DistributedKnockKnockDoor/AI
 from toontown.building import DistributedElevator/AI
 from toontown.building import DistributedElevatorFSM/AI
@@ -2445,6 +2446,11 @@ dclass DistributedNPCKartClerk : DistributedNPCToonBase {
   buyKart(uint8) airecv clsend;
   buyAccessory(uint8) airecv clsend;
   transactionDone() airecv clsend;
+};
+
+dclass DistributedNPCHealer : DistributedNPCToonBase {
+  setMovie(uint8, uint32, uint32, int16) broadcast ram;
+  chooseHeal(uint8) airecv clsend;
 };
 
 dclass DistributedKnockKnockDoor : DistributedAnimatedProp {

@@ -28,3 +28,6 @@ class BRHoodDataAI(HoodDataAI.HoodDataAI):
         # self.classicChar.generateWithRequired(self.zoneId)
         # self.classicChar.start()
         # self.addDistObj(self.classicChar)
+        from toontown.toon import NPCToons
+        self.healerHank = NPCToons.createHealerHank(self.air, self.zoneId, (36.0, -83.0, 6.17), -120.0)
+        self.addDistObj(self.healerHank)

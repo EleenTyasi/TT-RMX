@@ -48,6 +48,14 @@ PARTY_MOVIE_TIMEOUT = 8
 BLOCKER_MOVIE_CLEAR = 0
 BLOCKER_MOVIE_START = 1
 BLOCKER_MOVIE_TIMEOUT = 8
+HEALER_MOVIE_CLEAR = 0
+HEALER_MOVIE_PROMPT = 1
+HEALER_MOVIE_HEALED = 2
+HEALER_MOVIE_SAD = 3
+HEALER_MOVIE_FULL_HP = 4
+HEALER_MOVIE_NO_MONEY = 5
+HEALER_MOVIE_CANCEL = 6
+HEALER_MOVIE_TIMEOUT = 7
 NPC_REGULAR = 0
 NPC_CLERK = 1
 NPC_TAILOR = 2
@@ -60,6 +68,7 @@ NPC_PARTYPERSON = 8
 NPC_SPECIALQUESTGIVER = 9
 NPC_FLIPPYTOONHALL = 10
 NPC_SCIENTIST = 11
+NPC_HEALER = 12
 CLERK_COUNTDOWN_TIME = 120
 TAILOR_COUNTDOWN_TIME = 300
 RTDNAFile = '/RTDNAFile.txt'
@@ -83,6 +92,7 @@ def createNPC(air, npcId, desc, zoneId, posIndex = 0, questCallback = None):
     from . import DistributedNPCSpecialQuestGiverAI
     from . import DistributedNPCFlippyInToonHallAI
     from . import DistributedNPCScientistAI
+    from . import DistributedNPCHealerAI
     canonicalZoneId, name, dnaType, gender, protected, type = desc
     if type == NPC_REGULAR:
         npc = DistributedNPCToonAI.DistributedNPCToonAI(air, npcId, questCallback=questCallback)
@@ -108,6 +118,8 @@ def createNPC(air, npcId, desc, zoneId, posIndex = 0, questCallback = None):
         npc = DistributedNPCFlippyInToonHallAI.DistributedNPCFlippyInToonHallAI(air, npcId)
     elif type == NPC_SCIENTIST:
         npc = DistributedNPCScientistAI.DistributedNPCScientistAI(air, npcId)
+    elif type == NPC_HEALER:
+        npc = DistributedNPCHealerAI.DistributedNPCHealerAI(air, npcId)
     else:
         print('createNPC() error!!!')
     npc.setName(name)
@@ -164,6 +176,22 @@ def createNpcsInZone(air, zoneId):
         npcs.append(createNPC(air, npcId, npcDesc, zoneId, posIndex=i))
 
     return npcs
+
+
+def createHealerHank(air, zoneId, pos, h):
+    from . import DistributedNPCHealerAI
+    npc = DistributedNPCHealerAI.DistributedNPCHealerAI(air, 20050)
+    npc.setName(TTLocalizer.HealerHankName)
+    dna = ToonDNA.ToonDNA()
+    # All-grey Cat Toon (medium legs/shorts, basic gray shirt and shorts)
+    dna.newToonFromProperties('cll', 'ms', 'm', 'm', 25, 25, 25, 25, 1, 25, 1, 25)
+    npc.setDNAString(dna.makeNetString())
+    npc.setHp(15)
+    npc.setMaxHp(15)
+    npc.setPosHpr(pos[0], pos[1], pos[2], h, 0, 0)
+    npc.generateWithRequired(zoneId)
+    npc.d_setAnimState('neutral', 1.0)
+    return npc
 
 
 def createLocalNPC(npcId):

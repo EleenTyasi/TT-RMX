@@ -2,10 +2,15 @@ from toontown.safezone import DistributedSZTreasureAI
 
 class DistributedCashbotBossTreasureAI(DistributedSZTreasureAI.DistributedSZTreasureAI):
 
-    def __init__(self, air, boss, goon, style, fx, fy, fz):
-        pos = goon.getPos()
+    def __init__(self, air, boss = None, goon = None, style = 0, fx = 0, fy = 0, fz = 0):
+        if goon is not None:
+            pos = goon.getPos()
+            goonId = goon.doId
+        else:
+            pos = (0, 0, 0)
+            goonId = 0
         DistributedSZTreasureAI.DistributedSZTreasureAI.__init__(self, air, boss, pos[0], pos[1], 0)
-        self.goonId = goon.doId
+        self.goonId = goonId
         self.style = style
         self.finalPosition = (fx, fy, fz)
 
