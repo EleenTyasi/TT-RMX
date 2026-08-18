@@ -31,3 +31,33 @@ def getBrushOffText(suitName, index):
 
 
 SuitBrushOffs = OTPLocalizer.SuitBrushOffs
+SuitSprintRamDialog = getattr(TTLocalizer, 'SuitSprintRamTaunts', [
+    "Watch where you're going, Toon!",
+    "I'm suing you for reckless endangerment!",
+    "That is a direct violation of OSHA regulations!",
+    "Halt! You don't have clearance to move at that speed!",
+    "A collision? I demand to see your insurance!",
+    "Direct impact detected! Initiating emergency audit!",
+    "Oof! That's coming out of your quarterly budget!",
+    "Reckless driving in a corporate pedestrian zone?!",
+    "My chassis wasn't built for vehicular combat!",
+    "I'll see you in small claims court for that!",
+    "Disorderly conduct! Prepare for immediate downsizing!",
+    "Hey! That violates our personal boundary agreement!",
+])
+
+
+def getSprintRamText(suitName=None):
+    ramDict = getattr(TTLocalizer, 'SuitSprintRamTaunts', {})
+    if isinstance(ramDict, dict):
+        if suitName in ramDict:
+            lines = ramDict[suitName]
+        else:
+            lines = ramDict.get(None, SuitSprintRamDialog)
+    elif isinstance(ramDict, (list, tuple)):
+        lines = ramDict
+    else:
+        lines = SuitSprintRamDialog
+    return random.choice(lines)
+
+

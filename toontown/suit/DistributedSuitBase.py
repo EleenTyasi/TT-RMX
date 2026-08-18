@@ -406,9 +406,18 @@ class DistributedSuitBase(DistributedAvatar.DistributedAvatar, Suit.Suit, SuitBa
             new_cog_hp = max(1, cog_curr_hp - cog_damage)
             self.currHP = new_cog_hp
             if hasattr(self, 'updateHealthBar'):
-                self.updateHealthBar(new_cog_hp, 1)
+                self.updateHealthBar(0, 1)
+            messenger.send('suit-hp-change', [self])
             if hasattr(self, 'showHpText'):
                 self.showHpText(-cog_damage)
+
+            # Unique Cog dialogue line on impact
+            from toontown.suit import SuitDialog
+            from libotp import CFSpeech, CFTimeout
+            style = self.getStyleName() if hasattr(self, 'getStyleName') else (self.dna.name if hasattr(self, 'dna') and self.dna else None)
+            ramLine = SuitDialog.getSprintRamText(style)
+            if hasattr(self, 'setChatAbsolute'):
+                self.setChatAbsolute(ramLine, CFSpeech | CFTimeout)
 
             # Toon takes 5% max HP damage (min 1 HP remaining)
             toon_max_hp = getattr(toon, 'maxHp', 100)

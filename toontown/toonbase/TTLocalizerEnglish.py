@@ -2401,6 +2401,191 @@ SuitLegalEagleP = 'Legal Eagles'
 SuitBigWigP = 'Big Wigs'
 SuitFaceoffDefaultTaunts = ['Boo!']
 SuitAttackDefaultTaunts = ['Take that!', 'Take a memo on this!']
+SuitSprintRamTaunts = {
+    # Bossbots
+    'f': [
+        "I'm only an entry-level speed bump!",
+        "Hey! I haven't even finished my probation period!",
+        "My boss is going to hear about this collision!",
+    ],
+    'p': [
+        "You just broke my favorite No. 2 lead!",
+        "I'm writing you up for reckless pedestrian conduct!",
+        "Ouch! You'll pay for that pencil sharpener damage!",
+    ],
+    'ym': [
+        "Yes Man says NO to physical assault!",
+        "I agreed to an audit, not a demolition derby!",
+        "Positively disgraceful driving!",
+    ],
+    'mm': [
+        "I need to manage your personal space immediately!",
+        "That impact was outside approved project scope!",
+        "I'm micromanaging your speedometer from now on!",
+    ],
+    'ds': [
+        "You just downsized my structural integrity!",
+        "I'll downsize your speed to zero!",
+        "Emergency downsizing initiated on your velocity!",
+    ],
+    'hh': [
+        "Oof! That gave me a massive headache!",
+        "Hunting heads, not high-speed collisions!",
+        "Keep your head on straight, Toon!",
+    ],
+    'cr': [
+        "Hostile takeover at maximum velocity?!",
+        "I'm raiding your insurance policy for damages!",
+        "You can't just blitzkrieg corporate property!",
+    ],
+    'tbc': [
+        "You just bruised the Big Cheese!",
+        "That wasn't very mature of you!",
+        "You're going to get shredded for that impact!",
+    ],
+
+    # Lawbots
+    'bf': [
+        "I'm already at the bottom, stop pushing!",
+        "Low blow! That's a low-speed violation!",
+        "Scraping the bottom of the barrel with that ram!",
+    ],
+    'b': [
+        "Ouch! That drained my hydraulic fluid!",
+        "I'm bleeding company assets here!",
+        "You can't squeeze blood from a battered Cog!",
+    ],
+    'dt': [
+        "Stop! Cease! Desist! Halt! Oof! Ouch!",
+        "I'm suing you twice for that one hit!",
+        "Contradictory velocity! That's illegal and unlawful!",
+    ],
+    'ac': [
+        "I chase ambulances, I don't ride in them!",
+        "Whiplash! That's a seven-figure settlement!",
+        "My neck! My back! My legal fees!",
+    ],
+    'bs': [
+        "Hey! You're supposed to hit me from behind!",
+        "Frontal collisions are against my code of betrayal!",
+        "I'll stab you in the back for that frontal assault!",
+    ],
+    'sd': [
+        "Let me spin this: you are under arrest!",
+        "You just spun my gyroscope out of alignment!",
+        "The PR firm is going to have a field day with this!",
+    ],
+    'le': [
+        "Reckless flight without air traffic clearance!",
+        "I'm swooping in with a federal restraining order!",
+        "Objection! Direct physical evidence of assault!",
+    ],
+    'bw': [
+        "You knocked my wig askew! Order in the street!",
+        "Contempt of court! Summary judgment incoming!",
+        "Gavel down on your reckless speeding!",
+    ],
+
+    # Cashbots
+    'sc': [
+        "Hey, I'm already short! Don't compress me!",
+        "That hit cost more than my net worth!",
+        "I'm short on patience and high on whiplash!",
+    ],
+    'pp': [
+        "You pinched my bumper! That'll cost 50 cents!",
+        "Every dent takes a penny off my valuation!",
+        "I'm pinching every cent out of your wallet for this!",
+    ],
+    'tw': [
+        "I'm not spending a single bean on collision repair!",
+        "Wadded up like a crumpled memo!",
+        "Tightly packed and painfully impacted!",
+    ],
+    'bc': [
+        "That impact subtracted 10 percent of my beans!",
+        "The numbers don't add up to a safe velocity!",
+        "I'm counting a total loss on my liability ledger!",
+    ],
+    'nc': [
+        "You crunched my numbers... and my chassis!",
+        "Divided by zero! Impact error!",
+        "Calculating repair costs: exponentially high!",
+    ],
+    'mb': [
+        "Watch the bags! That's precious capital inside!",
+        "Money talks, and right now it's screaming in pain!",
+        "My insurance deductible is higher than your net worth!",
+    ],
+    'ls': [
+        "You took a loan on bad karma and interest is due!",
+        "Feeding frenzy interrupted by a runaway Toon!",
+        "I'll bite a chunk out of your speed limit!",
+    ],
+    'rb': [
+        "Baron down! Monopoly antitrust collision!",
+        "Highway robbery! You stole my right of way!",
+        "I own this street! Pay the toll or suffer!",
+    ],
+
+    # Sellbots
+    'cc': [
+        "Brrr! That collision gave me the cold shoulder!",
+        "Calling to report an illegal hit-and-run!",
+        "My introductory offer didn't include a crash test!",
+    ],
+    'tm': [
+        "Please hold while I recover from whiplash!",
+        "I'm placing your speed on our do-not-call registry!",
+        "Operator, I've been disconnected by blunt force!",
+    ],
+    'nd': [
+        "Wait till Mr. Hollywood hears about this assault!",
+        "I know the Chief Justice! You're going away for life!",
+        "Do you know who you just collided with?!",
+    ],
+    'gh': [
+        "I was reaching for a handshake, not a linebacker tackle!",
+        "Glad to meet you... not glad to be rammed!",
+        "Let's shake on a non-aggression pact instead!",
+    ],
+    'ms': [
+        "I do the shaking around here, Toon!",
+        "Moved to tears, shaken to the core!",
+        "Fault line collision! 8.0 on the Richter scale!",
+    ],
+    'tf': [
+        "Both of my faces felt that impact!",
+        "Face to face, bumper to bumper!",
+        "You bruised my smiling face AND my angry face!",
+    ],
+    'm': [
+        "That's not what I meant by 'close proximity networking'!",
+        "Mingling with maximum kinetic energy?!",
+        "Personal boundaries have been aggressively breached!",
+    ],
+    'mh': [
+        "Watch the face! That's my box-office money maker!",
+        "Cut! Cut! That stunt was not in the script!",
+        "My stunt double was supposed to take that hit!",
+    ],
+
+    # Fallback
+    None: [
+        "Watch where you're going, Toon!",
+        "I'm suing you for reckless endangerment!",
+        "That is a direct violation of OSHA regulations!",
+        "Halt! You don't have clearance to move at that speed!",
+        "A collision? I demand to see your insurance!",
+        "Direct impact detected! Initiating emergency audit!",
+        "Oof! That's coming out of your quarterly budget!",
+        "Reckless driving in a corporate pedestrian zone?!",
+        "My chassis wasn't built for vehicular combat!",
+        "I'll see you in small claims court for that!",
+        "Disorderly conduct! Prepare for immediate downsizing!",
+        "Hey! That violates our personal boundary agreement!",
+    ],
+}
 SuitAttackNames = {'Audit': 'Audit!',
  'Bite': 'Bite!',
  'BounceCheck': 'Bounce Check!',
