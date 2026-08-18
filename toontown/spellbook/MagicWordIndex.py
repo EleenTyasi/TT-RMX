@@ -323,7 +323,24 @@ class MaxToon(MagicWord):
 
         toon.b_setGolfHistory([600] * (GolfGlobals.MaxHistoryIndex * 2))
 
-        return "Maxed out {}'s stats.".format(toon.getName())
+        from toontown.toon.TrinketsConfig import ALL_TRINKET_IDS
+        if hasattr(toon, 'b_setUnlockedTrinkets'):
+            toon.b_setUnlockedTrinkets(list(ALL_TRINKET_IDS))
+
+        return "Maxed out {}'s stats and unlocked all trinkets.".format(toon.getName())
+
+
+class UnlockTrinkets(MagicWord):
+    aliases = ["trinkets", "maxtrinkets", "unlocktrinkets"]
+    desc = "Unlocks all available trinkets for the target."
+    execLocation = MagicWordConfig.EXEC_LOC_SERVER
+
+    def handleWord(self, invoker, avId, toon, *args):
+        from toontown.toon.TrinketsConfig import ALL_TRINKET_IDS
+        if hasattr(toon, 'b_setUnlockedTrinkets'):
+            toon.b_setUnlockedTrinkets(list(ALL_TRINKET_IDS))
+            return f"Unlocked all {len(ALL_TRINKET_IDS)} trinkets for {toon.getName()}."
+        return "Target cannot equip trinkets."
 
 
 class UnlockEmotes(MagicWord):
