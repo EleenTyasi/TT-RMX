@@ -56,6 +56,11 @@ HEALER_MOVIE_FULL_HP = 4
 HEALER_MOVIE_NO_MONEY = 5
 HEALER_MOVIE_CANCEL = 6
 HEALER_MOVIE_TIMEOUT = 7
+BANKER_MOVIE_CLEAR = 0
+BANKER_MOVIE_GUI = 1
+BANKER_MOVIE_TRANSDONE = 2
+BANKER_MOVIE_CANCEL = 3
+BANKER_MOVIE_TIMEOUT = 4
 NPC_REGULAR = 0
 NPC_CLERK = 1
 NPC_TAILOR = 2
@@ -69,6 +74,7 @@ NPC_SPECIALQUESTGIVER = 9
 NPC_FLIPPYTOONHALL = 10
 NPC_SCIENTIST = 11
 NPC_HEALER = 12
+NPC_BANKER = 13
 CLERK_COUNTDOWN_TIME = 120
 TAILOR_COUNTDOWN_TIME = 300
 RTDNAFile = '/RTDNAFile.txt'
@@ -93,6 +99,7 @@ def createNPC(air, npcId, desc, zoneId, posIndex = 0, questCallback = None):
     from . import DistributedNPCFlippyInToonHallAI
     from . import DistributedNPCScientistAI
     from . import DistributedNPCHealerAI
+    from . import DistributedNPCBankerAI
     canonicalZoneId, name, dnaType, gender, protected, type = desc
     if type == NPC_REGULAR:
         npc = DistributedNPCToonAI.DistributedNPCToonAI(air, npcId, questCallback=questCallback)
@@ -120,6 +127,8 @@ def createNPC(air, npcId, desc, zoneId, posIndex = 0, questCallback = None):
         npc = DistributedNPCScientistAI.DistributedNPCScientistAI(air, npcId)
     elif type == NPC_HEALER:
         npc = DistributedNPCHealerAI.DistributedNPCHealerAI(air, npcId)
+    elif type == NPC_BANKER:
+        npc = DistributedNPCBankerAI.DistributedNPCBankerAI(air, npcId)
     else:
         print('createNPC() error!!!')
     npc.setName(name)
@@ -188,12 +197,36 @@ def createHealerHank(air, zoneId, pos, h):
     npc.setDNAString(dna.makeNetString())
     npc.setHp(15)
     npc.setMaxHp(15)
-    # Use posIndex 255 so the client won't find a matching npc_origin_255 and won't override our position
+    # posIndex 255 prevents client from finding npc_origin_255 and overriding position
     npc.setPositionIndex(255)
-    npc.setPosHpr(pos[0], pos[1], pos[2], h, 0, 0)
     npc.generateWithRequired(zoneId)
+    # Broadcast world-space position to all clients after generating
+    npc.setSpawnPos(pos[0], pos[1], pos[2], h)
+    npc.sendUpdate('setSpawnPos', [pos[0], pos[1], pos[2], h])
     npc.d_setAnimState('neutral', 1.0)
     return npc
+
+
+def createBanker(air, zoneId, pos, h, name=None, npcId=20060, dnaProperties=None):
+    from . import DistributedNPCBankerAI
+    npc = DistributedNPCBankerAI.DistributedNPCBankerAI(air, npcId)
+    npc.setName(name if name else TTLocalizer.BankerBobName)
+    dna = ToonDNA.ToonDNA()
+    if dnaProperties:
+        dna.newToonFromProperties(*dnaProperties)
+    else:
+        # Default smart banker look: Green pig toon, collared shirt
+        dna.newToonFromProperties('pll', 'ms', 'm', 'm', 14, 0, 14, 14, 0, 4, 0, 4, 0, 27)
+    npc.setDNAString(dna.makeNetString())
+    npc.setHp(15)
+    npc.setMaxHp(15)
+    npc.setPositionIndex(255)
+    npc.generateWithRequired(zoneId)
+    npc.setSpawnPos(pos[0], pos[1], pos[2], h)
+    npc.sendUpdate('setSpawnPos', [pos[0], pos[1], pos[2], h])
+    npc.d_setAnimState('neutral', 1.0)
+    return npc
+
 
 
 def createLocalNPC(npcId):
@@ -320,7 +353,7 @@ NPCToonDict = {20000: (-1,
          18),
         'm',
         1,
-        NPC_REGULAR),
+        NPC_BANKER),
  2003: (2516,
         lnames[2003],
         ('cll',

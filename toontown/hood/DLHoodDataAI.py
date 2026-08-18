@@ -29,5 +29,8 @@ class DLHoodDataAI(HoodDataAI.HoodDataAI):
         # self.classicChar.start()
         # self.addDistObj(self.classicChar)
         from toontown.toon import NPCToons
+        from toontown.toonbase import TTLocalizer
         self.healerHank = NPCToons.createHealerHank(self.air, self.zoneId, (-32.7906, -98.2514, 0.0250001), 0.0)
         self.addDistObj(self.healerHank)
+        self.banker = NPCToons.createBanker(self.air, self.zoneId, (-28.0, -2.0, -14.0), -117.0, name=TTLocalizer.BankerBrunoName, npcId=20065)
+        self.addDistObj(self.banker)

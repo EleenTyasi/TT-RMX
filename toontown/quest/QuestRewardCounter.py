@@ -17,7 +17,8 @@ class QuestRewardCounter:
     def reset(self):
         self.maxHp = 15
         self.maxCarry = 20
-        self.maxMoney = 40
+        self.maxMoney = 100
+        self.maxBankMoney = 999999
         self.questCarryLimit = 1
         self.teleportAccess = []
         self.trackAccess = [0,
@@ -132,6 +133,10 @@ class QuestRewardCounter:
         if self.maxMoney != av.maxMoney:
             self.notify.info('Changed avatar %d to have maxMoney %d instead of %d' % (av.doId, self.maxMoney, av.maxMoney))
             av.b_setMaxMoney(self.maxMoney)
+            anyChanged = 1
+        if hasattr(self, 'maxBankMoney') and self.maxBankMoney != av.maxBankMoney:
+            self.notify.info('Changed avatar %d to have maxBankMoney %d instead of %d' % (av.doId, self.maxBankMoney, av.maxBankMoney))
+            av.b_setMaxBankMoney(self.maxBankMoney)
             anyChanged = 1
         if self.questCarryLimit != av.questCarryLimit:
             self.notify.info('Changed avatar %d to have questCarryLimit %d instead of %d' % (av.doId, self.questCarryLimit, av.questCarryLimit))

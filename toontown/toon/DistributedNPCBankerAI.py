@@ -1,10 +1,10 @@
-from direct.task import Task
+﻿from direct.task import Task
 from direct.distributed import ClockDelta
 from toontown.toonbase import TTLocalizer, ToontownGlobals
 from toontown.toon import NPCToons
 from .DistributedNPCToonBaseAI import DistributedNPCToonBaseAI
 
-class DistributedNPCHealerAI(DistributedNPCToonBaseAI):
+class DistributedNPCBankerAI(DistributedNPCToonBaseAI):
 
     def __init__(self, air, npcId):
         DistributedNPCToonBaseAI.__init__(self, air, npcId)
@@ -37,22 +37,10 @@ class DistributedNPCHealerAI(DistributedNPCToonBaseAI):
         if self.isBusy():
             self.freeAvatar(avId)
             return
-        av = self.air.doId2do[avId]
         self.busy = avId
         self.acceptOnce(self.air.getAvatarExitEvent(avId), self.__handleUnexpectedExit, extraArgs=[avId])
-
-        if av.hp <= 0:
-            self.d_setMovie(avId, NPCToons.HEALER_MOVIE_SAD)
-            self.sendClearMovie(None)
-        elif av.hp >= av.maxHp:
-            self.d_setMovie(avId, NPCToons.HEALER_MOVIE_FULL_HP)
-            self.sendClearMovie(None)
-        elif av.getMoney() < 20:
-            self.d_setMovie(avId, NPCToons.HEALER_MOVIE_NO_MONEY)
-            self.sendClearMovie(None)
-        else:
-            self.d_setMovie(avId, NPCToons.HEALER_MOVIE_PROMPT)
-            taskMgr.doMethodLater(30.0, self.sendTimeoutMovie, self.uniqueName('clearMovie'))
+        self.d_setMovie(avId, NPCToons.BANKER_MOVIE_GUI)
+        taskMgr.doMethodLater(60.0, self.sendTimeoutMovie, self.uniqueName('clearMovie'))
         DistributedNPCToonBaseAI.avatarEnter(self)
 
     def d_setMovie(self, avId, flag):
@@ -62,7 +50,7 @@ class DistributedNPCHealerAI(DistributedNPCToonBaseAI):
          ClockDelta.globalClockDelta.getRealNetworkTime()])
 
     def sendTimeoutMovie(self, task):
-        self.d_setMovie(self.busy, NPCToons.HEALER_MOVIE_TIMEOUT)
+        self.d_setMovie(self.busy, NPCToons.BANKER_MOVIE_TIMEOUT)
         self.sendClearMovie(None)
         return Task.done
 
@@ -70,30 +58,42 @@ class DistributedNPCHealerAI(DistributedNPCToonBaseAI):
         self.ignore(self.air.getAvatarExitEvent(self.busy))
         taskMgr.remove(self.uniqueName('clearMovie'))
         self.busy = 0
-        self.d_setMovie(0, NPCToons.HEALER_MOVIE_CLEAR)
+        self.d_setMovie(0, NPCToons.BANKER_MOVIE_CLEAR)
         return Task.done
 
-    def chooseHeal(self, wantsHeal):
+    def transferMoney(self, amount):
         avId = self.air.getAvatarIdFromSender()
         if self.busy != avId:
-            self.air.writeServerEvent('suspicious', avId, 'DistributedNPCHealerAI.chooseHeal busy with %s' % self.busy)
-            self.notify.warning('somebody called chooseHeal that I was not busy with! avId: %s' % avId)
+            self.air.writeServerEvent('suspicious', avId, 'DistributedNPCBankerAI.transferMoney busy with %s' % self.busy)
+            self.notify.warning('somebody called transferMoney that I was not busy with! avId: %s' % avId)
             return
         av = simbase.air.doId2do.get(avId)
         if av:
-            if wantsHeal:
-                if av.hp > 0 and av.hp < av.maxHp and av.getMoney() >= 20:
-                    av.takeMoney(20)
-                    av.b_setHp(av.maxHp)
-                    self.d_setMovie(avId, NPCToons.HEALER_MOVIE_HEALED)
-                elif av.hp >= av.maxHp:
-                    self.d_setMovie(avId, NPCToons.HEALER_MOVIE_FULL_HP)
-                elif av.getMoney() < 20:
-                    self.d_setMovie(avId, NPCToons.HEALER_MOVIE_NO_MONEY)
+            bankMoney = av.getBankMoney()
+            money = av.getMoney()
+            maxMoney = av.getMaxMoney()
+            maxBankMoney = av.getMaxBankMoney()
+
+            if amount < 0:
+                # Withdraw from bank into pocket
+                withdrawAmount = -amount
+                if withdrawAmount <= bankMoney and (money + withdrawAmount) <= maxMoney:
+                    av.b_setMoney(money + withdrawAmount)
+                    av.b_setBankMoney(bankMoney - withdrawAmount)
+                    self.d_setMovie(avId, NPCToons.BANKER_MOVIE_TRANSDONE)
                 else:
-                    self.d_setMovie(avId, NPCToons.HEALER_MOVIE_SAD)
+                    self.d_setMovie(avId, NPCToons.BANKER_MOVIE_CANCEL)
+            elif amount > 0:
+                # Deposit from pocket into bank
+                depositAmount = amount
+                if depositAmount <= money and (bankMoney + depositAmount) <= maxBankMoney:
+                    av.b_setMoney(money - depositAmount)
+                    av.b_setBankMoney(bankMoney + depositAmount)
+                    self.d_setMovie(avId, NPCToons.BANKER_MOVIE_TRANSDONE)
+                else:
+                    self.d_setMovie(avId, NPCToons.BANKER_MOVIE_CANCEL)
             else:
-                self.d_setMovie(avId, NPCToons.HEALER_MOVIE_CANCEL)
+                self.d_setMovie(avId, NPCToons.BANKER_MOVIE_CANCEL)
         self.sendClearMovie(None)
 
     def __handleUnexpectedExit(self, avId):

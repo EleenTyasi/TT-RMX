@@ -66,12 +66,12 @@ woodColors = [(0.933,
   0.4118,
   0.4118,
   1.0)]
-BankToMoney = {1300: 12000,
- 1310: 12000,
- 1320: 12000,
- 1330: 12000,
- 1340: 12000,
- 1350: 12000}
+BankToMoney = {1300: 999999,
+ 1310: 999999,
+ 1320: 999999,
+ 1330: 999999,
+ 1340: 999999,
+ 1350: 999999}
 MoneyToBank = {}
 for bankId, maxMoney in list(BankToMoney.items()):
     MoneyToBank[maxMoney] = bankId

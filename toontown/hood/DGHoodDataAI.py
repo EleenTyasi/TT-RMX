@@ -35,6 +35,9 @@ class DGHoodDataAI(HoodDataAI.HoodDataAI):
         flower.start()
         self.addDistObj(flower)
         from toontown.toon import NPCToons
+        from toontown.toonbase import TTLocalizer
         self.healerHank = NPCToons.createHealerHank(self.air, self.zoneId, (-26.0032, 211.707, 10.0274), 170.0)
         self.addDistObj(self.healerHank)
+        self.banker = NPCToons.createBanker(self.air, self.zoneId, (-25.0, 52.0, 0.0), 12.0, name=TTLocalizer.BankerBlossomName, npcId=20062)
+        self.addDistObj(self.banker)
         self.createButterflies(ButterflyGlobals.DG)

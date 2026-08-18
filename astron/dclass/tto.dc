@@ -976,10 +976,10 @@ typedef int16 pair16[2];
 dclass DistributedToon : DistributedPlayer {
   setDNAString(blob) required broadcast ownrecv db;
   setGM(uint8 = 0) required broadcast ownrecv db;
-  setMaxBankMoney(int16 = 12000) required broadcast ownrecv db;
-  setBankMoney(int16 = 0) required broadcast ownrecv db;
-  setMaxMoney(int16 = 40) required broadcast ownrecv db;
-  setMoney(int16 = 0) required broadcast ownrecv db;
+  setMaxBankMoney(int32 = 999999) required broadcast ownrecv db;
+  setBankMoney(int32 = 0) required broadcast ownrecv db;
+  setMaxMoney(int32 = 100) required broadcast ownrecv db;
+  setMoney(int32 = 0) required broadcast ownrecv db;
   setMaxHp(int16 = 15) required broadcast ownrecv db;
   setHp(int16 = 15) required broadcast ownrecv db;
   setLaffCap(uint16 = 0) required broadcast ownrecv db;
@@ -2451,6 +2451,13 @@ dclass DistributedNPCKartClerk : DistributedNPCToonBase {
 dclass DistributedNPCHealer : DistributedNPCToonBase {
   setMovie(uint8, uint32, uint32, int16) broadcast ram;
   chooseHeal(uint8) airecv clsend;
+  setSpawnPos(float64, float64, float64, float64) broadcast ram;
+};
+
+dclass DistributedNPCBanker : DistributedNPCToonBase {
+  setMovie(uint8, uint32, uint32, int16) broadcast ram;
+  transferMoney(int32) airecv clsend;
+  setSpawnPos(float64, float64, float64, float64) broadcast ram;
 };
 
 dclass DistributedKnockKnockDoor : DistributedAnimatedProp {

@@ -13,9 +13,29 @@ class DistributedNPCHealer(DistributedNPCToonBase):
         DistributedNPCToonBase.__init__(self, cr)
         self.isLocalToon = 0
         self.dialog = None
+        self.spawnX = 0.0
+        self.spawnY = 0.0
+        self.spawnZ = 0.0
+        self.spawnH = 0.0
+
+    def setSpawnPos(self, x, y, z, h):
+        self.spawnX = x
+        self.spawnY = y
+        self.spawnZ = z
+        self.spawnH = h
+        # If we're already generated, apply the position now
+        # (setSpawnPos arrives after announceGenerate for existing clients)
+        if self.isGenerated():
+            self.reparentTo(render)
+            self.setPos(x, y, z)
+            self.setH(h)
 
     def initToonState(self):
         self.setAnimState('neutral', 0.9, None, None)
+        # Apply world-space position directly, bypassing npc_origin scene nodes
+        self.reparentTo(render)
+        self.setPos(self.spawnX, self.spawnY, self.spawnZ)
+        self.setH(self.spawnH)
 
     def disable(self):
         self.ignoreAll()

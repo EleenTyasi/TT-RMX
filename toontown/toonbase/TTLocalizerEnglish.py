@@ -10000,3 +10000,15 @@ HealerHankFullHp = "You're already at full Laff! Keep up the good work!"
 HealerHankNoMoney = 'You need 20 Jellybeans to recover to full Laff.'
 HealerHankHealed = 'All patched up! Stay safe out there!'
 HealerHankCancel = 'Come back if you need a quick patch up!'
+
+# Banker NPCs
+BankerGreeting = 'Welcome to the Bank of Toontown! How may I assist your Jellybean vault today?'
+BankerTransDone = 'Thank you for banking with us! Your Jellybeans are safe and sound.'
+BankerCancel = 'Have a Toon-tastic day! Visit anytime.'
+BankerBobName = 'Banker Bob'
+BankerBarnabyName = 'Banker Barnaby'
+BankerBlossomName = 'Banker Blossom'
+BankerBarryName = 'Banker Barry'
+BankerBorisName = 'Banker Boris'
+BankerBrunoName = 'Banker Bruno'
+
