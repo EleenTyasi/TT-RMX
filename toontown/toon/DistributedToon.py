@@ -195,7 +195,6 @@ class DistributedToon(DistributedPlayer.DistributedPlayer, Toon.Toon, Distribute
         self.trinketSlots = [0, 0]
         self.unlockedTrinkets = []
         self.cogKillsCount = 0
-        self.accept('f10', self.openTeleportGUI)
         return
 
     def disable(self):

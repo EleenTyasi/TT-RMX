@@ -349,7 +349,7 @@ class MaxToon(MagicWord):
 
 
 class UnlockTrinkets(MagicWord):
-    aliases = ["trinkets", "maxtrinkets", "unlocktrinkets"]
+    aliases = ["alltrinkets", "alltrinket", "trinkets", "maxtrinkets", "unlocktrinkets"]
     desc = "Unlocks all available trinkets for the target."
     execLocation = MagicWordConfig.EXEC_LOC_SERVER
 

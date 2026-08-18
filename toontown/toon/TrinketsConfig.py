@@ -34,6 +34,7 @@ TRINKET_ORGANIC_ALL = 21
 TRINKET_LURED_DROP = 22
 TRINKET_LOUDER_SOUND = 23
 TRINKET_GENTLE_WATER = 24
+TRINKET_SPEEDING_TOON = 25
 
 TRINKET_CATALOG = {
     TRINKET_ORGANIC_THROW: {
@@ -162,6 +163,11 @@ TRINKET_CATALOG = {
         'id': TRINKET_GENTLE_WATER,
         'name': 'Gentle Water',
         'desc': 'Squirt has a 30% chance to not unlure Cogs on hit.',
+    },
+    TRINKET_SPEEDING_TOON: {
+        'id': TRINKET_SPEEDING_TOON,
+        'name': 'Speeding Toon',
+        'desc': 'Double sprint speed, but half Max Stamina. Deals & takes 4x Ram Damage when sprinting into Cogs.',
     },
 }
 

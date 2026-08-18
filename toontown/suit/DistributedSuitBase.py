@@ -401,9 +401,14 @@ class DistributedSuitBase(DistributedAvatar.DistributedAvatar, Suit.Suit, SuitBa
 
     def applySprintImpact(self, toon):
         try:
-            # Cog takes 10% max HP damage (min 1 HP remaining)
+            from toontown.toon.TrinketsConfig import TRINKET_SPEEDING_TOON
+            has_speeding_toon = hasattr(toon, 'hasTrinketEquipped') and toon.hasTrinketEquipped(TRINKET_SPEEDING_TOON)
+            cog_pct = 0.40 if has_speeding_toon else 0.10
+            toon_pct = 0.20 if has_speeding_toon else 0.05
+
+            # Cog takes damage (min 1 HP remaining)
             cog_max_hp = getattr(self, 'maxHP', 50)
-            cog_damage = max(1, int(cog_max_hp * 0.10))
+            cog_damage = max(1, int(cog_max_hp * cog_pct))
             cog_curr_hp = getattr(self, 'currHP', cog_max_hp)
             new_cog_hp = max(1, cog_curr_hp - cog_damage)
             self.currHP = new_cog_hp
@@ -423,18 +428,42 @@ class DistributedSuitBase(DistributedAvatar.DistributedAvatar, Suit.Suit, SuitBa
             if hasattr(self, 'setChatAbsolute'):
                 self.setChatAbsolute(ramLine, CFSpeech | CFTimeout)
 
-            # Toon takes 5% max HP damage (min 1 HP remaining)
+            # Toon takes damage (can be lethal)
             toon_max_hp = getattr(toon, 'maxHp', 100)
-            toon_damage = max(1, int(toon_max_hp * 0.05))
+            toon_damage = max(1, int(toon_max_hp * toon_pct))
             toon_curr_hp = getattr(toon, 'hp', toon_max_hp)
-            new_toon_hp = max(1, toon_curr_hp - toon_damage)
+            new_toon_hp = max(0, toon_curr_hp - toon_damage)
             toon.hp = new_toon_hp
             if hasattr(toon, 'laffMeter') and toon.laffMeter:
                 toon.laffMeter.adjustFace(toon.hp, toon.maxHp)
             if hasattr(toon, 'showHpText'):
                 toon.showHpText(-toon_damage)
+
+            # Check if ram was lethal to Toon
+            if new_toon_hp <= 0:
+                toon.ramDied = True
+                if hasattr(base.cr, 'playGame') and base.cr.playGame.getPlace():
+                    from toontown.hood import ZoneUtil
+                    zone_id = base.localAvatar.getZoneId() if hasattr(base.localAvatar, 'getZoneId') else 2000
+                    hood_id = ZoneUtil.getCanonicalHoodId(zone_id)
+                    if hood_id in base.localAvatar.hoodsVisited:
+                        target_sz = ZoneUtil.getSafeZoneId(zone_id)
+                    else:
+                        target_sz = ZoneUtil.getSafeZoneId(base.localAvatar.defaultZone)
+                    base.cr.playGame.getPlace().fsm.request('teleportOut', [{
+                        'loader': ZoneUtil.getLoaderName(target_sz),
+                        'where': ZoneUtil.getWhereName(target_sz, 1),
+                        'how': 'teleportIn',
+                        'hoodId': target_sz,
+                        'zoneId': target_sz,
+                        'shardId': None,
+                        'avId': -1,
+                        'battle': 0,
+                    }])
+                return True
         except Exception as e:
             self.notify.warning('applySprintImpact failed: %s' % e)
+        return False
 
     def setSkelecog(self, flag):
         SuitBase.SuitBase.setSkelecog(self, flag)

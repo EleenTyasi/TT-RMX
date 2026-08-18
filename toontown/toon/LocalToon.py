@@ -179,6 +179,7 @@ class LocalToon(DistributedToon.DistributedToon, LocalAvatar.LocalAvatar):
             self.questMap = None
             self.prevToonIdx = 0
             self.teleporting = False
+            self.accept('f10', self.openTeleportGUI)
 
     def wantLegacyLifter(self):
         return True
@@ -252,6 +253,7 @@ class LocalToon(DistributedToon.DistributedToon, LocalAvatar.LocalAvatar):
         from otp.friends import FriendInfo
 
     def disable(self):
+        self.ignore('f10')
         self.stopStaminaTask()
         if hasattr(self, 'staminaBar') and self.staminaBar:
             self.staminaBar.destroy()
@@ -446,13 +448,19 @@ class LocalToon(DistributedToon.DistributedToon, LocalAvatar.LocalAvatar):
     def __staminaTask(self, task):
         from toontown.toon import ToonLevelGlobals
         lvl = getattr(self, 'toonLevel', 1) if hasattr(self, 'toonLevel') else 1
-        self.maxStamina = float(ToonLevelGlobals.getMaxStaminaForLevel(lvl))
+        base_max_stam = float(ToonLevelGlobals.getMaxStaminaForLevel(lvl))
+        from toontown.toon.TrinketsConfig import TRINKET_SPEEDING_TOON
+        has_speeding_toon = hasattr(self, 'hasTrinketEquipped') and self.hasTrinketEquipped(TRINKET_SPEEDING_TOON)
+        if has_speeding_toon:
+            self.maxStamina = base_max_stam * 0.5
+        else:
+            self.maxStamina = base_max_stam
 
         zoneId = self.getZoneId() if hasattr(self, 'getZoneId') else 0
         cog_hq_zones = (10000, 11000, 12000, 13000, 10100, 10200, 11100, 11200, 12100, 12200, 13100, 13200)
         is_safe_zone = False
         if zoneId and zoneId not in cog_hq_zones:
-            if (zoneId % 1000 == 0) or (zoneId % 100 == 0 and zoneId < 10000 and zoneId not in ToontownGlobals.StreetBranchZones):
+            if (zoneId % 100 == 0) or (zoneId % 1000 == 0 and zoneId < 10000 and zoneId not in ToontownGlobals.StreetBranchZones):
                 is_safe_zone = True
 
         if getattr(self, 'tireless', False):
@@ -470,16 +478,17 @@ class LocalToon(DistributedToon.DistributedToon, LocalAvatar.LocalAvatar):
                     is_moving = True
 
         dt = globalClock.getDt()
+        sprint_speed = 3.0 if has_speeding_toon else 1.5
 
         if self.shiftPressed and is_moving and not self.staminaExhausted:
             if is_safe_zone:
                 self.isSprinting = True
                 self.stamina = self.maxStamina
-                speed_mult = 1.5
+                speed_mult = sprint_speed
             else:
                 if self.stamina > 0.0:
                     self.isSprinting = True
-                    speed_mult = 1.5
+                    speed_mult = sprint_speed
                     self.stamina = max(0.0, self.stamina - 20.0 * dt)
                     if self.stamina <= 0.0:
                         self.staminaExhausted = True
@@ -494,7 +503,7 @@ class LocalToon(DistributedToon.DistributedToon, LocalAvatar.LocalAvatar):
             speed_mult = 1.0
             if self.stamina < self.maxStamina:
                 self.stamina = min(self.maxStamina, self.stamina + 25.0 * dt)
-                if self.stamina >= 20.0:
+                if self.stamina >= (self.maxStamina * 0.2):
                     self.staminaExhausted = False
 
         if hasattr(self, 'controlManager') and self.controlManager.isEnabled:

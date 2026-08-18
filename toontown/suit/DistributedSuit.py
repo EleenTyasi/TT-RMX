@@ -412,7 +412,8 @@ class DistributedSuit(DistributedSuitBase.DistributedSuitBase, DelayDeletable):
         toonId = base.localAvatar.getDoId()
         self.notify.debug('Distributed suit: requesting a Battle with ' + 'toon: %d' % toonId)
         if getattr(base.localAvatar, 'isSprinting', False):
-            self.applySprintImpact(base.localAvatar)
+            if self.applySprintImpact(base.localAvatar):
+                return
         self.d_requestBattle(self.getPos(), self.getHpr())
         self.setState('WaitForBattle')
 
