@@ -134,3 +134,13 @@ GAG_TARGET_MAP = (0, 3, 0, 2, 3, 3, 3)
 
 # Toon Up Settings (Solo Friendly!)
 TOONUP_CAN_TARGET_SELF = True
+
+# JSON configuration override / default generator
+try:
+    from toontown.battle import BattleConfigLoader
+    from toontown.battle.SuitsConfig import SUIT_ATTRIBUTES
+    GAG_DAMAGE, GAG_ACCURACY, GAG_LEVEL_XP = BattleConfigLoader.load_or_create_config(
+        SUIT_ATTRIBUTES, GAG_DAMAGE, GAG_ACCURACY, GAG_LEVEL_XP, MAX_SKILL
+    )
+except Exception as e:
+    print('[BATTLE-CONFIG] Error initializing BattleConfigLoader: %s' % e)

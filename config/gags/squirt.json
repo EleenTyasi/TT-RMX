@@ -1,0 +1,76 @@
+{
+  "track": "squirt",
+  "display_name": "Squirt",
+  "gags": [
+    {
+      "level": 1,
+      "name": "Squirting Flower",
+      "damage_min": 3,
+      "damage_max": 6,
+      "accuracy": 95,
+      "target": "single",
+      "xp_unlock": 0,
+      "status_effect": null
+    },
+    {
+      "level": 2,
+      "name": "Glass of Water",
+      "damage_min": 8,
+      "damage_max": 10,
+      "accuracy": 95,
+      "target": "single",
+      "xp_unlock": 20,
+      "status_effect": null
+    },
+    {
+      "level": 3,
+      "name": "Squirt Gun",
+      "damage_min": 14,
+      "damage_max": 16,
+      "accuracy": 95,
+      "target": "single",
+      "xp_unlock": 100,
+      "status_effect": null
+    },
+    {
+      "level": 4,
+      "name": "Seltzer Bottle",
+      "damage_min": 16,
+      "damage_max": 25,
+      "accuracy": 95,
+      "target": "single",
+      "xp_unlock": 200,
+      "status_effect": null
+    },
+    {
+      "level": 5,
+      "name": "Fire Hose",
+      "damage_min": 25,
+      "damage_max": 40,
+      "accuracy": 95,
+      "target": "single",
+      "xp_unlock": 600,
+      "status_effect": null
+    },
+    {
+      "level": 6,
+      "name": "Storm Cloud",
+      "damage_min": 45,
+      "damage_max": 85,
+      "accuracy": 95,
+      "target": "single",
+      "xp_unlock": 1200,
+      "status_effect": null
+    },
+    {
+      "level": 7,
+      "name": "Geyser",
+      "damage_min": 90,
+      "damage_max": 115,
+      "accuracy": 95,
+      "target": "group",
+      "xp_unlock": 2400,
+      "status_effect": null
+    }
+  ]
+}

@@ -1,0 +1,76 @@
+{
+  "track": "heal",
+  "display_name": "Heal (Toon-Up)",
+  "gags": [
+    {
+      "level": 1,
+      "name": "Feather",
+      "damage_min": 8,
+      "damage_max": 10,
+      "accuracy": 70,
+      "target": "single",
+      "xp_unlock": 0,
+      "status_effect": null
+    },
+    {
+      "level": 2,
+      "name": "Megaphone",
+      "damage_min": 15,
+      "damage_max": 18,
+      "accuracy": 70,
+      "target": "group",
+      "xp_unlock": 10,
+      "status_effect": null
+    },
+    {
+      "level": 3,
+      "name": "Lipstick",
+      "damage_min": 25,
+      "damage_max": 30,
+      "accuracy": 70,
+      "target": "single",
+      "xp_unlock": 100,
+      "status_effect": null
+    },
+    {
+      "level": 4,
+      "name": "Bamboo Cane",
+      "damage_min": 40,
+      "damage_max": 45,
+      "accuracy": 70,
+      "target": "group",
+      "xp_unlock": 200,
+      "status_effect": null
+    },
+    {
+      "level": 5,
+      "name": "Pixie Dust",
+      "damage_min": 30,
+      "damage_max": 80,
+      "accuracy": 70,
+      "target": "single",
+      "xp_unlock": 600,
+      "status_effect": null
+    },
+    {
+      "level": 6,
+      "name": "Juggling Balls",
+      "damage_min": 80,
+      "damage_max": 95,
+      "accuracy": 70,
+      "target": "group",
+      "xp_unlock": 1200,
+      "status_effect": null
+    },
+    {
+      "level": 7,
+      "name": "High Dive",
+      "damage_min": 120,
+      "damage_max": 137,
+      "accuracy": 100,
+      "target": "group",
+      "xp_unlock": 2400,
+      "status_effect": null
+    }
+  ]
+}

@@ -1,0 +1,1852 @@
+{
+  "PoundKey": {
+    "name": "PoundKey",
+    "anim": "phone",
+    "target": "single",
+    "damage": [
+      2,
+      2,
+      3,
+      4,
+      6
+    ],
+    "accuracy": [
+      75,
+      75,
+      80,
+      80,
+      90
+    ],
+    "frequency": [
+      30,
+      35,
+      40,
+      45,
+      50
+    ],
+    "status_effect": null
+  },
+  "Shred": {
+    "name": "Shred",
+    "anim": "shredder",
+    "target": "single",
+    "damage": [
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "accuracy": [
+      50,
+      55,
+      60,
+      65,
+      70
+    ],
+    "frequency": [
+      10,
+      15,
+      20,
+      25,
+      30
+    ],
+    "status_effect": null
+  },
+  "ClipOnTie": {
+    "name": "ClipOnTie",
+    "anim": "throw-paper",
+    "target": "single",
+    "damage": [
+      1,
+      1,
+      2,
+      2,
+      3
+    ],
+    "accuracy": [
+      75,
+      80,
+      85,
+      90,
+      95
+    ],
+    "frequency": [
+      60,
+      50,
+      40,
+      30,
+      20
+    ],
+    "status_effect": null
+  },
+  "FountainPen": {
+    "name": "FountainPen",
+    "anim": "pen-squirt",
+    "target": "single",
+    "damage": [
+      2,
+      3,
+      4,
+      6,
+      9
+    ],
+    "accuracy": [
+      75,
+      75,
+      75,
+      75,
+      75
+    ],
+    "frequency": [
+      20,
+      20,
+      20,
+      20,
+      20
+    ],
+    "status_effect": null
+  },
+  "RubOut": {
+    "name": "RubOut",
+    "anim": "hold-eraser",
+    "target": "single",
+    "damage": [
+      4,
+      5,
+      6,
+      8,
+      12
+    ],
+    "accuracy": [
+      75,
+      75,
+      75,
+      75,
+      75
+    ],
+    "frequency": [
+      20,
+      20,
+      20,
+      20,
+      20
+    ],
+    "status_effect": null
+  },
+  "FingerWag": {
+    "name": "FingerWag",
+    "anim": "finger-wag",
+    "target": "single",
+    "damage": [
+      1,
+      2,
+      2,
+      3,
+      4
+    ],
+    "accuracy": [
+      75,
+      75,
+      75,
+      75,
+      75
+    ],
+    "frequency": [
+      35,
+      30,
+      25,
+      20,
+      15
+    ],
+    "status_effect": null
+  },
+  "WriteOff": {
+    "name": "WriteOff",
+    "anim": "hold-pencil",
+    "target": "single",
+    "damage": [
+      4,
+      6,
+      8,
+      10,
+      12
+    ],
+    "accuracy": [
+      75,
+      75,
+      75,
+      75,
+      75
+    ],
+    "frequency": [
+      5,
+      10,
+      15,
+      20,
+      25
+    ],
+    "status_effect": null
+  },
+  "FillWithLead": {
+    "name": "FillWithLead",
+    "anim": "pencil-sharpener",
+    "target": "single",
+    "damage": [
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "accuracy": [
+      75,
+      75,
+      75,
+      75,
+      75
+    ],
+    "frequency": [
+      20,
+      20,
+      20,
+      20,
+      20
+    ],
+    "status_effect": null
+  },
+  "RubberStamp": {
+    "name": "RubberStamp",
+    "anim": "rubber-stamp",
+    "target": "single",
+    "damage": [
+      2,
+      2,
+      3,
+      3,
+      4
+    ],
+    "accuracy": [
+      75,
+      75,
+      75,
+      75,
+      75
+    ],
+    "frequency": [
+      35,
+      35,
+      35,
+      35,
+      35
+    ],
+    "status_effect": null
+  },
+  "RazzleDazzle": {
+    "name": "RazzleDazzle",
+    "anim": "smile",
+    "target": "single",
+    "damage": [
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "accuracy": [
+      50,
+      50,
+      50,
+      50,
+      50
+    ],
+    "frequency": [
+      25,
+      20,
+      15,
+      10,
+      5
+    ],
+    "status_effect": null
+  },
+  "Synergy": {
+    "name": "Synergy",
+    "anim": "magic3",
+    "target": "group",
+    "damage": [
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "accuracy": [
+      50,
+      60,
+      70,
+      80,
+      90
+    ],
+    "frequency": [
+      5,
+      10,
+      15,
+      20,
+      25
+    ],
+    "status_effect": null
+  },
+  "TeeOff": {
+    "name": "TeeOff",
+    "anim": "golf-club-swing",
+    "target": "single",
+    "damage": [
+      3,
+      3,
+      4,
+      4,
+      5
+    ],
+    "accuracy": [
+      50,
+      60,
+      70,
+      80,
+      90
+    ],
+    "frequency": [
+      35,
+      35,
+      35,
+      35,
+      35
+    ],
+    "status_effect": null
+  },
+  "Demotion": {
+    "name": "Demotion",
+    "anim": "magic1",
+    "target": "single",
+    "damage": [
+      6,
+      8,
+      12,
+      15,
+      18
+    ],
+    "accuracy": [
+      50,
+      60,
+      70,
+      80,
+      90
+    ],
+    "frequency": [
+      30,
+      30,
+      30,
+      30,
+      30
+    ],
+    "status_effect": {
+      "effect": "WEAKEN",
+      "rounds": 2,
+      "defense_reduction": 10,
+      "chance": 75
+    }
+  },
+  "BrainStorm": {
+    "name": "BrainStorm",
+    "anim": "effort",
+    "target": "single",
+    "damage": [
+      4,
+      6,
+      9,
+      12,
+      15
+    ],
+    "accuracy": [
+      5,
+      5,
+      5,
+      5,
+      5
+    ],
+    "frequency": [
+      25,
+      25,
+      25,
+      25,
+      25
+    ],
+    "status_effect": null
+  },
+  "BuzzWord": {
+    "name": "BuzzWord",
+    "anim": "speak",
+    "target": "single",
+    "damage": [
+      4,
+      6,
+      9,
+      12,
+      15
+    ],
+    "accuracy": [
+      50,
+      60,
+      70,
+      80,
+      90
+    ],
+    "frequency": [
+      20,
+      20,
+      20,
+      20,
+      20
+    ],
+    "status_effect": null
+  },
+  "Canned": {
+    "name": "Canned",
+    "anim": "throw-paper",
+    "target": "single",
+    "damage": [
+      5,
+      6,
+      8,
+      10,
+      12
+    ],
+    "accuracy": [
+      60,
+      75,
+      80,
+      85,
+      90
+    ],
+    "frequency": [
+      25,
+      25,
+      25,
+      25,
+      25
+    ],
+    "status_effect": null
+  },
+  "Downsize": {
+    "name": "Downsize",
+    "anim": "magic2",
+    "target": "single",
+    "damage": [
+      8,
+      9,
+      11,
+      13,
+      15
+    ],
+    "accuracy": [
+      50,
+      65,
+      70,
+      75,
+      80
+    ],
+    "frequency": [
+      35,
+      35,
+      35,
+      35,
+      35
+    ],
+    "status_effect": null
+  },
+  "PinkSlip": {
+    "name": "PinkSlip",
+    "anim": "throw-paper",
+    "target": "single",
+    "damage": [
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "accuracy": [
+      60,
+      65,
+      75,
+      80,
+      85
+    ],
+    "frequency": [
+      25,
+      25,
+      25,
+      25,
+      25
+    ],
+    "status_effect": null
+  },
+  "Sacked": {
+    "name": "Sacked",
+    "anim": "throw-paper",
+    "target": "single",
+    "damage": [
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "accuracy": [
+      50,
+      50,
+      50,
+      50,
+      50
+    ],
+    "frequency": [
+      15,
+      15,
+      15,
+      15,
+      15
+    ],
+    "status_effect": null
+  },
+  "GlowerPower": {
+    "name": "GlowerPower",
+    "anim": "glower",
+    "target": "single",
+    "damage": [
+      7,
+      8,
+      10,
+      12,
+      13
+    ],
+    "accuracy": [
+      50,
+      60,
+      70,
+      80,
+      90
+    ],
+    "frequency": [
+      20,
+      20,
+      20,
+      20,
+      20
+    ],
+    "status_effect": null
+  },
+  "HalfWindsor": {
+    "name": "HalfWindsor",
+    "anim": "throw-paper",
+    "target": "single",
+    "damage": [
+      8,
+      10,
+      12,
+      14,
+      16
+    ],
+    "accuracy": [
+      60,
+      65,
+      70,
+      75,
+      80
+    ],
+    "frequency": [
+      20,
+      20,
+      20,
+      20,
+      20
+    ],
+    "status_effect": null
+  },
+  "HeadShrink": {
+    "name": "HeadShrink",
+    "anim": "magic1",
+    "target": "single",
+    "damage": [
+      10,
+      12,
+      15,
+      18,
+      21
+    ],
+    "accuracy": [
+      65,
+      75,
+      80,
+      85,
+      95
+    ],
+    "frequency": [
+      35,
+      35,
+      35,
+      35,
+      35
+    ],
+    "status_effect": null
+  },
+  "Rolodex": {
+    "name": "Rolodex",
+    "anim": "roll-o-dex",
+    "target": "single",
+    "damage": [
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "accuracy": [
+      60,
+      65,
+      70,
+      75,
+      80
+    ],
+    "frequency": [
+      10,
+      10,
+      10,
+      10,
+      10
+    ],
+    "status_effect": null
+  },
+  "EvilEye": {
+    "name": "EvilEye",
+    "anim": "glower",
+    "target": "single",
+    "damage": [
+      12,
+      15,
+      18,
+      21,
+      24
+    ],
+    "accuracy": [
+      60,
+      70,
+      75,
+      80,
+      90
+    ],
+    "frequency": [
+      35,
+      35,
+      35,
+      35,
+      35
+    ],
+    "status_effect": null
+  },
+  "PlayHardball": {
+    "name": "PlayHardball",
+    "anim": "throw-paper",
+    "target": "single",
+    "damage": [
+      7,
+      8,
+      12,
+      15,
+      16
+    ],
+    "accuracy": [
+      60,
+      65,
+      70,
+      75,
+      80
+    ],
+    "frequency": [
+      30,
+      30,
+      30,
+      30,
+      30
+    ],
+    "status_effect": null
+  },
+  "PowerTie": {
+    "name": "PowerTie",
+    "anim": "throw-paper",
+    "target": "single",
+    "damage": [
+      10,
+      12,
+      14,
+      16,
+      18
+    ],
+    "accuracy": [
+      65,
+      75,
+      80,
+      85,
+      95
+    ],
+    "frequency": [
+      15,
+      15,
+      15,
+      15,
+      15
+    ],
+    "status_effect": null
+  },
+  "CigarSmoke": {
+    "name": "CigarSmoke",
+    "anim": "cigar-smoke",
+    "target": "single",
+    "damage": [
+      10,
+      12,
+      15,
+      18,
+      20,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30
+    ],
+    "accuracy": [
+      55,
+      65,
+      75,
+      85,
+      95,
+      95,
+      95,
+      95,
+      95,
+      95,
+      95,
+      95,
+      95,
+      95
+    ],
+    "frequency": [
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20
+    ],
+    "status_effect": null
+  },
+  "FloodTheMarket": {
+    "name": "FloodTheMarket",
+    "anim": "glower",
+    "target": "single",
+    "damage": [
+      14,
+      16,
+      18,
+      20,
+      22,
+      23,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30
+    ],
+    "accuracy": [
+      70,
+      75,
+      85,
+      90,
+      95,
+      95,
+      95,
+      95,
+      95,
+      95,
+      95,
+      95,
+      95,
+      95
+    ],
+    "frequency": [
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10
+    ],
+    "status_effect": null
+  },
+  "SongAndDance": {
+    "name": "SongAndDance",
+    "anim": "song-and-dance",
+    "target": "single",
+    "damage": [
+      14,
+      15,
+      17,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29
+    ],
+    "accuracy": [
+      60,
+      65,
+      70,
+      75,
+      80,
+      85,
+      90,
+      90,
+      90,
+      90,
+      90,
+      90,
+      90,
+      90
+    ],
+    "frequency": [
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20
+    ],
+    "status_effect": null
+  },
+  "Watercooler": {
+    "name": "Watercooler",
+    "anim": "watercooler",
+    "target": "single",
+    "damage": [
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "accuracy": [
+      95,
+      95,
+      95,
+      95,
+      95
+    ],
+    "frequency": [
+      10,
+      10,
+      10,
+      10,
+      10
+    ],
+    "status_effect": null
+  },
+  "PickPocket": {
+    "name": "PickPocket",
+    "anim": "pickpocket",
+    "target": "single",
+    "damage": [
+      1,
+      1,
+      2,
+      2,
+      3
+    ],
+    "accuracy": [
+      25,
+      30,
+      35,
+      40,
+      45
+    ],
+    "frequency": [
+      50,
+      50,
+      50,
+      50,
+      50
+    ],
+    "status_effect": null
+  },
+  "EvictionNotice": {
+    "name": "EvictionNotice",
+    "anim": "throw-paper",
+    "target": "single",
+    "damage": [
+      1,
+      2,
+      3,
+      3,
+      4
+    ],
+    "accuracy": [
+      75,
+      75,
+      75,
+      75,
+      75
+    ],
+    "frequency": [
+      20,
+      20,
+      20,
+      20,
+      20
+    ],
+    "status_effect": null
+  },
+  "RedTape": {
+    "name": "RedTape",
+    "anim": "throw-object",
+    "target": "single",
+    "damage": [
+      2,
+      3,
+      4,
+      6,
+      9
+    ],
+    "accuracy": [
+      75,
+      75,
+      75,
+      75,
+      75
+    ],
+    "frequency": [
+      20,
+      20,
+      20,
+      20,
+      20
+    ],
+    "status_effect": {
+      "effect": "SLOW",
+      "rounds": 2,
+      "accuracy_reduction": 10,
+      "chance": 80
+    }
+  },
+  "Withdrawal": {
+    "name": "Withdrawal",
+    "anim": "magic1",
+    "target": "single",
+    "damage": [
+      6,
+      8,
+      10,
+      12,
+      14
+    ],
+    "accuracy": [
+      95,
+      95,
+      95,
+      95,
+      95
+    ],
+    "frequency": [
+      10,
+      10,
+      10,
+      10,
+      10
+    ],
+    "status_effect": null
+  },
+  "Liquidate": {
+    "name": "Liquidate",
+    "anim": "magic1",
+    "target": "single",
+    "damage": [
+      2,
+      3,
+      4,
+      6,
+      9
+    ],
+    "accuracy": [
+      50,
+      60,
+      70,
+      80,
+      90
+    ],
+    "frequency": [
+      50,
+      50,
+      50,
+      50,
+      50
+    ],
+    "status_effect": null
+  },
+  "BounceCheck": {
+    "name": "BounceCheck",
+    "anim": "throw-paper",
+    "target": "single",
+    "damage": [
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "accuracy": [
+      50,
+      60,
+      70,
+      80,
+      90
+    ],
+    "frequency": [
+      5,
+      5,
+      5,
+      5,
+      5
+    ],
+    "status_effect": null
+  },
+  "DoubleTalk": {
+    "name": "DoubleTalk",
+    "anim": "speak",
+    "target": "single",
+    "damage": [
+      6,
+      6,
+      9,
+      13,
+      18
+    ],
+    "accuracy": [
+      50,
+      60,
+      70,
+      80,
+      90
+    ],
+    "frequency": [
+      25,
+      25,
+      25,
+      25,
+      25
+    ],
+    "status_effect": null
+  },
+  "Jargon": {
+    "name": "Jargon",
+    "anim": "speak",
+    "target": "single",
+    "damage": [
+      3,
+      4,
+      6,
+      9,
+      12
+    ],
+    "accuracy": [
+      50,
+      60,
+      70,
+      80,
+      90
+    ],
+    "frequency": [
+      25,
+      25,
+      25,
+      25,
+      25
+    ],
+    "status_effect": null
+  },
+  "MumboJumbo": {
+    "name": "MumboJumbo",
+    "anim": "speak",
+    "target": "single",
+    "damage": [
+      3,
+      4,
+      6,
+      9,
+      12
+    ],
+    "accuracy": [
+      50,
+      60,
+      70,
+      80,
+      90
+    ],
+    "frequency": [
+      20,
+      20,
+      20,
+      20,
+      20
+    ],
+    "status_effect": null
+  },
+  "Shake": {
+    "name": "Shake",
+    "anim": "stomp",
+    "target": "group",
+    "damage": [
+      4,
+      6,
+      9,
+      12,
+      15
+    ],
+    "accuracy": [
+      75,
+      75,
+      75,
+      75,
+      75
+    ],
+    "frequency": [
+      15,
+      15,
+      15,
+      15,
+      15
+    ],
+    "status_effect": null
+  },
+  "HangUp": {
+    "name": "HangUp",
+    "anim": "phone",
+    "target": "single",
+    "damage": [
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "accuracy": [
+      75,
+      75,
+      75,
+      75,
+      75
+    ],
+    "frequency": [
+      35,
+      35,
+      35,
+      35,
+      35
+    ],
+    "status_effect": null
+  },
+  "GuiltTrip": {
+    "name": "GuiltTrip",
+    "anim": "magic1",
+    "target": "group",
+    "damage": [
+      8,
+      11,
+      13,
+      15,
+      18
+    ],
+    "accuracy": [
+      60,
+      75,
+      80,
+      85,
+      90
+    ],
+    "frequency": [
+      40,
+      40,
+      40,
+      40,
+      40
+    ],
+    "status_effect": null
+  },
+  "RestrainingOrder": {
+    "name": "RestrainingOrder",
+    "anim": "throw-paper",
+    "target": "single",
+    "damage": [
+      6,
+      7,
+      9,
+      11,
+      13
+    ],
+    "accuracy": [
+      50,
+      65,
+      70,
+      75,
+      90
+    ],
+    "frequency": [
+      25,
+      25,
+      25,
+      25,
+      25
+    ],
+    "status_effect": null
+  },
+  "ParadigmShift": {
+    "name": "ParadigmShift",
+    "anim": "magic2",
+    "target": "group",
+    "damage": [
+      9,
+      10,
+      13,
+      16,
+      17
+    ],
+    "accuracy": [
+      60,
+      75,
+      80,
+      85,
+      90
+    ],
+    "frequency": [
+      30,
+      30,
+      30,
+      30,
+      30
+    ],
+    "status_effect": null
+  },
+  "Quake": {
+    "name": "Quake",
+    "anim": "quick-jump",
+    "target": "group",
+    "damage": [
+      8,
+      10,
+      12,
+      14,
+      16
+    ],
+    "accuracy": [
+      60,
+      65,
+      70,
+      75,
+      80
+    ],
+    "frequency": [
+      20,
+      20,
+      20,
+      20,
+      20
+    ],
+    "status_effect": null
+  },
+  "Spin": {
+    "name": "Spin",
+    "anim": "magic3",
+    "target": "single",
+    "damage": [
+      10,
+      12,
+      15,
+      18,
+      20
+    ],
+    "accuracy": [
+      70,
+      75,
+      80,
+      85,
+      90
+    ],
+    "frequency": [
+      35,
+      35,
+      35,
+      35,
+      35
+    ],
+    "status_effect": null
+  },
+  "Legalese": {
+    "name": "Legalese",
+    "anim": "speak",
+    "target": "single",
+    "damage": [
+      11,
+      13,
+      16,
+      19,
+      21
+    ],
+    "accuracy": [
+      55,
+      65,
+      75,
+      85,
+      95
+    ],
+    "frequency": [
+      35,
+      35,
+      35,
+      35,
+      35
+    ],
+    "status_effect": null
+  },
+  "PeckingOrder": {
+    "name": "PeckingOrder",
+    "anim": "throw-object",
+    "target": "single",
+    "damage": [
+      12,
+      15,
+      17,
+      19,
+      22
+    ],
+    "accuracy": [
+      70,
+      75,
+      80,
+      85,
+      95
+    ],
+    "frequency": [
+      30,
+      30,
+      30,
+      30,
+      30
+    ],
+    "status_effect": null
+  },
+  "PowerTrip": {
+    "name": "PowerTrip",
+    "anim": "magic1",
+    "target": "group",
+    "damage": [
+      10,
+      11,
+      13,
+      15,
+      16,
+      18,
+      20,
+      21,
+      23,
+      24,
+      25,
+      25,
+      26,
+      27
+    ],
+    "accuracy": [
+      75,
+      80,
+      85,
+      90,
+      95,
+      95,
+      95,
+      95,
+      95,
+      95,
+      95,
+      95,
+      95,
+      95
+    ],
+    "frequency": [
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50
+    ],
+    "status_effect": null
+  },
+  "ThrowBook": {
+    "name": "ThrowBook",
+    "anim": "throw-object",
+    "target": "single",
+    "damage": [
+      13,
+      15,
+      17,
+      19,
+      21,
+      23,
+      25,
+      27,
+      29,
+      32,
+      34,
+      36,
+      38,
+      40
+    ],
+    "accuracy": [
+      80,
+      85,
+      85,
+      85,
+      90,
+      90,
+      90,
+      90,
+      95,
+      95,
+      95,
+      95,
+      95,
+      95
+    ],
+    "frequency": [
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50
+    ],
+    "status_effect": null
+  },
+  "FreezeAssets": {
+    "name": "FreezeAssets",
+    "anim": "glower",
+    "target": "single",
+    "damage": [
+      2,
+      3,
+      4,
+      6,
+      9
+    ],
+    "accuracy": [
+      75,
+      75,
+      75,
+      75,
+      75
+    ],
+    "frequency": [
+      20,
+      20,
+      20,
+      20,
+      20
+    ],
+    "status_effect": {
+      "effect": "FREEZE",
+      "rounds": 1,
+      "chance": 100
+    }
+  },
+  "Fired": {
+    "name": "Fired",
+    "anim": "magic2",
+    "target": "single",
+    "damage": [
+      3,
+      4,
+      5,
+      5,
+      6
+    ],
+    "accuracy": [
+      75,
+      75,
+      75,
+      75,
+      75
+    ],
+    "frequency": [
+      75,
+      5,
+      5,
+      5,
+      5
+    ],
+    "status_effect": null
+  },
+  "Audit": {
+    "name": "Audit",
+    "anim": "phone",
+    "target": "single",
+    "damage": [
+      4,
+      6,
+      9,
+      12,
+      15
+    ],
+    "accuracy": [
+      95,
+      95,
+      95,
+      95,
+      95
+    ],
+    "frequency": [
+      20,
+      20,
+      20,
+      20,
+      20
+    ],
+    "status_effect": null
+  },
+  "Calculate": {
+    "name": "Calculate",
+    "anim": "phone",
+    "target": "single",
+    "damage": [
+      4,
+      6,
+      9,
+      12,
+      15
+    ],
+    "accuracy": [
+      75,
+      75,
+      75,
+      75,
+      75
+    ],
+    "frequency": [
+      25,
+      25,
+      25,
+      25,
+      25
+    ],
+    "status_effect": null
+  },
+  "Tabulate": {
+    "name": "Tabulate",
+    "anim": "phone",
+    "target": "single",
+    "damage": [
+      4,
+      6,
+      9,
+      12,
+      15
+    ],
+    "accuracy": [
+      75,
+      75,
+      75,
+      75,
+      75
+    ],
+    "frequency": [
+      25,
+      25,
+      25,
+      25,
+      25
+    ],
+    "status_effect": null
+  },
+  "Crunch": {
+    "name": "Crunch",
+    "anim": "throw-object",
+    "target": "single",
+    "damage": [
+      8,
+      9,
+      11,
+      13,
+      15
+    ],
+    "accuracy": [
+      60,
+      65,
+      75,
+      80,
+      85
+    ],
+    "frequency": [
+      35,
+      35,
+      35,
+      35,
+      35
+    ],
+    "status_effect": null
+  },
+  "MarketCrash": {
+    "name": "MarketCrash",
+    "anim": "throw-paper",
+    "target": "single",
+    "damage": [
+      8,
+      10,
+      12,
+      14,
+      16
+    ],
+    "accuracy": [
+      60,
+      65,
+      70,
+      75,
+      80
+    ],
+    "frequency": [
+      45,
+      45,
+      45,
+      45,
+      45
+    ],
+    "status_effect": null
+  },
+  "Bite": {
+    "name": "Bite",
+    "anim": "throw-paper",
+    "target": "single",
+    "damage": [
+      10,
+      11,
+      13,
+      15,
+      16
+    ],
+    "accuracy": [
+      60,
+      75,
+      80,
+      85,
+      90
+    ],
+    "frequency": [
+      30,
+      30,
+      30,
+      30,
+      30
+    ],
+    "status_effect": null
+  },
+  "Chomp": {
+    "name": "Chomp",
+    "anim": "throw-paper",
+    "target": "single",
+    "damage": [
+      12,
+      15,
+      18,
+      21,
+      24
+    ],
+    "accuracy": [
+      60,
+      70,
+      75,
+      80,
+      90
+    ],
+    "frequency": [
+      35,
+      35,
+      35,
+      35,
+      35
+    ],
+    "status_effect": null
+  },
+  "HotAir": {
+    "name": "HotAir",
+    "anim": "speak",
+    "target": "single",
+    "damage": [
+      3,
+      4,
+      6,
+      8,
+      10
+    ],
+    "accuracy": [
+      50,
+      50,
+      50,
+      50,
+      50
+    ],
+    "frequency": [
+      45,
+      40,
+      35,
+      30,
+      25
+    ],
+    "status_effect": null
+  },
+  "Filibuster": {
+    "name": "Filibuster",
+    "anim": "speak",
+    "target": "single",
+    "damage": [
+      4,
+      6,
+      9,
+      12,
+      15
+    ],
+    "accuracy": [
+      30,
+      40,
+      50,
+      60,
+      70
+    ],
+    "frequency": [
+      10,
+      20,
+      30,
+      40,
+      45
+    ],
+    "status_effect": null
+  },
+  "Schmooze": {
+    "name": "Schmooze",
+    "anim": "speak",
+    "target": "single",
+    "damage": [
+      5,
+      7,
+      11,
+      15,
+      20
+    ],
+    "accuracy": [
+      55,
+      65,
+      75,
+      85,
+      95
+    ],
+    "frequency": [
+      10,
+      20,
+      30,
+      40,
+      45
+    ],
+    "status_effect": null
+  },
+  "Tremor": {
+    "name": "Tremor",
+    "anim": "stomp",
+    "target": "group",
+    "damage": [
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "accuracy": [
+      50,
+      50,
+      50,
+      50,
+      50
+    ],
+    "frequency": [
+      20,
+      20,
+      20,
+      20,
+      20
+    ],
+    "status_effect": null
+  }
+}

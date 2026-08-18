@@ -1,0 +1,76 @@
+{
+  "track": "throw",
+  "display_name": "Throw",
+  "gags": [
+    {
+      "level": 1,
+      "name": "Cupcake",
+      "damage_min": 4,
+      "damage_max": 6,
+      "accuracy": 75,
+      "target": "single",
+      "xp_unlock": 0,
+      "status_effect": null
+    },
+    {
+      "level": 2,
+      "name": "Fruit Pie Slice",
+      "damage_min": 6,
+      "damage_max": 12,
+      "accuracy": 75,
+      "target": "single",
+      "xp_unlock": 20,
+      "status_effect": null
+    },
+    {
+      "level": 3,
+      "name": "Cream Pie Slice",
+      "damage_min": 15,
+      "damage_max": 20,
+      "accuracy": 75,
+      "target": "single",
+      "xp_unlock": 100,
+      "status_effect": null
+    },
+    {
+      "level": 4,
+      "name": "Whole Fruit Pie",
+      "damage_min": 24,
+      "damage_max": 30,
+      "accuracy": 75,
+      "target": "single",
+      "xp_unlock": 200,
+      "status_effect": null
+    },
+    {
+      "level": 5,
+      "name": "Whole Cream Pie",
+      "damage_min": 45,
+      "damage_max": 50,
+      "accuracy": 80,
+      "target": "single",
+      "xp_unlock": 600,
+      "status_effect": null
+    },
+    {
+      "level": 6,
+      "name": "Birthday Cake",
+      "damage_min": 55,
+      "damage_max": 110,
+      "accuracy": 80,
+      "target": "single",
+      "xp_unlock": 1200,
+      "status_effect": null
+    },
+    {
+      "level": 7,
+      "name": "Wedding Cake",
+      "damage_min": 115,
+      "damage_max": 130,
+      "accuracy": 85,
+      "target": "group",
+      "xp_unlock": 2400,
+      "status_effect": null
+    }
+  ]
+}

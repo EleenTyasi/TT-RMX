@@ -1,0 +1,132 @@
+{
+  "Flunky": {
+    "code": "f",
+    "base_level": 1,
+    "base_hp": 6,
+    "hp_growth": 6,
+    "base_defense": 2,
+    "defense_growth": 3,
+    "base_accuracy": 35,
+    "accuracy_growth": 5,
+    "attacks": [
+      "PoundKey",
+      "Shred",
+      "ClipOnTie"
+    ]
+  },
+  "Pencil Pusher": {
+    "code": "p",
+    "base_level": 2,
+    "base_hp": 12,
+    "hp_growth": 8,
+    "base_defense": 5,
+    "defense_growth": 5,
+    "base_accuracy": 45,
+    "accuracy_growth": 5,
+    "attacks": [
+      "FountainPen",
+      "RubOut",
+      "FingerWag",
+      "WriteOff",
+      "FillWithLead"
+    ]
+  },
+  "Yesman": {
+    "code": "ym",
+    "base_level": 3,
+    "base_hp": 20,
+    "hp_growth": 10,
+    "base_defense": 10,
+    "defense_growth": 5,
+    "base_accuracy": 65,
+    "accuracy_growth": 5,
+    "attacks": [
+      "RubberStamp",
+      "RazzleDazzle",
+      "Synergy",
+      "TeeOff"
+    ]
+  },
+  "Micromanager": {
+    "code": "mm",
+    "base_level": 4,
+    "base_hp": 30,
+    "hp_growth": 12,
+    "base_defense": 15,
+    "defense_growth": 5,
+    "base_accuracy": 70,
+    "accuracy_growth": 5,
+    "attacks": [
+      "Demotion",
+      "FingerWag",
+      "FountainPen",
+      "BrainStorm",
+      "BuzzWord"
+    ]
+  },
+  "Downsizer": {
+    "code": "ds",
+    "base_level": 5,
+    "base_hp": 42,
+    "hp_growth": 14,
+    "base_defense": 20,
+    "defense_growth": 5,
+    "base_accuracy": 35,
+    "accuracy_growth": 5,
+    "attacks": [
+      "Canned",
+      "Downsize",
+      "PinkSlip",
+      "Sacked"
+    ]
+  },
+  "Head Hunter": {
+    "code": "hh",
+    "base_level": 6,
+    "base_hp": 56,
+    "hp_growth": 16,
+    "base_defense": 25,
+    "defense_growth": 5,
+    "base_accuracy": 35,
+    "accuracy_growth": 5,
+    "attacks": [
+      "FountainPen",
+      "GlowerPower",
+      "HalfWindsor",
+      "HeadShrink",
+      "Rolodex"
+    ]
+  },
+  "Corporate Raider": {
+    "code": "cr",
+    "base_level": 7,
+    "base_hp": 72,
+    "hp_growth": 18,
+    "base_defense": 30,
+    "defense_growth": 5,
+    "base_accuracy": 35,
+    "accuracy_growth": 5,
+    "attacks": [
+      "Canned",
+      "EvilEye",
+      "PlayHardball",
+      "PowerTie"
+    ]
+  },
+  "The Big Cheese": {
+    "code": "tbc",
+    "base_level": 8,
+    "base_hp": 90,
+    "hp_growth": 20,
+    "base_defense": 35,
+    "defense_growth": 5,
+    "base_accuracy": 35,
+    "accuracy_growth": 5,
+    "attacks": [
+      "CigarSmoke",
+      "FloodTheMarket",
+      "SongAndDance",
+      "TeeOff"
+    ]
+  }
+}

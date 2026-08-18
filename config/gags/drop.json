@@ -1,0 +1,76 @@
+{
+  "track": "drop",
+  "display_name": "Drop",
+  "gags": [
+    {
+      "level": 1,
+      "name": "Flower Pot",
+      "damage_min": 12,
+      "damage_max": 12,
+      "accuracy": 60,
+      "target": "single",
+      "xp_unlock": 0,
+      "status_effect": "freeze"
+    },
+    {
+      "level": 2,
+      "name": "Sandbag",
+      "damage_min": 16,
+      "damage_max": 16,
+      "accuracy": 60,
+      "target": "single",
+      "xp_unlock": 20,
+      "status_effect": "freeze"
+    },
+    {
+      "level": 3,
+      "name": "Anvil",
+      "damage_min": 35,
+      "damage_max": 35,
+      "accuracy": 60,
+      "target": "single",
+      "xp_unlock": 50,
+      "status_effect": "freeze"
+    },
+    {
+      "level": 4,
+      "name": "Big Weight",
+      "damage_min": 55,
+      "damage_max": 55,
+      "accuracy": 60,
+      "target": "single",
+      "xp_unlock": 100,
+      "status_effect": "freeze"
+    },
+    {
+      "level": 5,
+      "name": "Safe",
+      "damage_min": 65,
+      "damage_max": 65,
+      "accuracy": 70,
+      "target": "single",
+      "xp_unlock": 600,
+      "status_effect": "freeze"
+    },
+    {
+      "level": 6,
+      "name": "Grand Piano",
+      "damage_min": 85,
+      "damage_max": 110,
+      "accuracy": 75,
+      "target": "single",
+      "xp_unlock": 1200,
+      "status_effect": "freeze"
+    },
+    {
+      "level": 7,
+      "name": "Toontanic",
+      "damage_min": 180,
+      "damage_max": 180,
+      "accuracy": 85,
+      "target": "group",
+      "xp_unlock": 2400,
+      "status_effect": "freeze"
+    }
+  ]
+}

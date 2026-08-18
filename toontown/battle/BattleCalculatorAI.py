@@ -1262,7 +1262,8 @@ class BattleCalculatorAI:
         atkType = self.battle.suitAttacks[attackIndex][SUIT_ATK_COL]
         atkInfo = SuitBattleGlobals.getSuitAttack(theSuit.dna.name, theSuit.getLevel(), atkType)
         atkAcc = atkInfo['acc']
-        suitAcc = SuitBattleGlobals.SuitAttributes[theSuit.dna.name]['acc'][theSuit.getLevel()]
+        accList = SuitBattleGlobals.SuitAttributes[theSuit.dna.name]['acc']
+        suitAcc = accList[min(max(0, theSuit.getLevel()), len(accList) - 1)]
         targetIdx = self.battle.suitAttacks[attackIndex][SUIT_TGT_COL]
         targetId = self.battle.activeToons[targetIdx] if (targetIdx >= 0 and targetIdx < len(self.battle.activeToons)) else None
         targetDefMod = self.statusEffectMgr.get_defense_mod(targetId) if targetId else 0

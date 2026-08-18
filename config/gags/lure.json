@@ -1,0 +1,76 @@
+{
+  "track": "lure",
+  "display_name": "Lure",
+  "gags": [
+    {
+      "level": 1,
+      "name": "$1 Bill",
+      "damage_min": 0,
+      "damage_max": 0,
+      "accuracy": 50,
+      "target": "single",
+      "xp_unlock": 0,
+      "status_effect": null
+    },
+    {
+      "level": 2,
+      "name": "Small Magnet",
+      "damage_min": 0,
+      "damage_max": 0,
+      "accuracy": 50,
+      "target": "single",
+      "xp_unlock": 10,
+      "status_effect": null
+    },
+    {
+      "level": 3,
+      "name": "$5 Bill",
+      "damage_min": 0,
+      "damage_max": 0,
+      "accuracy": 60,
+      "target": "single",
+      "xp_unlock": 100,
+      "status_effect": null
+    },
+    {
+      "level": 4,
+      "name": "Big Magnet",
+      "damage_min": 0,
+      "damage_max": 0,
+      "accuracy": 60,
+      "target": "single",
+      "xp_unlock": 200,
+      "status_effect": null
+    },
+    {
+      "level": 5,
+      "name": "$10 Bill",
+      "damage_min": 0,
+      "damage_max": 0,
+      "accuracy": 70,
+      "target": "single",
+      "xp_unlock": 600,
+      "status_effect": null
+    },
+    {
+      "level": 6,
+      "name": "Hypno-Goggles",
+      "damage_min": 0,
+      "damage_max": 0,
+      "accuracy": 70,
+      "target": "single",
+      "xp_unlock": 1200,
+      "status_effect": null
+    },
+    {
+      "level": 7,
+      "name": "Presentation",
+      "damage_min": 0,
+      "damage_max": 0,
+      "accuracy": 90,
+      "target": "group",
+      "xp_unlock": 2400,
+      "status_effect": null
+    }
+  ]
+}

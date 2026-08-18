@@ -1,0 +1,76 @@
+{
+  "track": "sound",
+  "display_name": "Sound",
+  "gags": [
+    {
+      "level": 1,
+      "name": "Bike Horn",
+      "damage_min": 3,
+      "damage_max": 6,
+      "accuracy": 95,
+      "target": "group",
+      "xp_unlock": 0,
+      "status_effect": null
+    },
+    {
+      "level": 2,
+      "name": "Whistle",
+      "damage_min": 6,
+      "damage_max": 8,
+      "accuracy": 95,
+      "target": "group",
+      "xp_unlock": 20,
+      "status_effect": null
+    },
+    {
+      "level": 3,
+      "name": "Bugle",
+      "damage_min": 9,
+      "damage_max": 16,
+      "accuracy": 95,
+      "target": "group",
+      "xp_unlock": 100,
+      "status_effect": null
+    },
+    {
+      "level": 4,
+      "name": "Aoogah",
+      "damage_min": 16,
+      "damage_max": 18,
+      "accuracy": 95,
+      "target": "group",
+      "xp_unlock": 200,
+      "status_effect": null
+    },
+    {
+      "level": 5,
+      "name": "Elephant Trunk",
+      "damage_min": 25,
+      "damage_max": 40,
+      "accuracy": 95,
+      "target": "group",
+      "xp_unlock": 600,
+      "status_effect": null
+    },
+    {
+      "level": 6,
+      "name": "Foghorn",
+      "damage_min": 45,
+      "damage_max": 70,
+      "accuracy": 95,
+      "target": "group",
+      "xp_unlock": 1200,
+      "status_effect": null
+    },
+    {
+      "level": 7,
+      "name": "Opera Singer",
+      "damage_min": 80,
+      "damage_max": 110,
+      "accuracy": 95,
+      "target": "group",
+      "xp_unlock": 2400,
+      "status_effect": null
+    }
+  ]
+}

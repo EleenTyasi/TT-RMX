@@ -1,0 +1,129 @@
+{
+  "Bottom Feeder": {
+    "code": "bf",
+    "base_level": 1,
+    "base_hp": 6,
+    "hp_growth": 6,
+    "base_defense": 2,
+    "defense_growth": 3,
+    "base_accuracy": 35,
+    "accuracy_growth": 5,
+    "attacks": [
+      "RubberStamp",
+      "Shred",
+      "Watercooler",
+      "PickPocket"
+    ]
+  },
+  "Bloodsucker": {
+    "code": "b",
+    "base_level": 2,
+    "base_hp": 12,
+    "hp_growth": 8,
+    "base_defense": 5,
+    "defense_growth": 5,
+    "base_accuracy": 45,
+    "accuracy_growth": 5,
+    "attacks": [
+      "EvictionNotice",
+      "RedTape",
+      "Withdrawal",
+      "Liquidate"
+    ]
+  },
+  "Double Talker": {
+    "code": "dt",
+    "base_level": 3,
+    "base_hp": 20,
+    "hp_growth": 10,
+    "base_defense": 10,
+    "defense_growth": 5,
+    "base_accuracy": 65,
+    "accuracy_growth": 5,
+    "attacks": [
+      "RubberStamp",
+      "BounceCheck",
+      "BuzzWord",
+      "DoubleTalk",
+      "Jargon",
+      "MumboJumbo"
+    ]
+  },
+  "Ambulance Chaser": {
+    "code": "ac",
+    "base_level": 4,
+    "base_hp": 30,
+    "hp_growth": 12,
+    "base_defense": 15,
+    "defense_growth": 5,
+    "base_accuracy": 70,
+    "accuracy_growth": 5,
+    "attacks": [
+      "Shake",
+      "RedTape",
+      "Rolodex",
+      "HangUp"
+    ]
+  },
+  "Back Stabber": {
+    "code": "bs",
+    "base_level": 5,
+    "base_hp": 42,
+    "hp_growth": 14,
+    "base_defense": 20,
+    "defense_growth": 5,
+    "base_accuracy": 35,
+    "accuracy_growth": 5,
+    "attacks": [
+      "GuiltTrip",
+      "RestrainingOrder",
+      "FingerWag"
+    ]
+  },
+  "Spin Doctor": {
+    "code": "sd",
+    "base_level": 6,
+    "base_hp": 56,
+    "hp_growth": 16,
+    "base_defense": 25,
+    "defense_growth": 5,
+    "base_accuracy": 35,
+    "accuracy_growth": 5,
+    "attacks": [
+      "ParadigmShift",
+      "Quake",
+      "Spin",
+      "WriteOff"
+    ]
+  },
+  "Legal Eagle": {
+    "code": "le",
+    "base_level": 7,
+    "base_hp": 72,
+    "hp_growth": 18,
+    "base_defense": 30,
+    "defense_growth": 5,
+    "base_accuracy": 35,
+    "accuracy_growth": 5,
+    "attacks": [
+      "EvilEye",
+      "Jargon",
+      "Legalese",
+      "PeckingOrder"
+    ]
+  },
+  "Big Wig": {
+    "code": "bw",
+    "base_level": 8,
+    "base_hp": 90,
+    "hp_growth": 20,
+    "base_defense": 35,
+    "defense_growth": 5,
+    "base_accuracy": 35,
+    "accuracy_growth": 5,
+    "attacks": [
+      "PowerTrip",
+      "ThrowBook"
+    ]
+  }
+}

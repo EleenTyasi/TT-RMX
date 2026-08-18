@@ -1,0 +1,26 @@
+{
+  "FREEZE": {
+    "description": "Target skips attack turn",
+    "default_rounds": 1
+  },
+  "SLOW": {
+    "description": "Reduces target defense and dodge chance",
+    "defense_reduction": 30,
+    "default_rounds": 3
+  },
+  "WEAKEN": {
+    "description": "Reduces target attack power and defense",
+    "defense_reduction": 10,
+    "default_rounds": 2
+  },
+  "BURN": {
+    "description": "Amplifies incoming damage",
+    "damage_multiplier": 1.5,
+    "default_rounds": 2
+  },
+  "POISON": {
+    "description": "Deals damage over time at turn start",
+    "damage_per_round": 15,
+    "default_rounds": 3
+  }
+}
