@@ -128,7 +128,7 @@ def getBattleExperience(numToons, activeToons, toonExp, toonSkillPtsGained, toon
 
 def getToonUberStatus(toons, numToons):
     fieldList = []
-    uberIndex = ToontownBattleGlobals.LAST_REGULAR_GAG_LEVEL + 1
+    uberIndex = ToontownBattleGlobals.UBER_GAG_LEVEL_INDEX
     for toonId in toons:
         toonList = []
         toon = simbase.air.doId2do.get(toonId)

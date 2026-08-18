@@ -443,11 +443,11 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
 
     def getToonUberStatus(self):
         fieldList = []
-        uberIndex = LAST_REGULAR_GAG_LEVEL + 1
+        uberIndex = UBER_GAG_LEVEL_INDEX
         for toon in self.activeToons:
             toonList = []
             for trackIndex in range(MAX_TRACK_INDEX):
-                toonList.append(toon.inventory.numItem(track, uberIndex))
+                toonList.append(toon.inventory.numItem(trackIndex, uberIndex))
 
             fieldList.append(encodeUber(toonList))
 

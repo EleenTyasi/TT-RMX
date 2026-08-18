@@ -466,7 +466,7 @@ class RewardPanel(DirectFrame):
         while origSkill + earnedSkill >= nextExpValue and origSkill < nextExpValue and not finalGagFlag:
             if newValue >= ToontownBattleGlobals.UnpaidMaxSkills[track] and toon.getGameAccess() != OTPGlobals.AccessFull:
                 pass
-            elif nextExpValue != ToontownBattleGlobals.MaxSkill:
+            else:
                 intervalList += self.getNewGagIntervalList(toon, track, ToontownBattleGlobals.Levels[track].index(nextExpValue))
             newNextExpValue = self.getNextExpValue(nextExpValue, track)
             if newNextExpValue == nextExpValue:
@@ -474,26 +474,6 @@ class RewardPanel(DirectFrame):
             else:
                 nextExpValue = newNextExpValue
 
-        uberIndex = ToontownBattleGlobals.LAST_REGULAR_GAG_LEVEL + 1
-        currentSkill = origSkill + earnedSkill
-        uberSkill = ToontownBattleGlobals.UberSkill + ToontownBattleGlobals.Levels[track][ToontownBattleGlobals.LAST_REGULAR_GAG_LEVEL + 1]
-        if currentSkill >= uberSkill and not hasUber > 0:
-            intervalList += self.getUberGagIntervalList(toon, track, ToontownBattleGlobals.LAST_REGULAR_GAG_LEVEL + 1)
-            intervalList.append(Wait(0.1))
-            skillDiff = currentSkill - ToontownBattleGlobals.Levels[track][ToontownBattleGlobals.LAST_REGULAR_GAG_LEVEL + 1]
-            barTime = math.log(skillDiff + 1)
-            numTicks = int(math.ceil(barTime / tickDelay))
-            displayedSkillDiff = skillDiff
-            if displayedSkillDiff > ToontownBattleGlobals.UberSkill:
-                displayedSkillDiff = ToontownBattleGlobals.UberSkill
-            intervalList.append(Func(self.showTrackIncLabel, track, -displayedSkillDiff))
-            for i in range(numTicks):
-                t = (i + 1) / float(numTicks)
-                newValue = int(currentSkill - t * skillDiff + 0.5)
-                intervalList.append(Func(self.incrementExp, track, newValue, toon))
-                intervalList.append(Wait(tickDelay * 0.5))
-
-            intervalList.append(Wait(0.1))
         return intervalList
 
     def getMeritIntervalList(self, toon, dept, origMerits, earnedMerits):
