@@ -165,7 +165,15 @@ class InventoryBase(DirectObject.DirectObject):
             track = Tracks.index(track)
         maxList = CarryLimits[track]
         if self.toon.experience:
-            return maxList[self.toon.experience.getExpLevel(track)][level]
+            baseMax = maxList[self.toon.experience.getExpLevel(track)][level]
+            if baseMax <= 0:
+                return 0
+            maxCarry = getattr(self.toon, 'maxCarry', 20) or 20
+            if level == 6:
+                return max(1, 1 + max(0, maxCarry - 20) // 30)
+            else:
+                scaled = int(round(baseMax * (maxCarry / 60.0)))
+                return max(1, scaled)
         else:
             return 0
 

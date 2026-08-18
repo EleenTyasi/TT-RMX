@@ -338,7 +338,6 @@ class MaxToon(MagicWord):
         if hasattr(toon, 'b_setUnlockedTrinkets'):
             toon.b_setUnlockedTrinkets(list(ALL_TRINKET_IDS))
 
-        from toontown.toon import ToonLevelGlobals
         maxStam = float(ToonLevelGlobals.getMaxStaminaForLevel(ToonLevelGlobals.MAX_TOON_LEVEL))
         if hasattr(toon, 'maxStamina'):
             toon.maxStamina = maxStam
