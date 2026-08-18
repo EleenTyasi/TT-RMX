@@ -35,16 +35,16 @@ MAX_TRACK_INDEX = 6
 MIN_LEVEL_INDEX = 0
 MAX_LEVEL_INDEX = 6
 MAX_UNPAID_LEVEL_INDEX = 4
-LAST_REGULAR_GAG_LEVEL = 5
+LAST_REGULAR_GAG_LEVEL = 6
 UBER_GAG_LEVEL_INDEX = 6
 NUM_GAG_TRACKS = 7
 PropTypeToTrackBonus = {AnimPropTypes.Hydrant: SQUIRT_TRACK,
  AnimPropTypes.Mailbox: THROW_TRACK,
  AnimPropTypes.Trashcan: HEAL_TRACK}
 from toontown.battle.GagsConfig import GAG_LEVEL_XP as Levels
-regMaxSkill = 10000
-UberSkill = 500
-MaxSkill = UberSkill + regMaxSkill
+regMaxSkill = Levels[0][6]
+UberSkill = 0
+MaxSkill = regMaxSkill
 UnpaidMaxSkills = [Levels[0][1] - 1,
  Levels[1][1] - 1,
  Levels[2][1] - 1,

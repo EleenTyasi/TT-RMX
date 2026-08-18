@@ -83,15 +83,12 @@ class InventoryPage(ShtikerPage.ShtikerPage):
         trackName = TextEncoder.upper(ToontownBattleGlobals.Tracks[trackIndex])
         if base.localAvatar.hasTrackAccess(trackIndex):
             curExp, nextExp = base.localAvatar.inventory.getCurAndNextExpValues(trackIndex)
-            trackText = '%s / %s' % (curExp, nextExp)
-            self.trackProgress['range'] = nextExp
-            self.trackProgress['value'] = curExp
-            if curExp >= ToontownBattleGlobals.regMaxSkill:
+            maxSkillForTrack = ToontownBattleGlobals.Levels[trackIndex][len(ToontownBattleGlobals.Levels[trackIndex]) - 1]
+            if curExp >= maxSkillForTrack:
                 str = TTLocalizer.InventoryPageTrackFull % trackName
-                trackText = TTLocalizer.InventoryUberTrackExp % {'nextExp': ToontownBattleGlobals.MaxSkill - curExp}
-                self.trackProgress['range'] = ToontownBattleGlobals.UberSkill
-                uberCurrExp = curExp - ToontownBattleGlobals.regMaxSkill
-                self.trackProgress['value'] = uberCurrExp
+                trackText = TTLocalizer.InventoryTrackMaxed
+                self.trackProgress['range'] = maxSkillForTrack
+                self.trackProgress['value'] = curExp
             else:
                 morePoints = nextExp - curExp
                 if morePoints == 1:
@@ -100,6 +97,9 @@ class InventoryPage(ShtikerPage.ShtikerPage):
                 else:
                     str = TTLocalizer.InventoryPagePluralPoints % {'trackName': trackName,
                      'numPoints': morePoints}
+                trackText = '%s / %s' % (curExp, nextExp)
+                self.trackProgress['range'] = nextExp
+                self.trackProgress['value'] = curExp
             self.trackInfo['text'] = str
             self.trackProgress['text'] = trackText
             self.trackProgress['frameColor'] = (ToontownBattleGlobals.TrackColors[trackIndex][0] * 0.6,

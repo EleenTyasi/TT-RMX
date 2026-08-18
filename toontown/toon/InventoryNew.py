@@ -553,7 +553,7 @@ class InventoryNew(InventoryBase.InventoryBase, DirectFrame):
                     button = self.buttons[track][level]
                     if self.itemIsUsable(track, level):
                         button.show()
-                        if self.numItem(track, level) <= 0 or level >= UBER_GAG_LEVEL_INDEX:
+                        if self.numItem(track, level) <= 0:
                             self.makeUnpressable(button, track, level)
                         else:
                             self.makeDeletePressable(button, track, level)
@@ -576,7 +576,7 @@ class InventoryNew(InventoryBase.InventoryBase, DirectFrame):
                     button = self.buttons[track][level]
                     if self.itemIsUsable(track, level):
                         button.show()
-                        if self.numItem(track, level) <= 0 or level >= UBER_GAG_LEVEL_INDEX:
+                        if self.numItem(track, level) <= 0:
                             self.makeUnpressable(button, track, level)
                         else:
                             self.makeDeletePressable(button, track, level)
@@ -613,7 +613,7 @@ class InventoryNew(InventoryBase.InventoryBase, DirectFrame):
                     button = self.buttons[track][level]
                     if self.itemIsUsable(track, level):
                         button.show()
-                        if self.numItem(track, level) <= 0 or level >= UBER_GAG_LEVEL_INDEX:
+                        if self.numItem(track, level) <= 0:
                             self.makeUnpressable(button, track, level)
                         else:
                             self.makeDeletePressable(button, track, level)
@@ -731,7 +731,7 @@ class InventoryNew(InventoryBase.InventoryBase, DirectFrame):
                     if self.itemIsUsable(track, level):
                         button.show()
                         unpaid = not base.cr.isPaid()
-                        if self.numItem(track, level) >= self.getMax(track, level) or totalProps == maxProps or unpaid and gagIsPaidOnly(track, level) or level > LAST_REGULAR_GAG_LEVEL:
+                        if self.numItem(track, level) >= self.getMax(track, level) or totalProps == maxProps or (unpaid and gagIsPaidOnly(track, level)):
                             if gagIsPaidOnly(track, level):
                                 self.makeDisabledPressable(button, track, level)
                             elif unpaid and gagIsVelvetRoped(track, level):
@@ -784,7 +784,7 @@ class InventoryNew(InventoryBase.InventoryBase, DirectFrame):
                     if self.itemIsUsable(track, level):
                         button.show()
                         unpaid = not base.cr.isPaid()
-                        if self.numItem(track, level) >= self.getMax(track, level) or totalProps == maxProps or unpaid and gagIsPaidOnly(track, level) or level > LAST_REGULAR_GAG_LEVEL:
+                        if self.numItem(track, level) >= self.getMax(track, level) or totalProps == maxProps or (unpaid and gagIsPaidOnly(track, level)):
                             if gagIsPaidOnly(track, level):
                                 self.makeDisabledPressable(button, track, level)
                             elif unpaid and gagIsVelvetRoped(track, level):
@@ -1118,14 +1118,17 @@ class InventoryNew(InventoryBase.InventoryBase, DirectFrame):
             self.buttons[trackIndex][levelIndex].show()
 
         curExp, nextExp = self.getCurAndNextExpValues(trackIndex)
+        maxSkillForTrack = Levels[trackIndex][len(Levels[trackIndex]) - 1]
         if curExp >= UnpaidMaxSkills[trackIndex] and self.toon.getGameAccess() != OTPGlobals.AccessFull:
             self.trackBars[trackIndex]['range'] = nextExp
             self.trackBars[trackIndex]['text'] = TTLocalizer.InventoryGuestExp
-        elif curExp >= regMaxSkill:
-            self.trackBars[trackIndex]['range'] = UberSkill
-            self.trackBars[trackIndex]['text'] = TTLocalizer.InventoryUberTrackExp % {'nextExp': MaxSkill - curExp}
+        elif curExp >= maxSkillForTrack:
+            self.trackBars[trackIndex]['range'] = maxSkillForTrack
+            self.trackBars[trackIndex]['value'] = maxSkillForTrack
+            self.trackBars[trackIndex]['text'] = TTLocalizer.InventoryTrackMaxed
         else:
             self.trackBars[trackIndex]['range'] = nextExp
+            self.trackBars[trackIndex]['value'] = curExp
             self.trackBars[trackIndex]['text'] = TTLocalizer.InventoryTrackExp % {'curExp': curExp,
              'nextExp': nextExp}
 
@@ -1157,13 +1160,16 @@ class InventoryNew(InventoryBase.InventoryBase, DirectFrame):
         if track == None and level == None:
             for track in range(len(Tracks)):
                 curExp, nextExp = self.getCurAndNextExpValues(track)
+                maxSkillForTrack = Levels[track][len(Levels[track]) - 1]
                 if curExp >= UnpaidMaxSkills[track] and self.toon.getGameAccess() != OTPGlobals.AccessFull:
                     self.trackBars[track]['range'] = nextExp
                     self.trackBars[track]['text'] = TTLocalizer.InventoryGuestExp
-                elif curExp >= regMaxSkill:
-                    self.trackBars[track]['text'] = TTLocalizer.InventoryUberTrackExp % {'nextExp': MaxSkill - curExp}
-                    self.trackBars[track]['value'] = curExp - regMaxSkill
+                elif curExp >= maxSkillForTrack:
+                    self.trackBars[track]['range'] = maxSkillForTrack
+                    self.trackBars[track]['text'] = TTLocalizer.InventoryTrackMaxed
+                    self.trackBars[track]['value'] = maxSkillForTrack
                 else:
+                    self.trackBars[track]['range'] = nextExp
                     self.trackBars[track]['text'] = TTLocalizer.InventoryTrackExp % {'curExp': curExp,
                      'nextExp': nextExp}
                     self.trackBars[track]['value'] = curExp

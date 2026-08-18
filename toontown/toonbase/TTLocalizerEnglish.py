@@ -2404,66 +2404,66 @@ SuitAttackDefaultTaunts = ['Take that!', 'Take a memo on this!']
 SuitSprintRamTaunts = {
     # Bossbots
     'f': [
-        "I'm only an entry-level speed bump!",
-        "Hey! I haven't even finished my probation period!",
-        "My boss is going to hear about this collision!",
+        "Tch! Fine!",
+        "How disrespectful! I'm just an intern!",
+        "How rude!",
     ],
     'p': [
-        "You just broke my favorite No. 2 lead!",
-        "I'm writing you up for reckless pedestrian conduct!",
-        "Ouch! You'll pay for that pencil sharpener damage!",
+        "I'll dull your humor!",
+        "I'll write you up for that...",
+        "You'll wish you were erased, toon!",
     ],
     'ym': [
-        "Yes Man says NO to physical assault!",
-        "I agreed to an audit, not a demolition derby!",
-        "Positively disgraceful driving!",
+        "Alright. You want some Positive Reinforcement?",
+        "Shouldn't have done that toon.",
+        "Hey, that hurt!",
     ],
     'mm': [
-        "I need to manage your personal space immediately!",
-        "That impact was outside approved project scope!",
-        "I'm micromanaging your speedometer from now on!",
+        "Oi! Watch where you're going, Toon!",
+        "I'll manage to handle you.",
+        "You're going back to the playground for that.",
     ],
     'ds': [
-        "You just downsized my structural integrity!",
-        "I'll downsize your speed to zero!",
-        "Emergency downsizing initiated on your velocity!",
+        "Huh-?!",
+        "I'll downsize you for that!",
+        "You want my attention? Now you have it!",
     ],
     'hh': [
-        "Oof! That gave me a massive headache!",
-        "Hunting heads, not high-speed collisions!",
-        "Keep your head on straight, Toon!",
+        "Your head is mine!",
+        "If you're hunting trouble, toon...",
+        "I hope you brought headache medicine.",
     ],
     'cr': [
-        "Hostile takeover at maximum velocity?!",
-        "I'm raiding your insurance policy for damages!",
-        "You can't just blitzkrieg corporate property!",
+        "HEY! I'M THE RAIDER HERE!",
+        "I won't bend to this hostile takeover!",
+        "I'll show you a broadside barrage.",
     ],
     'tbc': [
-        "You just bruised the Big Cheese!",
+        "I'm pretty cheesed off now...!",
         "That wasn't very mature of you!",
-        "You're going to get shredded for that impact!",
+        "I'm gonna shred you for that!",
     ],
 
     # Lawbots
     'bf': [
-        "I'm already at the bottom, stop pushing!",
-        "Low blow! That's a low-speed violation!",
-        "Scraping the bottom of the barrel with that ram!",
+        "My lunch...",
+        "Ouch, that hurt.",
+        "I sure do hope you brought something to eat.",
     ],
     'b': [
-        "Ouch! That drained my hydraulic fluid!",
-        "I'm bleeding company assets here!",
-        "You can't squeeze blood from a battered Cog!",
+        "Bet that stung...",
+        "Gah! Did you just bite ME?!",
+        "Oh, a Vampire Hunter? Bring it.",
     ],
     'dt': [
         "Stop! Cease! Desist! Halt! Oof! Ouch!",
-        "I'm suing you twice for that one hit!",
-        "Contradictory velocity! That's illegal and unlawful!",
+        "And people call me twofaced...",
+        "Ack! Hey!",
     ],
     'ac': [
         "I chase ambulances, I don't ride in them!",
-        "Whiplash! That's a seven-figure settlement!",
-        "My neck! My back! My legal fees!",
+        "MEDIC! oh, wait... that's me!",
+        "?!",
     ],
     'bs': [
         "Hey! You're supposed to hit me from behind!",
@@ -5089,7 +5089,8 @@ InventorySkillCreditNone = 'Skill credit: None'
 InventoryDetailAmount = '%(numItems)s / %(maxItems)s'
 InventoryDetailData = 'Accuracy: %(accuracy)s\nStatus: %(status)s (%(statusChance)s)\n%(damageString)s: %(damage)d%(bonus)s\n%(singleOrGroup)s'
 InventoryTrackExp = '%(curExp)s / %(nextExp)s'
-InventoryUberTrackExp = '%(nextExp)s to Go!'
+InventoryTrackMaxed = 'Maxed!'
+InventoryUberTrackExp = 'Maxed!'
 InventoryGuestExp = 'Guest Limit'
 GuestLostExp = 'Over Guest Limit'
 InventoryAffectsOneCog = 'Affects: One ' + Cog

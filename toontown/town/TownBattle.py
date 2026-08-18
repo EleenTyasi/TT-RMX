@@ -23,14 +23,14 @@ from toontown.battle import FireCogPanel
 
 class TownBattle(StateData.StateData):
     notify = DirectNotifyGlobal.directNotify.newCategory('TownBattle')
-    evenPos = (0.75,
-     0.55,
-     0.35,
-     0.15)
-    oddPos = (0.65,
-     0.45,
-     0.25,
-     0.05)
+    evenPos = (0.85,
+     0.57,
+     0.29,
+     0.01)
+    oddPos = (0.71,
+     0.43,
+     0.15,
+     -0.13)
 
     def __init__(self, doneEvent):
         StateData.StateData.__init__(self, doneEvent)
@@ -199,7 +199,7 @@ class TownBattle(StateData.StateData):
         self.notify.debug('enterPanels() num: %d localNum: %d' % (num, localNum))
         for toonPanel in self.toonPanels:
             toonPanel.hide()
-            toonPanel.setPos(0, 0, -0.9)
+            toonPanel.setPos(0, 0, -0.86)
 
         if num == 1:
             self.toonPanels[0].setX(self.oddPos[1])

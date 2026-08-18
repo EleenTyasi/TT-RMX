@@ -86,9 +86,11 @@ class DistributedBattleBldg(DistributedBattleBase.DistributedBattleBase):
             oneSuitTrack.append(Func(suit.loop, 'neutral'))
             oneSuitTrack.append(Func(suit.headsUp, elevatorPos))
             if self.suits.index(suit) == leaderIndex:
-                suitLeader = suit
-                suitIsLeader = 1
-                if self.bossBattle == 1:
+                from toontown.suit import SuitDialog
+                if getattr(suit, 'sprintRammed', False):
+                    taunt = getattr(suit, 'sprintRamLine', None) or SuitDialog.getSprintRamText(suit.getStyleName())
+                    suit.sprintRammed = False
+                elif self.bossBattle == 1:
                     taunt = self.getBossBattleTaunt()
                 else:
                     taunt = SuitBattleGlobals.getFaceoffTaunt(suit.getStyleName(), suit.doId)

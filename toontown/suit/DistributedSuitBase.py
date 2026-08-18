@@ -412,10 +412,12 @@ class DistributedSuitBase(DistributedAvatar.DistributedAvatar, Suit.Suit, SuitBa
                 self.showHpText(-cog_damage)
 
             # Unique Cog dialogue line on impact
+            self.sprintRammed = True
             from toontown.suit import SuitDialog
             from libotp import CFSpeech, CFTimeout
             style = self.getStyleName() if hasattr(self, 'getStyleName') else (self.dna.name if hasattr(self, 'dna') and self.dna else None)
             ramLine = SuitDialog.getSprintRamText(style)
+            self.sprintRamLine = ramLine
             if hasattr(self, 'setChatAbsolute'):
                 self.setChatAbsolute(ramLine, CFSpeech | CFTimeout)
 

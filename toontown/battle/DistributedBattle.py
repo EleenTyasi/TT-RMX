@@ -93,7 +93,12 @@ class DistributedBattle(DistributedBattleBase.DistributedBattleBase):
         toonTrack = Sequence()
         suitTrack.append(Func(suit.loop, 'neutral'))
         suitTrack.append(Func(suit.headsUp, toon))
-        taunt = SuitBattleGlobals.getFaceoffTaunt(suit.getStyleName(), suit.doId)
+        from toontown.suit import SuitDialog
+        if getattr(suit, 'sprintRammed', False):
+            taunt = getattr(suit, 'sprintRamLine', None) or SuitDialog.getSprintRamText(suit.getStyleName())
+            suit.sprintRammed = False
+        else:
+            taunt = SuitBattleGlobals.getFaceoffTaunt(suit.getStyleName(), suit.doId)
         suitTrack.append(Func(suit.setChatAbsolute, taunt, CFSpeech | CFTimeout))
         toonTrack.append(Func(toon.loop, 'neutral'))
         toonTrack.append(Func(toon.headsUp, suit))

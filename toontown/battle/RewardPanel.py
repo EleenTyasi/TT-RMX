@@ -96,7 +96,7 @@ class RewardPanel(DirectFrame):
         return
 
     def getNextExpValue(self, curSkill, trackIndex):
-        retVal = ToontownBattleGlobals.UberSkill
+        retVal = ToontownBattleGlobals.Levels[trackIndex][len(ToontownBattleGlobals.Levels[trackIndex]) - 1]
         for amount in ToontownBattleGlobals.Levels[trackIndex]:
             if curSkill < amount:
                 retVal = amount
@@ -235,17 +235,17 @@ class RewardPanel(DirectFrame):
                     trackBar['range'] = nextExp
                     trackBar['value'] = ToontownBattleGlobals.UnpaidMaxSkills[i]
                     trackBar['text'] = TTLocalizer.InventoryGuestExp
-                elif curExp >= ToontownBattleGlobals.regMaxSkill:
-                    nextExp = self.getNextExpValueUber(curExp, i)
-                    trackBar['range'] = nextExp
-                    uberCurrExp = curExp - ToontownBattleGlobals.regMaxSkill
-                    trackBar['value'] = uberCurrExp
-                    trackBar['text'] = TTLocalizer.InventoryUberTrackExp % {'nextExp': ToontownBattleGlobals.MaxSkill - curExp}
                 else:
-                    nextExp = self.getNextExpValue(curExp, i)
-                    trackBar['range'] = nextExp
-                    trackBar['value'] = curExp
-                    trackBar['text'] = '%s/%s' % (curExp, nextExp)
+                    maxSkillForTrack = ToontownBattleGlobals.Levels[i][len(ToontownBattleGlobals.Levels[i]) - 1]
+                    if curExp >= maxSkillForTrack:
+                        trackBar['range'] = maxSkillForTrack
+                        trackBar['value'] = curExp
+                        trackBar['text'] = TTLocalizer.InventoryTrackMaxed
+                    else:
+                        nextExp = self.getNextExpValue(curExp, i)
+                        trackBar['range'] = nextExp
+                        trackBar['value'] = curExp
+                        trackBar['text'] = '%s/%s' % (curExp, nextExp)
                 self.resetBarColor(i)
             else:
                 trackBar.hide()
@@ -253,15 +253,14 @@ class RewardPanel(DirectFrame):
     def incrementExp(self, track, newValue, toon):
         trackBar = self.trackBars[track]
         oldValue = trackBar['value']
-        newValue = min(ToontownBattleGlobals.MaxSkill, newValue)
+        maxSkillForTrack = ToontownBattleGlobals.Levels[track][len(ToontownBattleGlobals.Levels[track]) - 1]
+        newValue = min(maxSkillForTrack, newValue)
         nextExp = self.getNextExpValue(newValue, track)
         if newValue >= ToontownBattleGlobals.UnpaidMaxSkills[track] and toon.getGameAccess() != OTPGlobals.AccessFull:
             newValue = oldValue
             trackBar['text'] = TTLocalizer.GuestLostExp
-        elif newValue >= ToontownBattleGlobals.regMaxSkill:
-            newValue = newValue - ToontownBattleGlobals.regMaxSkill
-            nextExp = self.getNextExpValueUber(newValue, track)
-            trackBar['text'] = TTLocalizer.InventoryUberTrackExp % {'nextExp': ToontownBattleGlobals.UberSkill - newValue}
+        elif newValue >= maxSkillForTrack:
+            trackBar['text'] = TTLocalizer.InventoryTrackMaxed
         else:
             trackBar['text'] = '%s/%s' % (newValue, nextExp)
         trackBar['range'] = nextExp

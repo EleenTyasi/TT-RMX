@@ -217,8 +217,10 @@ class InventoryBase(DirectObject.DirectObject):
                     if simbase.config.GetBool('want-ban-gagtrack', False):
                         simbase.air.banManager.ban(self.toon.doId, dislId, commentStr)
                     return 0
-                if level > LAST_REGULAR_GAG_LEVEL and tempInv[track][level] > self.inventory[track][level] or allowUber:
-                    return 0
+                if tempInv[track][level] > self.inventory[track][level]:
+                    if hasattr(self.toon, 'experience') and self.toon.experience:
+                        if self.toon.experience.getExpLevel(track) < level:
+                            return 0
 
         return 1
 
@@ -237,26 +239,39 @@ class InventoryBase(DirectObject.DirectObject):
 
         return 1
 
+    def calculateTotalCost(self, newInventory):
+        if type(newInventory) == type('String'):
+            tempInv = self.makeFromNetString(newInventory)
+        else:
+            tempInv = newInventory
+        totalCost = 0
+        for track in range(len(Tracks)):
+            for level in range(len(Levels[track])):
+                diff = max(0, tempInv[track][level] - self.inventory[track][level])
+                totalCost += diff * (level + 1)
+        return totalCost
+
     def getMinCostOfPurchase(self, newInventory):
-        return self.countPropsInList(newInventory) - self.totalProps
+        return self.calculateTotalCost(newInventory)
 
     def validatePurchase(self, newInventory, currentMoney, newMoney):
         if newMoney > currentMoney:
             self.notify.warning('Somebody lied about their money! Rejecting purchase.')
             return 0
-        newItemTotal = self.countPropsInList(newInventory)
-        oldItemTotal = self.totalProps
-        if newItemTotal > oldItemTotal + currentMoney:
+        expectedCost = self.calculateTotalCost(newInventory)
+        actualSpent = currentMoney - newMoney
+        if expectedCost > currentMoney:
             self.notify.warning('Somebody overspent! Rejecting purchase.')
             return 0
-        if newItemTotal - oldItemTotal > currentMoney - newMoney:
-            self.notify.warning('Too many items based on money spent! Rejecting purchase.')
+        if actualSpent < expectedCost:
+            self.notify.warning('Not enough money spent for purchased items! Rejecting purchase.')
             return 0
+        newItemTotal = self.countPropsInList(newInventory)
         if newItemTotal > self.toon.getMaxCarry():
             self.notify.warning('Cannot carry %s items! Rejecting purchase.' % newItemTotal)
             return 0
         if not self.validateItemsBasedOnExp(newInventory):
-            self.notify.warning('Somebody is trying to buy forbidden items! ' + 'Rejecting purchase.')
+            self.notify.warning('Somebody is trying to buy forbidden items! Rejecting purchase.')
             return 0
         if not self.validateItemsBasedOnAccess(newInventory):
             simbase.air.writeServerEvent('suspicious', self.toon.doId, 'non-paid av trying to purchase paid gags')

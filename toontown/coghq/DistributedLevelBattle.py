@@ -127,9 +127,11 @@ class DistributedLevelBattle(DistributedBattle.DistributedBattle):
             oneSuitTrack.append(Func(suit.loop, 'neutral'))
             oneSuitTrack.append(Func(suit.headsUp, toonPos))
             if self.suits.index(suit) == leaderIndex:
-                suitLeader = suit
-                suitIsLeader = 1
-                if self.bossBattle == 1 and self.levelDoId in base.cr.doId2do:
+                from toontown.suit import SuitDialog
+                if getattr(suit, 'sprintRammed', False):
+                    taunt = getattr(suit, 'sprintRamLine', None) or SuitDialog.getSprintRamText(suit.getStyleName())
+                    suit.sprintRammed = False
+                elif self.bossBattle == 1 and self.levelDoId in base.cr.doId2do:
                     level = base.cr.doId2do[self.levelDoId]
                     if suit.boss:
                         taunt = level.getBossTaunt()

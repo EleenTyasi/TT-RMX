@@ -32,7 +32,7 @@ class EnemyHPPanel(DirectObject):
             relief=None,
             scale=0.13,
             image=DGG.getDefaultDialogGeom(),
-            image_scale=(4.6, 1.0, 2.2),
+            image_scale=(5.5, 1.0, 2.2),
             image_pos=(0, 0, 0),
             image_color=Vec4(0.12, 0.12, 0.15, 0.90),
             text='',
@@ -43,7 +43,7 @@ class EnemyHPPanel(DirectObject):
             relief=None,
             pos=(0, 0, 0.55),
             text='Target Cog',
-            text_scale=0.35,
+            text_scale=0.30,
             text_fg=Vec4(1, 1, 1, 1),
             text_shadow=Vec4(0, 0, 0, 1),
             text_font=ToontownGlobals.getSignFont(),
@@ -204,7 +204,12 @@ class EnemyHPPanel(DirectObject):
         elif isSkele and not isSuper:
             levelStr += ' (Skele)'
 
-        self.nameLabel['text'] = f"{name} (Lvl {levelStr})"
+        nameStr = f"{name} (Lvl {levelStr})"
+        self.nameLabel['text'] = nameStr
+        if len(nameStr) > 22:
+            self.nameLabel['text_scale'] = max(0.20, 0.30 * (22.0 / len(nameStr)))
+        else:
+            self.nameLabel['text_scale'] = 0.30
         self.hpLabel['text'] = f"HP: {currHP} / {maxHP}"
         
         pct = float(currHP) / float(maxHP) if maxHP > 0 else 0

@@ -16,41 +16,41 @@ class TownBattleToonPanel(DirectFrame):
     def __init__(self, id):
         gui = loader.loadModel('phase_3.5/models/gui/battle_gui')
         DirectFrame.__init__(self, relief=None, image=gui.find('**/ToonBtl_Status_BG'), image_color=Vec4(0.5, 0.9, 0.5, 0.7))
-        self.setScale(0.8)
+        self.setScale(1.2)
         self.initialiseoptions(TownBattleToonPanel)
         self.avatar = None
         self.badgeButtons = []
-        self.sosText = DirectLabel(parent=self, relief=None, pos=(0.1, 0, 0.015), text=TTLocalizer.TownBattleToonSOS, text_scale=0.06)
+        self.sosText = DirectLabel(parent=self, relief=None, pos=(0.11, 0, 0.015), text=TTLocalizer.TownBattleToonSOS, text_scale=0.06)
         self.sosText.hide()
-        self.fireText = DirectLabel(parent=self, relief=None, pos=(0.1, 0, 0.015), text=TTLocalizer.TownBattleToonFire, text_scale=0.06)
+        self.fireText = DirectLabel(parent=self, relief=None, pos=(0.11, 0, 0.015), text=TTLocalizer.TownBattleToonFire, text_scale=0.06)
         self.fireText.hide()
-        self.undecidedText = DirectLabel(parent=self, relief=None, pos=(0.1, 0, 0.015), text=TTLocalizer.TownBattleUndecided, text_scale=0.1)
-        self.healthText = DirectLabel(parent=self, text='', pos=(-0.06, 0, -0.075), text_scale=0.055)
+        self.undecidedText = DirectLabel(parent=self, relief=None, pos=(0.11, 0, 0.015), text=TTLocalizer.TownBattleUndecided, text_scale=0.1)
+        self.healthText = DirectLabel(parent=self, text='', pos=(-0.11, 0, -0.065), text_scale=0.045)
         self.hpChangeEvent = None
         self.gagNode = self.attachNewNode('gag')
-        self.gagNode.setPos(0.1, 0, 0.03)
+        self.gagNode.setPos(0.11, 0, 0.03)
         self.hasGag = 0
         passGui = gui.find('**/tt_t_gui_bat_pass')
         passGui.detachNode()
         self.passNode = self.attachNewNode('pass')
-        self.passNode.setPos(0.1, 0, 0.05)
+        self.passNode.setPos(0.11, 0, 0.05)
         passGui.setScale(0.2)
         passGui.reparentTo(self.passNode)
         self.passNode.hide()
         self.laffMeter = None
-        self.whichText = DirectLabel(parent=self, text='', pos=(0.1, 0, -0.08), text_scale=0.05)
+        self.whichText = DirectLabel(parent=self, text='', pos=(0.11, 0, -0.08), text_scale=0.05)
         
         self.statusContainer = DirectFrame(
             parent=self,
             relief=None,
-            pos=(-0.06, 0, -0.13),
+            pos=(-0.01, 0, 0.02),
         )
         self.statusText = DirectLabel(
             parent=self.statusContainer,
             relief=None,
             text='=OK=',
             pos=(0, 0, 0),
-            text_scale=0.06,
+            text_scale=0.045,
             text_fg=Vec4(0.2, 1.0, 0.3, 1),
             text_shadow=Vec4(0, 0, 0, 1),
             text_font=ToontownGlobals.getSignFont()
@@ -116,7 +116,7 @@ class TownBattleToonPanel(DirectFrame):
         self.__clearBadges()
         if effects:
             self.statusText.hide()
-            startX = -0.12 * (len(effects) - 1) / 2.0
+            startZ = 0.022 * (len(effects) - 1)
             for i, eff_str in enumerate(effects):
                 key = eff_str.split()[0].replace('[', '').replace(']', '').upper()
                 btn = DirectButton(
@@ -124,10 +124,10 @@ class TownBattleToonPanel(DirectFrame):
                     relief=DGG.RAISED,
                     frameSize=(-0.5, 0.5, -0.15, 0.2),
                     frameColor=(0.2, 0.2, 0.3, 0.9),
-                    pos=(startX + i * 0.12, 0, 0),
-                    scale=0.11,
+                    pos=(0.0, 0, startZ - i * 0.045),
+                    scale=0.10,
                     text=f"[{eff_str}]",
-                    text_scale=0.25,
+                    text_scale=0.28,
                     text_fg=Vec4(1, 0.85, 0.2, 1),
                     text_shadow=Vec4(0, 0, 0, 1),
                     text_font=ToontownGlobals.getInterfaceFont(),
@@ -138,7 +138,7 @@ class TownBattleToonPanel(DirectFrame):
                 self.badgeButtons.append(btn)
         else:
             self.statusText['text'] = '=OK='
-            self.statusText['text_scale'] = 0.06
+            self.statusText['text_scale'] = 0.045
             self.statusText['text_fg'] = Vec4(0.2, 1.0, 0.3, 1.0)
             self.statusText.show()
 
@@ -154,7 +154,7 @@ class TownBattleToonPanel(DirectFrame):
             self.laffMeter = LaffMeter.LaffMeter(avatar.style, avatar.hp, avatar.maxHp)
             self.laffMeter.setAvatar(self.avatar)
             self.laffMeter.reparentTo(self)
-            self.laffMeter.setPos(-0.06, 0, 0.05)
+            self.laffMeter.setPos(-0.11, 0, 0.04)
             self.laffMeter.setScale(0.045)
             self.laffMeter.start()
             self.setHealthText(avatar.hp, avatar.maxHp)
