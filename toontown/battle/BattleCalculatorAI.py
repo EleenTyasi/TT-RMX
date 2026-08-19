@@ -49,6 +49,7 @@ class BattleCalculatorAI:
         self.traps = {}
         self.npcTraps = {}
         self.blockingToons = set()
+        self.secondWindUsed = set()
         self.suitAtkStats = {}
         self.__clearBonuses(hp=1)
         self.__clearBonuses(hp=0)
@@ -1461,6 +1462,18 @@ class BattleCalculatorAI:
                         incomingDmg = max(0, toonHp - quarterHpThreshold)
                         attack[SUIT_HP_COL][position] = incomingDmg
                         self.notify.info('Uber Toon %d triggered OSP (Tier 2: 25%%)! Survived with %d HP' % (t, quarterHpThreshold))
+
+                # Second Wind Trinket (Works on all Toons, including 1-Laff Ubers):
+                # Once per battle, surviving fatal damage leaves you at 1 Laff with a SHIELD barrier.
+                from toontown.toon.TrinketsConfig import TRINKET_SECOND_WIND
+                has_second_wind = toonObj and hasattr(toonObj, 'hasTrinketEquipped') and toonObj.hasTrinketEquipped(TRINKET_SECOND_WIND)
+                if has_second_wind and t not in self.secondWindUsed and (toonHp - incomingDmg) <= 0:
+                    self.secondWindUsed.add(t)
+                    incomingDmg = max(0, toonHp - 1)
+                    attack[SUIT_HP_COL][position] = incomingDmg
+                    if hasattr(self, 'statusEffectMgr'):
+                        self.statusEffectMgr.apply_effect(t, 'SHIELD', 2, {'defense_reduction': -20})
+                    self.notify.info(f"Toon {t} triggered SECOND WIND! Survived fatal blow with 1 HP and gained SHIELD!")
 
                 if toonHp - attack[SUIT_HP_COL][position] <= 0:
                     if self.notify.getDebug():
