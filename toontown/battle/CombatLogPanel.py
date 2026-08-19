@@ -118,10 +118,10 @@ class CombatLogPanel(DirectObject):
             command=self.clearLog,
         )
 
-        arrowGui = loader.loadModel('phase_3/models/gui/ChatPanel')
-        btn_up = arrowGui.find('**/ChtBx_ScrollUp')
-        btn_dn = arrowGui.find('**/ChtBx_ScrollDN')
-        btn_rlvr = arrowGui.find('**/ChtBx_ScrollRR')
+        arrowGui = loader.loadModel('phase_3.5/models/gui/friendslist_gui')
+        btn_up = arrowGui.find('**/FndsLst_ScrollUp')
+        btn_dn = arrowGui.find('**/FndsLst_ScrollDN')
+        btn_rlvr = arrowGui.find('**/FndsLst_ScrollUp_Rllvr')
 
         # Scrolled list of combat messages
         self.scrolledList = DirectScrolledList(
@@ -134,12 +134,12 @@ class CombatLogPanel(DirectObject):
             itemMakeFunction=None,
             itemMakeExtraArgs=[],
             decButton_pos=(1.35, 0, 0.05),
-            decButton_image=(btn_up, btn_dn, btn_rlvr),
+            decButton_image=(btn_up, btn_dn, btn_rlvr, btn_up),
             decButton_image_scale=(1.2, 1.2, 1.2),
             decButton_relief=None,
             incButton_pos=(1.35, 0, -0.74),
-            incButton_image=(btn_dn, btn_up, btn_rlvr),
-            incButton_image_scale=(1.2, 1.2, 1.2),
+            incButton_image=(btn_up, btn_dn, btn_rlvr, btn_up),
+            incButton_image_scale=(1.2, 1.2, -1.2),
             incButton_relief=None,
         )
 

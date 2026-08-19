@@ -22,21 +22,28 @@ class FFXIVCamera(DirectObject):
         self.enabled = False
 
         # Camera spherical parameters
-        self.distance = 18.0
-        self.targetDistance = 18.0
-        self.minDistance = 4.0
-        self.maxDistance = 45.0
+        self.distance = 12.0
+        self.targetDistance = 12.0
+        self.minDistance = 3.0
+        self.maxDistance = 35.0
 
         self.yaw = 0.0      # Orbit heading relative to avatar
-        self.pitch = 15.0   # Degrees above avatar horizon (-75 to 45)
+        self.pitch = 10.0   # Degrees above avatar horizon (-60 to 45)
         self.minPitch = -60.0
         self.maxPitch = 45.0
 
-        # Mouse tracking state
+        # Mouse tracking & cursor locking state
         self.isLeftDragging = False
         self.isRightDragging = False
-        self.lastMousePos = None
-        self.mouseSensitivity = 120.0  # Pixels to degrees ratio
+        self.lockedCursorPos = None
+        self.savedCursorPos = None
+
+    def getSensitivity(self):
+        sens = 1.0
+        if hasattr(base, 'settings') and base.settings:
+            sens = base.settings.getFloat('game', 'camera-sensitivity', 1.0)
+        # Base scale: 1.0 -> 140.0 degrees per screen width
+        return max(0.1, sens) * 140.0
 
     def enable(self):
         if self.enabled:
@@ -65,25 +72,61 @@ class FFXIVCamera(DirectObject):
         self.enabled = False
         self.ignoreAll()
         taskMgr.remove('FFXIVCamera-updateTask')
+        self.__unlockCursor()
         self.isLeftDragging = False
         self.isRightDragging = False
-        self.lastMousePos = None
+
+    def __lockCursor(self):
+        if not base.win:
+            return
+        # Save current pixel position before hiding
+        if base.win.hasPointer(0):
+            p = base.win.getPointer(0)
+            self.savedCursorPos = (p.getX(), p.getY())
+            self.lockedCursorPos = (p.getX(), p.getY())
+        else:
+            winWidth = base.win.getXSize()
+            winHeight = base.win.getYSize()
+            self.savedCursorPos = (int(winWidth / 2), int(winHeight / 2))
+            self.lockedCursorPos = (int(winWidth / 2), int(winHeight / 2))
+
+        # Hide cursor
+        props = WindowProperties()
+        props.setCursorHidden(True)
+        base.win.requestProperties(props)
+
+    def __unlockCursor(self):
+        if not base.win:
+            return
+        # Restore cursor visibility and return cursor to where user clicked
+        props = WindowProperties()
+        props.setCursorHidden(False)
+        base.win.requestProperties(props)
+
+        if self.savedCursorPos:
+            base.win.movePointer(0, self.savedCursorPos[0], self.savedCursorPos[1])
+            self.savedCursorPos = None
+        self.lockedCursorPos = None
 
     def __onLeftDown(self):
         self.isLeftDragging = True
-        self.lastMousePos = None
+        if not self.isRightDragging:
+            self.__lockCursor()
 
     def __onLeftUp(self):
         self.isLeftDragging = False
-        self.lastMousePos = None
+        if not self.isRightDragging:
+            self.__unlockCursor()
 
     def __onRightDown(self):
         self.isRightDragging = True
-        self.lastMousePos = None
+        if not self.isLeftDragging:
+            self.__lockCursor()
 
     def __onRightUp(self):
         self.isRightDragging = False
-        self.lastMousePos = None
+        if not self.isLeftDragging:
+            self.__unlockCursor()
 
     def __onWheelUp(self):
         self.targetDistance = max(self.minDistance, self.targetDistance - 2.5)
@@ -95,46 +138,58 @@ class FFXIVCamera(DirectObject):
         if not self.enabled or not self.avatar or self.avatar.isEmpty():
             return Task.cont
 
-        # Handle mouse drag rotation
-        if (self.isLeftDragging or self.isRightDragging) and base.mouseWatcherNode.hasMouse():
-            mX = base.mouseWatcherNode.getMouseX()
-            mY = base.mouseWatcherNode.getMouseY()
+        # Handle mouse drag rotation with locked/hidden cursor
+        if (self.isLeftDragging or self.isRightDragging) and base.win and base.win.hasPointer(0):
+            pointer = base.win.getPointer(0)
+            curX = pointer.getX()
+            curY = pointer.getY()
 
-            if self.lastMousePos is not None:
-                dx = mX - self.lastMousePos[0]
-                dy = mY - self.lastMousePos[1]
+            if self.lockedCursorPos is not None:
+                dx_pixels = curX - self.lockedCursorPos[0]
+                dy_pixels = curY - self.lockedCursorPos[1]
 
-                deltaYaw = -dx * self.mouseSensitivity
-                deltaPitch = dy * self.mouseSensitivity
+                if dx_pixels != 0 or dy_pixels != 0:
+                    winWidth = max(1, base.win.getXSize())
+                    winHeight = max(1, base.win.getYSize())
 
-                if self.isRightDragging:
-                    # Right-click drag rotates the character AND the camera together
-                    self.avatar.setH(self.avatar.getH() - deltaYaw)
-                else:
-                    # Left-click drag orbits the camera freely around character
-                    self.yaw += deltaYaw
+                    # Normalized delta relative to window dimensions
+                    normDx = float(dx_pixels) / float(winWidth)
+                    normDy = float(dy_pixels) / float(winHeight)
 
-                self.pitch = max(self.minPitch, min(self.maxPitch, self.pitch + deltaPitch))
+                    sens = self.getSensitivity()
+                    deltaYaw = -normDx * sens
+                    deltaPitch = -normDy * sens
 
-            self.lastMousePos = (mX, mY)
-        else:
-            self.lastMousePos = None
+                    if self.isRightDragging:
+                        # Right-click drag rotates character and camera together
+                        self.avatar.setH(self.avatar.getH() - deltaYaw)
+                    else:
+                        # Left-click drag orbits camera freely around character
+                        self.yaw += deltaYaw
+
+                    self.pitch = max(self.minPitch, min(self.maxPitch, self.pitch + deltaPitch))
+
+                    # Re-center cursor at locked location so movement is infinite
+                    base.win.movePointer(0, self.lockedCursorPos[0], self.lockedCursorPos[1])
+            else:
+                self.lockedCursorPos = (curX, curY)
 
         # Smooth distance zoom lerp
         self.distance += (self.targetDistance - self.distance) * 0.25
 
         # Compute camera position relative to avatar
+        avHeight = max(self.avatar.getHeight(), 3.0)
         radPitch = math.radians(self.pitch)
         radYaw = math.radians(self.yaw)
 
         horizDist = self.distance * math.cos(radPitch)
-        camZ = self.distance * math.sin(radPitch) + self.avatar.getHeight() * 0.95
+        camZ = self.distance * math.sin(radPitch) + (avHeight * 0.85)
 
         camX = horizDist * math.sin(radYaw)
         camY = -horizDist * math.cos(radYaw)
 
         camPosRel = Point3(camX, camY, camZ)
-        lookAtRel = Point3(0, 0, self.avatar.getHeight() * 0.75)
+        lookAtRel = Point3(0, 0, avHeight * 0.85)
 
         camera.setPos(self.avatar, camPosRel)
         camera.lookAt(self.avatar, lookAtRel)

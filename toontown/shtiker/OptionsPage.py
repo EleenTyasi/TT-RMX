@@ -680,7 +680,7 @@ class ControlsTabPage(DirectFrame):
             self.buttons[action] = btn
 
         # Camera Mode (Classic vs FFXIV Style)
-        yCamPos = textStartHeight - (len(self.BINDINGS_LIST) * textRowHeight) - 0.01
+        yCamPos = textStartHeight - (len(self.BINDINGS_LIST) * textRowHeight) + 0.01
         self.cameraModeLabel = DirectLabel(
             parent=self,
             relief=None,
@@ -701,6 +701,47 @@ class ControlsTabPage(DirectFrame):
             command=self.__toggleCameraMode,
         )
 
+        # Camera Sensitivity Slider/Adjuster
+        ySensPos = yCamPos - 0.075
+        self.cameraSensLabel = DirectLabel(
+            parent=self,
+            relief=None,
+            text='Camera Sensitivity',
+            text_align=TextNode.ALeft,
+            text_scale=options_text_scale,
+            pos=(leftMargin, 0, ySensPos),
+        )
+
+        guiFriends = loader.loadModel('phase_3.5/models/gui/friendslist_gui')
+        self.sensLeftArrow = DirectButton(
+            parent=self,
+            relief=None,
+            image=(guiFriends.find('**/Horiz_Arrow_UP'), guiFriends.find('**/Horiz_Arrow_DN'), guiFriends.find('**/Horiz_Arrow_Rllvr'), guiFriends.find('**/Horiz_Arrow_UP')),
+            image3_color=Vec4(1, 1, 1, 0.5),
+            scale=(-0.8, 0.8, 0.8),
+            pos=(0.18, 0, ySensPos + 0.01),
+            command=self.__adjustSensitivity,
+            extraArgs=[-0.2],
+        )
+        self.sensValueLabel = DirectLabel(
+            parent=self,
+            relief=None,
+            text='1.0x',
+            text_scale=0.045,
+            pos=(0.35, 0, ySensPos),
+        )
+        self.sensRightArrow = DirectButton(
+            parent=self,
+            relief=None,
+            image=(guiFriends.find('**/Horiz_Arrow_UP'), guiFriends.find('**/Horiz_Arrow_DN'), guiFriends.find('**/Horiz_Arrow_Rllvr'), guiFriends.find('**/Horiz_Arrow_UP')),
+            image3_color=Vec4(1, 1, 1, 0.5),
+            scale=(0.8, 0.8, 0.8),
+            pos=(0.52, 0, ySensPos + 0.01),
+            command=self.__adjustSensitivity,
+            extraArgs=[0.2],
+        )
+        guiFriends.removeNode()
+
         # Reset Defaults Button
         self.resetButton = DirectButton(
             parent=self,
@@ -710,10 +751,24 @@ class ControlsTabPage(DirectFrame):
             text='Reset Defaults',
             text_scale=0.045,
             text_pos=(0, -0.015),
-            pos=(0.0, 0.0, -0.60),
+            pos=(0.0, 0.0, -0.62),
             command=self.__resetDefaults,
         )
         guiButton.removeNode()
+
+    def __adjustSensitivity(self, delta):
+        curSens = 1.0
+        if hasattr(base, 'settings') and base.settings:
+            curSens = base.settings.getFloat('game', 'camera-sensitivity', 1.0)
+            curSens = max(0.2, min(3.0, round(curSens + delta, 1)))
+            base.settings.updateSetting('game', 'camera-sensitivity', curSens)
+        self.__updateSensitivityDisplay()
+
+    def __updateSensitivityDisplay(self):
+        curSens = 1.0
+        if hasattr(base, 'settings') and base.settings:
+            curSens = base.settings.getFloat('game', 'camera-sensitivity', 1.0)
+        self.sensValueLabel['text'] = '%.1fx' % curSens
 
     def __toggleCameraMode(self):
         use_ffxiv = False
@@ -806,6 +861,7 @@ class ControlsTabPage(DirectFrame):
         self.show()
         self.updateButtonLabels()
         self.__updateCameraModeButton()
+        self.__updateSensitivityDisplay()
 
     def exit(self):
         self.__cancelListening()
@@ -821,6 +877,14 @@ class ControlsTabPage(DirectFrame):
             self.cameraModeButton.destroy()
         if hasattr(self, 'cameraModeLabel') and self.cameraModeLabel:
             self.cameraModeLabel.destroy()
+        if hasattr(self, 'cameraSensLabel') and self.cameraSensLabel:
+            self.cameraSensLabel.destroy()
+        if hasattr(self, 'sensLeftArrow') and self.sensLeftArrow:
+            self.sensLeftArrow.destroy()
+        if hasattr(self, 'sensRightArrow') and self.sensRightArrow:
+            self.sensRightArrow.destroy()
+        if hasattr(self, 'sensValueLabel') and self.sensValueLabel:
+            self.sensValueLabel.destroy()
         if hasattr(self, 'resetButton') and self.resetButton:
             self.resetButton.destroy()
         self.buttons = {}
