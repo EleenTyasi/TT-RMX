@@ -1,4 +1,4 @@
-﻿from direct.directnotify import DirectNotifyGlobal
+from direct.directnotify import DirectNotifyGlobal
 from direct.showbase.InputStateGlobal import inputState
 
 # Action IDs -> Default Key mapping
@@ -60,8 +60,9 @@ def getKeyName(key):
 
 
 def getKey(action):
-    if hasattr(base, 'settings') and base.settings:
-        val = base.settings.getOption('controls', action, DEFAULT_KEYBINDS.get(action, ''))
+    base_obj = __builtins__.get('base') if isinstance(__builtins__, dict) else getattr(__builtins__, 'base', None)
+    if base_obj and hasattr(base_obj, 'settings') and base_obj.settings:
+        val = base_obj.settings.getOption('controls', action, DEFAULT_KEYBINDS.get(action, ''))
         if val:
             return str(val).lower()
     return DEFAULT_KEYBINDS.get(action, '')
@@ -69,10 +70,12 @@ def getKey(action):
 
 def setKey(action, key):
     key = str(key).lower()
-    if hasattr(base, 'settings') and base.settings:
-        base.settings.updateSetting('controls', action, key)
+    base_obj = __builtins__.get('base') if isinstance(__builtins__, dict) else getattr(__builtins__, 'base', None)
+    if base_obj and hasattr(base_obj, 'settings') and base_obj.settings:
+        base_obj.settings.updateSetting('controls', action, key)
     applyKeybinds()
-    messenger.send('keybinds-changed')
+    if 'messenger' in __builtins__ if isinstance(__builtins__, dict) else hasattr(__builtins__, 'messenger'):
+        messenger.send('keybinds-changed')
 
 
 def applyKeybinds():

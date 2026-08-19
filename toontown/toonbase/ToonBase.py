@@ -31,6 +31,8 @@ class ToonBase(OTPBase.OTPBase):
         else:
             self.settings = None
         OTPBase.OTPBase.__init__(self)
+        from toontown.toonbase import ToontownControlConfig
+        ToontownControlConfig.applyKeybinds()
         if not self.isMainWindowOpen():
             try:
                 launcher.setPandaErrorCode(7)
@@ -447,5 +449,3 @@ class ToonBase(OTPBase.OTPBase):
             loadPrcFileData('toonBase Settings Sfx Volume', 'audio-master-sfx-volume %s' % sfxVol)
             loadPrcFileData('toonBase Settings Toon Chat Sounds', 'toon-chat-sounds %s' % toonChatSounds)
             self.settings.loadFromSettings()
-            from toontown.toonbase import ToontownControlConfig
-            ToontownControlConfig.applyKeybinds()
