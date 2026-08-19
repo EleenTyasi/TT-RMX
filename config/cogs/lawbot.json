@@ -93,7 +93,8 @@
       "ParadigmShift",
       "Quake",
       "Spin",
-      "WriteOff"
+      "WriteOff",
+      "ultrastomp"
     ]
   },
   "Legal Eagle": {
@@ -109,7 +110,8 @@
       "EvilEye",
       "Jargon",
       "Legalese",
-      "PeckingOrder"
+      "PeckingOrder",
+      "LitigationDefense"
     ]
   },
   "Big Wig": {
@@ -123,7 +125,9 @@
     "accuracy_growth": 5,
     "attacks": [
       "PowerTrip",
-      "ThrowBook"
+      "ThrowBook",
+      "LitigationDefense",
+      "ultrastomp"
     ]
   }
 }

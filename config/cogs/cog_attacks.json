@@ -1909,5 +1909,59 @@
     "self_buff": "SHIELD",
     "buff_rounds": 2,
     "status_effect": null
+  },
+  "ultrastomp": {
+    "name": "Giga Tremor",
+    "anim": "stomp",
+    "target": "group",
+    "damage": [
+      20,
+      30,
+      40,
+      60,
+      70
+    ],
+    "accuracy": [
+      80,
+      75,
+      70,
+      60,
+      40
+    ],
+    "frequency": [
+      20,
+      20,
+      20,
+      20,
+      20
+    ],
+    "status_effect": null
+  },
+  "GigaTremor": {
+    "name": "Giga Tremor",
+    "anim": "stomp",
+    "target": "group",
+    "damage": [
+      20,
+      30,
+      40,
+      60,
+      70
+    ],
+    "accuracy": [
+      80,
+      75,
+      70,
+      60,
+      40
+    ],
+    "frequency": [
+      20,
+      20,
+      20,
+      20,
+      20
+    ],
+    "status_effect": null
   }
 }

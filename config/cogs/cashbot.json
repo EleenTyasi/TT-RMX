@@ -44,7 +44,8 @@
       "GlowerPower",
       "FingerWag",
       "FreezeAssets",
-      "BounceCheck"
+      "BounceCheck",
+      "CapitalInjection"
     ]
   },
   "Bean Counter": {
@@ -60,7 +61,8 @@
       "Audit",
       "Calculate",
       "Tabulate",
-      "WriteOff"
+      "WriteOff",
+      "Bailout"
     ]
   },
   "Number Cruncher": {
@@ -76,7 +78,8 @@
       "Audit",
       "Calculate",
       "Crunch",
-      "Tabulate"
+      "Tabulate",
+      "CapitalInjection"
     ]
   },
   "Money Bags": {
@@ -91,7 +94,9 @@
     "attacks": [
       "Liquidate",
       "MarketCrash",
-      "PowerTie"
+      "PowerTie",
+      "DividendPayout",
+      "Bailout"
     ]
   },
   "Loan Shark": {
@@ -107,7 +112,8 @@
       "Bite",
       "Chomp",
       "PlayHardball",
-      "WriteOff"
+      "WriteOff",
+      "CapitalInjection"
     ]
   },
   "Robber Baron": {
@@ -121,7 +127,9 @@
     "accuracy_growth": 5,
     "attacks": [
       "PowerTrip",
-      "TeeOff"
+      "TeeOff",
+      "Bailout",
+      "DividendPayout"
     ]
   }
 }

@@ -77,7 +77,8 @@
       "HalfWindsor",
       "Quake",
       "Shake",
-      "Tremor"
+      "Tremor",
+      "ultrastomp"
     ]
   },
   "Two-Face": {
@@ -93,7 +94,8 @@
       "EvilEye",
       "HangUp",
       "RazzleDazzle",
-      "RedTape"
+      "RedTape",
+      "Schmooze"
     ]
   },
   "The Mingler": {
@@ -110,7 +112,8 @@
       "ParadigmShift",
       "PowerTrip",
       "Schmooze",
-      "TeeOff"
+      "TeeOff",
+      "ultrastomp"
     ]
   },
   "Mr. Hollywood": {
@@ -124,7 +127,10 @@
     "accuracy_growth": 5,
     "attacks": [
       "PowerTrip",
-      "RazzleDazzle"
+      "RazzleDazzle",
+      "DividendPayout",
+      "Synergy",
+      "ultrastomp"
     ]
   }
 }

@@ -61,7 +61,8 @@
       "FingerWag",
       "FountainPen",
       "BrainStorm",
-      "BuzzWord"
+      "BuzzWord",
+      "Restructure"
     ]
   },
   "Downsizer": {
@@ -110,7 +111,8 @@
       "Canned",
       "EvilEye",
       "PlayHardball",
-      "PowerTie"
+      "PowerTie",
+      "Restructure"
     ]
   },
   "The Big Cheese": {
@@ -126,7 +128,8 @@
       "CigarSmoke",
       "FloodTheMarket",
       "SongAndDance",
-      "TeeOff"
+      "TeeOff",
+      "Restructure"
     ]
   }
 }
