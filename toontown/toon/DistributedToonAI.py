@@ -172,8 +172,7 @@ class DistributedToonAI(DistributedPlayerAI.DistributedPlayerAI, DistributedSmoo
         self._isGM = False
         self._gmType = None
         self.hpOwnedByBattle = 0
-        if simbase.wantPets:
-            self.petTrickPhrases = []
+        self.petTrickPhrases = []
         if simbase.wantBingo:
             self.bingoCheat = False
         self.customMessages = []

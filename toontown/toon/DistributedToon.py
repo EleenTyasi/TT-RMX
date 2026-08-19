@@ -114,9 +114,8 @@ class DistributedToon(DistributedPlayer.DistributedPlayer, Toon.Toon, Distribute
         self.savedCheesyEffect = CENormal
         self.savedCheesyHoodId = 0
         self.savedCheesyExpireTime = 0
-        if hasattr(base, 'wantPets') and base.wantPets:
-            self.petTrickPhrases = []
-            self.petDNA = None
+        self.petTrickPhrases = []
+        self.petDNA = None
         self.customMessages = []
         self.resistanceMessages = []
         self.cogSummonsEarned = []

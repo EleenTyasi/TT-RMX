@@ -24,7 +24,8 @@ class TTSCPetTrickMenu(SCMenu):
         except:
             return
 
-        for trickId in lt.petTrickPhrases:
+        phrases = getattr(lt, 'petTrickPhrases', [])
+        for trickId in phrases:
             if trickId not in PetTricks.TrickId2scIds:
                 TTSCPetTrickMenu.notify.warning('unknown trick ID: %s' % trickId)
             else:
