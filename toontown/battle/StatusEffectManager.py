@@ -97,19 +97,36 @@ class StatusEffectManager:
 
     def is_frozen(self, avatar_id):
         if avatar_id in self.effects:
-            for entry in self.effects[avatar_id].values():
-                if 'inst' in entry and entry['inst'].is_frozen():
+            for effect_name, entry in self.effects[avatar_id].items():
+                if effect_name == 'FREEZE':
+                    return True
+                if 'inst' in entry and hasattr(entry['inst'], 'is_frozen') and entry['inst'].is_frozen():
                     return True
         return False
 
     def is_wet(self, avatar_id):
         if avatar_id in self.effects:
-            for entry in self.effects[avatar_id].values():
+            for effect_name, entry in self.effects[avatar_id].items():
+                if effect_name == 'WET':
+                    return True
                 if 'inst' in entry and hasattr(entry['inst'], 'is_wet') and entry['inst'].is_wet():
                     return True
-                if entry.get('effect') == 'WET':
-                    return True
         return False
+
+    def is_burned(self, avatar_id):
+        return self.has_effect(avatar_id, 'BURN')
+
+    def is_poisoned(self, avatar_id):
+        return self.has_effect(avatar_id, 'POISON')
+
+    def is_weakened(self, avatar_id):
+        return self.has_effect(avatar_id, 'WEAKEN')
+
+    def is_slowed(self, avatar_id):
+        return self.has_effect(avatar_id, 'SLOW')
+
+    def is_shielded(self, avatar_id):
+        return self.has_effect(avatar_id, 'SHIELD')
 
     def tick_round(self):
         """

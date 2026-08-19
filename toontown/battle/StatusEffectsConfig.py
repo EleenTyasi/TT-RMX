@@ -114,6 +114,21 @@ SUIT_BUFF_ATTACKS = {
         'is_pure_heal': True,
         'chance': 100,
     },
+    'Bailout': {
+        'heal_percent': 0.25,     # Restores 25% Max HP
+        'is_pure_heal': True,     # Pure heal/recovery skill
+        'chance': 100,
+    },
+    'DividendPayout': {
+        'heal_percent': 0.20,     # Restores 20% Max HP
+        'is_pure_heal': False,
+        'chance': 100,
+    },
+    'CapitalInjection': {
+        'heal_percent': 0.30,     # Restores 30% Max HP
+        'is_pure_heal': True,
+        'chance': 100,
+    },
 }
 
 # Toon Buff definitions (applied via Toon-Up or items)

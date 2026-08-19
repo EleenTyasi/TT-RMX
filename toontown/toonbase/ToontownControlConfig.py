@@ -11,6 +11,8 @@ DEFAULT_KEYBINDS = {
     'sprint': 'shift',
     'book': 'f8',
     'chat': '/',
+    'gags': 'home',
+    'tasks': 'end',
 }
 
 KEY_DISPLAY_NAMES = {
@@ -89,6 +91,26 @@ def applyKeybinds():
     left = getKey('turnLeft')
     right = getKey('turnRight')
     jmp = getKey('jump')
+    book = getKey('book') or 'f8'
+    gags = getKey('gags') or 'home'
+    tasks = getKey('tasks') or 'end'
+
+    try:
+        from otp.otpbase import OTPGlobals
+        from toontown.toonbase import ToontownGlobals
+
+        ToontownGlobals.StickerBookHotkey = book
+        ToontownGlobals.InventoryHotkeyOn = gags
+        ToontownGlobals.InventoryHotkeyOff = gags + '-up'
+        ToontownGlobals.QuestsHotkeyOn = tasks
+        ToontownGlobals.QuestsHotkeyOff = tasks + '-up'
+        OTPGlobals.StickerBookHotkey = book
+        OTPGlobals.InventoryHotkeyOn = gags
+        OTPGlobals.InventoryHotkeyOff = gags + '-up'
+        OTPGlobals.QuestsHotkeyOn = tasks
+        OTPGlobals.QuestsHotkeyOff = tasks + '-up'
+    except Exception:
+        pass
 
     # Register customized movement bindings on inputState
     if fwd:

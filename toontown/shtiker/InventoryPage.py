@@ -124,12 +124,21 @@ class InventoryPage(ShtikerPage.ShtikerPage):
         return
 
     def acceptOnscreenHooks(self):
+        self.acceptingHooks = True
         self.accept(ToontownGlobals.InventoryHotkeyOn, self.showInventoryOnscreen)
         self.accept(ToontownGlobals.InventoryHotkeyOff, self.hideInventoryOnscreen)
+        self.accept('keybinds-changed', self.__handleKeybindsChanged)
 
     def ignoreOnscreenHooks(self):
+        self.acceptingHooks = False
         self.ignore(ToontownGlobals.InventoryHotkeyOn)
         self.ignore(ToontownGlobals.InventoryHotkeyOff)
+        self.ignore('keybinds-changed')
+
+    def __handleKeybindsChanged(self):
+        if getattr(self, 'acceptingHooks', False):
+            self.ignoreOnscreenHooks()
+            self.acceptOnscreenHooks()
 
     def showInventoryOnscreen(self):
         messenger.send('wakeup')

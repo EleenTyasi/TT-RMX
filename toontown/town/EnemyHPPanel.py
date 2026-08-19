@@ -118,18 +118,18 @@ class EnemyHPPanel(DirectObject):
         self.accept('suit-hp-change', self.__handleSuitHPChange)
 
     def setPosition(self, index, total):
-        # Position on the left side of the screen so it doesn't block the Cogs or Boss Bar
+        # Position in top-left corner, well above the Gag selection menu
         if total <= 1:
-            yPositions = [0.28]
+            yPositions = [0.72]
         elif total == 2:
-            yPositions = [0.42, 0.14]
+            yPositions = [0.75, 0.48]
         elif total == 3:
-            yPositions = [0.55, 0.28, 0.01]
+            yPositions = [0.78, 0.53, 0.28]
         else:
-            yPositions = [0.65, 0.40, 0.15, -0.10]
+            yPositions = [0.80, 0.58, 0.36, 0.14]
 
-        posY = yPositions[index] if index < len(yPositions) else 0.28
-        self.frame.setPos(-0.95, 0, posY)
+        posY = yPositions[index] if index < len(yPositions) else 0.72
+        self.frame.setPos(-1.0, 0, posY)
         self.frame.reparentTo(aspect2d)
 
     def __handleSuitHPChange(self, suit):
@@ -290,6 +290,7 @@ class EnemyHPPanelManager(DirectObject):
     def __init__(self):
         DirectObject.__init__(self)
         self.panels = {}
+        self.cogOrder = []  # Tracks order of cog appearance (oldest -> newest)
 
     def updateCogs(self, cogs):
         if not cogs:
@@ -297,12 +298,23 @@ class EnemyHPPanelManager(DirectObject):
             return
 
         valid_cogs = [s for s in cogs if s and (not hasattr(s, 'isEmpty') or not s.isEmpty())]
-        total = len(valid_cogs)
-        current_ids = set()
+        suit_dict = {getattr(s, 'doId', id(s)): s for s in valid_cogs}
+        current_ids = set(suit_dict.keys())
 
-        for index, suit in enumerate(valid_cogs):
-            doId = getattr(suit, 'doId', id(suit))
-            current_ids.add(doId)
+        # Remove departed cogs while keeping arrival order for existing ones
+        self.cogOrder = [cid for cid in self.cogOrder if cid in current_ids]
+        # Append newly appeared cogs to the end (underneath oldest)
+        for s in valid_cogs:
+            cid = getattr(s, 'doId', id(s))
+            if cid not in self.cogOrder:
+                self.cogOrder.append(cid)
+
+        total = len(self.cogOrder)
+
+        for index, doId in enumerate(self.cogOrder):
+            suit = suit_dict.get(doId)
+            if not suit:
+                continue
             if doId not in self.panels:
                 panel = EnemyHPPanel(index, total)
                 panel.updateSuit(suit)
@@ -335,8 +347,10 @@ class EnemyHPPanelManager(DirectObject):
         for panel in self.panels.values():
             panel.hide()
         self.panels.clear()
+        self.cogOrder.clear()
 
     def destroyAll(self):
         for panel in self.panels.values():
             panel.destroy()
         self.panels.clear()
+        self.cogOrder.clear()

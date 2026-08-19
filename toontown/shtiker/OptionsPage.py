@@ -627,6 +627,8 @@ class ControlsTabPage(DirectFrame):
         ('sprint', 'Sprint'),
         ('chat', 'Open Chat (SpeedChat+)'),
         ('book', 'Shtiker Book'),
+        ('gags', 'View Gags'),
+        ('tasks', 'View Tasks'),
     ]
 
     def __init__(self, parent = aspect2d):
@@ -644,13 +646,13 @@ class ControlsTabPage(DirectFrame):
     def load(self):
         from toontown.toonbase import ToontownControlConfig
         guiButton = loader.loadModel('phase_3/models/gui/quit_button')
-        textStartHeight = 0.44
-        textRowHeight = 0.10
+        textStartHeight = 0.48
+        textRowHeight = 0.068
         leftMargin = -0.72
         buttonbase_xcoord = 0.35
-        button_image_scale = (0.7, 1, 0.9)
-        button_textpos = (0, -0.015)
-        options_text_scale = 0.048
+        button_image_scale = (0.6, 1, 0.72)
+        button_textpos = (0, -0.012)
+        options_text_scale = 0.040
 
         for idx, (action, labelText) in enumerate(self.BINDINGS_LIST):
             yPos = textStartHeight - (idx * textRowHeight)
@@ -671,7 +673,7 @@ class ControlsTabPage(DirectFrame):
                 image=(guiButton.find('**/QuitBtn_UP'), guiButton.find('**/QuitBtn_DN'), guiButton.find('**/QuitBtn_RLVR')),
                 image_scale=button_image_scale,
                 text=ToontownControlConfig.getKeyName(currentKey),
-                text_scale=0.042,
+                text_scale=0.036,
                 text_pos=button_textpos,
                 pos=(buttonbase_xcoord, 0.0, yPos),
                 command=self.__listenForKey,
@@ -680,7 +682,7 @@ class ControlsTabPage(DirectFrame):
             self.buttons[action] = btn
 
         # Camera Mode (Classic vs FFXIV Style)
-        yCamPos = textStartHeight - (len(self.BINDINGS_LIST) * textRowHeight) + 0.01
+        yCamPos = textStartHeight - (len(self.BINDINGS_LIST) * textRowHeight) - 0.005
         self.cameraModeLabel = DirectLabel(
             parent=self,
             relief=None,
@@ -695,14 +697,14 @@ class ControlsTabPage(DirectFrame):
             image=(guiButton.find('**/QuitBtn_UP'), guiButton.find('**/QuitBtn_DN'), guiButton.find('**/QuitBtn_RLVR')),
             image_scale=button_image_scale,
             text='',
-            text_scale=0.042,
+            text_scale=0.036,
             text_pos=button_textpos,
             pos=(buttonbase_xcoord, 0.0, yCamPos),
             command=self.__toggleCameraMode,
         )
 
         # Camera Sensitivity Slider/Adjuster
-        ySensPos = yCamPos - 0.075
+        ySensPos = yCamPos - 0.065
         self.cameraSensLabel = DirectLabel(
             parent=self,
             relief=None,
@@ -718,8 +720,8 @@ class ControlsTabPage(DirectFrame):
             relief=None,
             image=(guiFriends.find('**/Horiz_Arrow_UP'), guiFriends.find('**/Horiz_Arrow_DN'), guiFriends.find('**/Horiz_Arrow_Rllvr'), guiFriends.find('**/Horiz_Arrow_UP')),
             image3_color=Vec4(1, 1, 1, 0.5),
-            scale=(-0.8, 0.8, 0.8),
-            pos=(0.18, 0, ySensPos + 0.01),
+            scale=(-0.7, 0.7, 0.7),
+            pos=(0.20, 0, ySensPos + 0.01),
             command=self.__adjustSensitivity,
             extraArgs=[-0.2],
         )
@@ -727,7 +729,7 @@ class ControlsTabPage(DirectFrame):
             parent=self,
             relief=None,
             text='1.0x',
-            text_scale=0.045,
+            text_scale=0.040,
             pos=(0.35, 0, ySensPos),
         )
         self.sensRightArrow = DirectButton(
@@ -735,8 +737,8 @@ class ControlsTabPage(DirectFrame):
             relief=None,
             image=(guiFriends.find('**/Horiz_Arrow_UP'), guiFriends.find('**/Horiz_Arrow_DN'), guiFriends.find('**/Horiz_Arrow_Rllvr'), guiFriends.find('**/Horiz_Arrow_UP')),
             image3_color=Vec4(1, 1, 1, 0.5),
-            scale=(0.8, 0.8, 0.8),
-            pos=(0.52, 0, ySensPos + 0.01),
+            scale=(0.7, 0.7, 0.7),
+            pos=(0.50, 0, ySensPos + 0.01),
             command=self.__adjustSensitivity,
             extraArgs=[0.2],
         )
@@ -747,11 +749,11 @@ class ControlsTabPage(DirectFrame):
             parent=self,
             relief=None,
             image=(guiButton.find('**/QuitBtn_UP'), guiButton.find('**/QuitBtn_DN'), guiButton.find('**/QuitBtn_RLVR')),
-            image_scale=(0.9, 1.0, 1.0),
+            image_scale=(0.8, 1.0, 0.85),
             text='Reset Defaults',
-            text_scale=0.045,
-            text_pos=(0, -0.015),
-            pos=(0.0, 0.0, -0.62),
+            text_scale=0.040,
+            text_pos=(0, -0.012),
+            pos=(0.0, 0.0, -0.40),
             command=self.__resetDefaults,
         )
         guiButton.removeNode()

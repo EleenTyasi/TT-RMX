@@ -1,1 +1,7 @@
 *.db*
+*.bak
+*.dat
+*.dir
+*.yaml
+astrondb/*.yaml
+!astrondb/.gitignore

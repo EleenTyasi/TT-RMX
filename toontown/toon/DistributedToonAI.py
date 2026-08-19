@@ -444,10 +444,26 @@ class DistributedToonAI(DistributedPlayerAI.DistributedPlayerAI, DistributedSmoo
         self.inventory.maxOutInv()
         self.d_setInventory(self.inventory.makeNetString())
 
-    def setMaxHp(self, maxHp):
-        # We store the raw/unmodified maxHp on self.baseMaxHp
-        self.baseMaxHp = maxHp
+    def setBaseMaxHp(self, baseMaxHp):
+        self.baseMaxHp = baseMaxHp
         self.recomputeMaxHp()
+
+    def d_setBaseMaxHp(self, baseMaxHp):
+        self.sendUpdate('setBaseMaxHp', [baseMaxHp])
+
+    def b_setBaseMaxHp(self, baseMaxHp):
+        self.setBaseMaxHp(baseMaxHp)
+        if getattr(self, 'doId', None) and self.isPlayerControlled():
+            self.d_setBaseMaxHp(baseMaxHp)
+
+    def setMaxHp(self, maxHp):
+        # We store the raw/unmodified maxHp on self.baseMaxHp if not set
+        if not hasattr(self, 'baseMaxHp') or self.baseMaxHp == 15 or maxHp > getattr(self, 'baseMaxHp', 15):
+            self.baseMaxHp = maxHp
+        self.recomputeMaxHp()
+
+    def b_setMaxHp(self, maxHp):
+        self.b_setBaseMaxHp(maxHp)
 
     def recomputeMaxHp(self):
         baseMax = getattr(self, 'baseMaxHp', getattr(self, 'maxHp', 15))
@@ -4011,7 +4027,13 @@ class DistributedToonAI(DistributedPlayerAI.DistributedPlayerAI, DistributedSmoo
             self.sendUpdate('setTrinketSlots', [slot1, slot2])
 
     def getBaseMaxHp(self):
-        return getattr(self, 'baseMaxHp', self.getMaxHp())
+        return getattr(self, 'baseMaxHp', DistributedPlayerAI.DistributedPlayerAI.getMaxHp(self))
+
+    def getMaxHp(self):
+        return self.getBaseMaxHp()
+
+    def getEffectiveMaxHp(self):
+        return DistributedPlayerAI.DistributedPlayerAI.getMaxHp(self)
 
     def b_setTrinketSlots(self, slot1=0, slot2=0):
         self.setTrinketSlots(slot1, slot2)
@@ -4056,7 +4078,7 @@ class DistributedToonAI(DistributedPlayerAI.DistributedPlayerAI, DistributedSmoo
             new_count = len(unlocked)
             # Every 5 trinkets up to 30 grants +3 Max Laff
             if (new_count // 5 > prev_count // 5) and (new_count <= 30):
-                new_max = min(ToontownGlobals.MaxHpLimit, self.getMaxHp() + 3)
+                new_max = min(ToontownGlobals.MaxHpLimit, self.getBaseMaxHp() + 3)
                 self.b_setMaxHp(new_max)
                 self.toonUp(new_max)
                 self.d_setSystemMessage(0, "+3 MAX LAFF BONUS! (Trinket Collection Milestone)")
@@ -4080,7 +4102,7 @@ class DistributedToonAI(DistributedPlayerAI.DistributedPlayerAI, DistributedSmoo
         if zone_str not in bossList:
             bossList.append(zone_str)
             self.b_setWorldBossDefeatedList(bossList)
-            new_max = min(ToontownGlobals.MaxHpLimit, self.getMaxHp() + 2)
+            new_max = min(ToontownGlobals.MaxHpLimit, self.getBaseMaxHp() + 2)
             self.b_setMaxHp(new_max)
             self.toonUp(new_max)
             self.d_setSystemMessage(0, "+2 MAX LAFF BONUS! (Playground World Boss Defeated)")

@@ -194,6 +194,7 @@ class DistributedSuitBase(DistributedAvatar.DistributedAvatar, Suit.Suit, SuitBa
         return self.currHP
 
     def setHP(self, hp):
+        old_hp = getattr(self, 'currHP', None)
         if getattr(self, 'isWorldBoss', False):
             self.currHP = hp
             if hp > self.maxHP:
@@ -202,6 +203,15 @@ class DistributedSuitBase(DistributedAvatar.DistributedAvatar, Suit.Suit, SuitBa
             self.currHP = self.maxHP
         else:
             self.currHP = hp
+
+        # If healed during battle / interaction, trigger floating green +HP heal popup!
+        if old_hp is not None and self.currHP > old_hp:
+            heal_amount = self.currHP - old_hp
+            if hasattr(self, 'showHpText'):
+                self.showHpText(heal_amount)
+            if hasattr(self, 'updateHealthBar'):
+                self.updateHealthBar(0, 1)
+
         messenger.send('suit-hp-change', [self])
         return None
 

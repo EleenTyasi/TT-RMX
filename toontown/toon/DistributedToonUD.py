@@ -25,6 +25,9 @@ class DistributedToonUD(DistributedObjectUD):
     def setMaxHp(self, todo0):
         pass
 
+    def setBaseMaxHp(self, todo0):
+        pass
+
     def setHp(self, todo0):
         pass
 

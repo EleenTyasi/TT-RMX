@@ -699,18 +699,48 @@ class DistributedToon(DistributedPlayer.DistributedPlayer, Toon.Toon, Distribute
 
     def setLaffCap(self, laffCap):
         self.laffCap = laffCap
-        if hasattr(self, 'maxHp'):
-            self.setMaxHp(self.maxHp)
+        self.recomputeMaxHp()
 
     def getLaffCap(self):
         return getattr(self, 'laffCap', 0)
 
-    def setMaxHp(self, hitPoints):
-        DistributedPlayer.DistributedPlayer.setMaxHp(self, hitPoints)
+    def setBaseMaxHp(self, baseMaxHp):
+        self.baseMaxHp = baseMaxHp
+        self.recomputeMaxHp()
+
+    def getBaseMaxHp(self):
+        return getattr(self, 'baseMaxHp', getattr(self, 'maxHp', 15))
+
+    def recomputeMaxHp(self):
+        baseMax = getattr(self, 'baseMaxHp', getattr(self, 'maxHp', 15))
+        maxHp = baseMax
+        laffCap = getattr(self, 'laffCap', 0)
+        is_uber = laffCap > 0
+        
+        if hasattr(self, 'hasTrinketEquipped'):
+            from toontown.toon.TrinketsConfig import (
+                TRINKET_VITAL_TOON, TRINKET_BELLIGERENT_INTEL, TRINKET_CRIT_UP_LAFF_DOWN
+            )
+            if self.hasTrinketEquipped(TRINKET_VITAL_TOON) and not is_uber:
+                maxHp = int(maxHp * 1.5)
+            if self.hasTrinketEquipped(TRINKET_BELLIGERENT_INTEL):
+                maxHp = max(1, int(maxHp * 0.5))
+            if self.hasTrinketEquipped(TRINKET_CRIT_UP_LAFF_DOWN):
+                maxHp = max(1, int(maxHp * 0.9))
+
+        if is_uber:
+            maxHp = min(maxHp, laffCap)
+        
+        DistributedPlayer.DistributedPlayer.setMaxHp(self, maxHp)
         if getattr(self, 'hp', None) is not None and self.hp > self.maxHp:
             self.setHp(self.maxHp)
         if self.inventory:
             self.inventory.updateGUI()
+
+    def setMaxHp(self, hitPoints):
+        if not hasattr(self, 'baseMaxHp') or self.baseMaxHp == 15 or hitPoints > getattr(self, 'baseMaxHp', 15):
+            self.baseMaxHp = hitPoints
+        self.recomputeMaxHp()
 
     def died(self):
         messenger.send(self.uniqueName('died'))
@@ -2172,6 +2202,7 @@ class DistributedToon(DistributedPlayer.DistributedPlayer, Toon.Toon, Distribute
             self.trinketSlots = [slot1[0], slot1[1]] if len(slot1) >= 2 else [0, 0]
         else:
             self.trinketSlots = [slot1, slot2]
+        self.recomputeMaxHp()
 
     def getUnlockedTrinkets(self):
         return getattr(self, 'unlockedTrinkets', [])

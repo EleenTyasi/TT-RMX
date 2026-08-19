@@ -1478,7 +1478,11 @@ class BattleCalculatorAI:
                                 suitRecipient.setHP(new_hp)
                                 if suitRecipient.isGenerated():
                                     suitRecipient.b_setHP(new_hp)
-                                self.notify.info('Suit %d healed +%d HP (%d -> %d) using %s' % (suitRecipient.doId, heal_amt, old_hp, new_hp, atkName))
+                                actual_gain = new_hp - old_hp
+                                suitName = getattr(theSuit, 'name', theSuit.dna.name if hasattr(theSuit, 'dna') else 'Cog')
+                                recipName = getattr(suitRecipient, 'name', suitRecipient.dna.name if hasattr(suitRecipient, 'dna') else 'Cog')
+                                print(f"[COMBAT LOG] ENEMY HEAL -> Caster: {suitName} | Skill: {atkName} | Target: {recipName} | Healed: +{actual_gain} HP ({old_hp} -> {new_hp}/{max_hp})")
+                                self.notify.info('Suit %d healed +%d HP (%d -> %d) using %s' % (suitRecipient.doId, actual_gain, old_hp, new_hp, atkName))
 
                                 # If an ally Cog was healed by a fellow Cog, speak a business thank-you quote!
                                 if suitRecipient.doId != theSuit.doId and (new_hp > old_hp):

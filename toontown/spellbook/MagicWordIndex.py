@@ -338,6 +338,11 @@ class MaxToon(MagicWord):
         if hasattr(toon, 'b_setUnlockedTrinkets'):
             toon.b_setUnlockedTrinkets(list(ALL_TRINKET_IDS))
 
+        # Mark all Playground World Bosses as defeated
+        all_boss_zones = ['2000', '1000', '5000', '4000', '3000', '9000']
+        if hasattr(toon, 'b_setWorldBossDefeatedList'):
+            toon.b_setWorldBossDefeatedList(all_boss_zones)
+
         maxStam = float(ToonLevelGlobals.getMaxStaminaForLevel(ToonLevelGlobals.MAX_TOON_LEVEL))
         if hasattr(toon, 'maxStamina'):
             toon.maxStamina = maxStam
@@ -345,7 +350,7 @@ class MaxToon(MagicWord):
         if hasattr(toon, 'staminaBar') and toon.staminaBar:
             toon.staminaBar.update(maxStam, maxStam)
 
-        return "Maxed out {}'s stats, unlocked all trinkets, and maxed stamina.".format(toon.getName())
+        return "Maxed out {}'s stats, defeated all World Bosses, unlocked all trinkets, and maxed stamina.".format(toon.getName())
 
 
 class UnlockTrinkets(MagicWord):

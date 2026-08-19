@@ -26,12 +26,14 @@ class GetAvatarInfoOperation(FSM):
         self.mgr.air.dbInterface.queryObject(self.mgr.air.dbId, self.avId, self.__gotAvatarInfo)
 
     def __gotAvatarInfo(self, dclass, fields):
-        if dclass not in (
-                self.mgr.air.dclassesByName['DistributedToonUD'], self.mgr.air.dclassesByName['DistributedPetAI']):
+        toonDClass = self.mgr.air.dclassesByName.get('DistributedToonUD') or self.mgr.air.dclassesByName.get('DistributedToon')
+        petDClass = self.mgr.air.dclassesByName.get('DistributedPetAI') or self.mgr.air.dclassesByName.get('DistributedPetUD') or self.mgr.air.dclassesByName.get('DistributedPet')
+        valid_classes = [c for c in (toonDClass, petDClass) if c]
+        if dclass not in valid_classes:
             self.demand('Failure', 'Invalid dclass for avId %d' % self.avId)
             return
 
-        self.isPet = dclass == self.mgr.air.dclassesByName['DistributedPetAI']
+        self.isPet = (dclass == petDClass)
         self.fields = fields
         self.fields['avId'] = self.avId
         self.demand('Finished')
