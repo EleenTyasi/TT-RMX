@@ -7,7 +7,7 @@ from toontown.toon import NPCToons
 from toontown.pets import PetTricks, DistributedPetProxyAI
 from direct.showbase.PythonUtil import lerp
 from .StatusEffectManager import StatusEffectManager
-from .StatusEffectsConfig import GAG_TRACK_STATUS_EFFECTS, SUIT_ATTACK_STATUS_EFFECTS, TOON_BUFFS
+from .StatusEffectsConfig import GAG_TRACK_STATUS_EFFECTS, SUIT_ATTACK_STATUS_EFFECTS, SUIT_BUFF_ATTACKS, TOON_BUFFS
 from toontown.battle.GagsConfig import TOONUP_CAN_TARGET_SELF
 
 class BattleCalculatorAI:
@@ -1411,6 +1411,41 @@ class BattleCalculatorAI:
                     proc_chance = self.statusEffectMgr.calc_proc_chance(eff_cfg.get('chance', 100), 0, hit_name)
                     if random.randint(1, 100) <= proc_chance:
                         self.statusEffectMgr.apply_effect(toonId, eff_cfg['effect'], eff_cfg['rounds'], eff_cfg)
+
+                # Cog Buff / Self & Ally Heal application
+                if atkName in SUIT_BUFF_ATTACKS:
+                    buff_cfg = SUIT_BUFF_ATTACKS[atkName]
+                    if buff_cfg.get('is_pure_heal', False):
+                        result = 0  # Pure healing / support skill deals no damage to Toons
+                    if random.randint(1, 100) <= buff_cfg.get('chance', 100):
+                        # Self status buff (e.g. SHIELD or RALLIED)
+                        if 'effect' in buff_cfg:
+                            self.statusEffectMgr.apply_effect(theSuit.doId, buff_cfg['effect'], buff_cfg.get('rounds', 2), buff_cfg)
+                            self.notify.info('Suit %d gained buff %s from attack %s' % (theSuit.doId, buff_cfg['effect'], atkName))
+                        # Heal percent of Max HP
+                        if 'heal_percent' in buff_cfg:
+                            from toontown.suit import SuitDialog
+                            # Determine heal recipients: caster and/or injured ally Cogs
+                            targetSuits = [theSuit]
+                            if atkInfo.get('group') == SuitBattleGlobals.ATK_TGT_GROUP:
+                                targetSuits = [s for s in self.battle.activeSuits if s and not s.isDeleted()]
+
+                            for suitRecipient in targetSuits:
+                                heal_amt = int(max(1, getattr(suitRecipient, 'maxHP', getattr(suitRecipient, 'currHP', 50)) * buff_cfg['heal_percent']))
+                                old_hp = suitRecipient.getHP()
+                                max_hp = getattr(suitRecipient, 'maxHP', old_hp)
+                                new_hp = min(max_hp, old_hp + heal_amt)
+                                suitRecipient.setHP(new_hp)
+                                if suitRecipient.isGenerated():
+                                    suitRecipient.b_setHP(new_hp)
+                                self.notify.info('Suit %d healed +%d HP (%d -> %d) using %s' % (suitRecipient.doId, heal_amt, old_hp, new_hp, atkName))
+
+                                # If an ally Cog was healed by a fellow Cog, speak a business thank-you quote!
+                                if suitRecipient.doId != theSuit.doId and (new_hp > old_hp):
+                                    thanksQuote = SuitDialog.getHealThanksText()
+                                    if hasattr(suitRecipient, 'd_setChat'):
+                                        suitRecipient.d_setChat(thanksQuote)
+                                    self.notify.info('Suit %d thanked ally %d: "%s"' % (suitRecipient.doId, theSuit.doId, thanksQuote))
             targetIndex = self.battle.activeToons.index(toonId)
             while len(attack[SUIT_HP_COL]) <= targetIndex:
                 attack[SUIT_HP_COL].append(0)

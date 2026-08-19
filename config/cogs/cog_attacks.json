@@ -4,10 +4,10 @@
     "anim": "phone",
     "target": "single",
     "damage": [
-      2,
-      2,
-      3,
       4,
+      4,
+      5,
+      5,
       6
     ],
     "accuracy": [
@@ -32,10 +32,10 @@
     "target": "single",
     "damage": [
       3,
-      4,
-      5,
+      3,
       6,
-      7
+      6,
+      8
     ],
     "accuracy": [
       50,
@@ -85,11 +85,11 @@
     "anim": "pen-squirt",
     "target": "single",
     "damage": [
-      2,
-      3,
       4,
-      6,
-      9
+      4,
+      4,
+      5,
+      10
     ],
     "accuracy": [
       75,
@@ -112,11 +112,11 @@
     "anim": "hold-eraser",
     "target": "single",
     "damage": [
-      4,
       5,
-      6,
-      8,
-      12
+      5,
+      12,
+      14,
+      16
     ],
     "accuracy": [
       75,
@@ -142,8 +142,8 @@
       1,
       2,
       2,
-      3,
-      4
+      2,
+      2
     ],
     "accuracy": [
       75,
@@ -193,11 +193,11 @@
     "anim": "pencil-sharpener",
     "target": "single",
     "damage": [
-      3,
-      4,
-      5,
-      6,
-      7
+      8,
+      8,
+      8,
+      9,
+      14
     ],
     "accuracy": [
       75,
@@ -220,11 +220,11 @@
     "anim": "rubber-stamp",
     "target": "single",
     "damage": [
-      2,
-      2,
-      3,
-      3,
-      4
+      4,
+      4,
+      5,
+      5,
+      6
     ],
     "accuracy": [
       75,
@@ -248,10 +248,10 @@
     "target": "single",
     "damage": [
       1,
-      1,
-      1,
-      1,
-      1
+      10,
+      15,
+      20,
+      25
     ],
     "accuracy": [
       50,
@@ -274,11 +274,11 @@
     "anim": "magic3",
     "target": "group",
     "damage": [
-      4,
-      5,
       6,
-      7,
-      8
+      8,
+      11,
+      16,
+      19
     ],
     "accuracy": [
       50,
@@ -328,11 +328,11 @@
     "anim": "magic1",
     "target": "single",
     "damage": [
-      6,
+      8,
       8,
       12,
-      15,
-      18
+      20,
+      24
     ],
     "accuracy": [
       50,
@@ -351,8 +351,8 @@
     "status_effect": {
       "effect": "WEAKEN",
       "rounds": 2,
-      "defense_reduction": 10,
-      "chance": 75
+      "defense_reduction": 15,
+      "chance": 70
     }
   },
   "BrainStorm": {
@@ -360,7 +360,7 @@
     "anim": "effort",
     "target": "single",
     "damage": [
-      4,
+      6,
       6,
       9,
       12,
@@ -387,7 +387,7 @@
     "anim": "speak",
     "target": "single",
     "damage": [
-      4,
+      6,
       6,
       9,
       12,
@@ -441,7 +441,7 @@
     "anim": "magic2",
     "target": "single",
     "damage": [
-      8,
+      9,
       9,
       11,
       13,
@@ -468,11 +468,11 @@
     "anim": "throw-paper",
     "target": "single",
     "damage": [
-      4,
       5,
-      6,
+      5,
       7,
-      8
+      7,
+      12
     ],
     "accuracy": [
       60,
@@ -495,7 +495,7 @@
     "anim": "throw-paper",
     "target": "single",
     "damage": [
-      5,
+      6,
       6,
       7,
       8,
@@ -522,11 +522,11 @@
     "anim": "glower",
     "target": "single",
     "damage": [
-      7,
+      4,
       8,
-      10,
       12,
-      13
+      24,
+      48
     ],
     "accuracy": [
       50,
@@ -603,11 +603,11 @@
     "anim": "roll-o-dex",
     "target": "single",
     "damage": [
-      6,
       7,
-      8,
+      7,
       9,
-      10
+      9,
+      21
     ],
     "accuracy": [
       60,
@@ -1847,6 +1847,67 @@
       20,
       20
     ],
+    "status_effect": null
+  },
+  "Bailout": {
+    "name": "Bailout",
+    "anim": "magic1",
+    "target": "group",
+    "damage": [0, 0, 0, 0, 0],
+    "accuracy": [100, 100, 100, 100, 100],
+    "frequency": [20, 20, 20, 20, 20],
+    "heal_percent": 0.25,
+    "is_pure_heal": true,
+    "status_effect": null
+  },
+  "CapitalInjection": {
+    "name": "CapitalInjection",
+    "anim": "magic3",
+    "target": "single",
+    "damage": [0, 0, 0, 0, 0],
+    "accuracy": [100, 100, 100, 100, 100],
+    "frequency": [25, 25, 25, 25, 25],
+    "heal_percent": 0.35,
+    "is_pure_heal": true,
+    "status_effect": null
+  },
+  "DividendPayout": {
+    "name": "DividendPayout",
+    "anim": "throw-paper",
+    "target": "group",
+    "damage": [0, 0, 0, 0, 0],
+    "accuracy": [100, 100, 100, 100, 100],
+    "frequency": [15, 15, 20, 20, 25],
+    "heal_percent": 0.20,
+    "is_pure_heal": true,
+    "self_buff": "RALLIED",
+    "buff_rounds": 2,
+    "status_effect": null
+  },
+  "Restructure": {
+    "name": "Restructure",
+    "anim": "phone",
+    "target": "single",
+    "damage": [0, 0, 0, 0, 0],
+    "accuracy": [100, 100, 100, 100, 100],
+    "frequency": [20, 20, 20, 20, 20],
+    "heal_percent": 0.30,
+    "is_pure_heal": true,
+    "self_buff": "SHIELD",
+    "buff_rounds": 2,
+    "status_effect": null
+  },
+  "LitigationDefense": {
+    "name": "LitigationDefense",
+    "anim": "gavel",
+    "target": "group",
+    "damage": [0, 0, 0, 0, 0],
+    "accuracy": [100, 100, 100, 100, 100],
+    "frequency": [20, 20, 20, 20, 20],
+    "heal_percent": 0.20,
+    "is_pure_heal": true,
+    "self_buff": "SHIELD",
+    "buff_rounds": 2,
     "status_effect": null
   }
 }

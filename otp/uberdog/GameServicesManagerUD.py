@@ -358,7 +358,17 @@ class GetAvatarsOperation(AvatarOperation):
             wishNameState = fields.get('WishNameState', [''])[0]
             name = fields['setName'][0]
             nameState = 0
-            if wishNameState == 'OPEN':
+            if wishNameState in ('PENDING', 'APPROVED') and fields.get('WishName', [''])[0]:
+                # Single-Player Auto-Approval for existing Toons with Name Pending:
+                approvedName = fields['WishName'][0]
+                name = approvedName
+                nameState = 0
+                self.gameServicesManager.air.dbInterface.updateObject(
+                    self.gameServicesManager.air.dbId, avId,
+                    self.gameServicesManager.air.dclassesByName.get('DistributedToonUD', self.gameServicesManager.air.dclassesByName.get('DistributedAvatarUD')),
+                    {'WishNameState': ('LOCKED',), 'WishName': ('',), 'setName': (approvedName,)}
+                )
+            elif wishNameState == 'OPEN':
                 nameState = 1
             elif wishNameState == 'PENDING':
                 nameState = 2

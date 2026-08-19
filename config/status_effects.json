@@ -3,8 +3,8 @@
     "description": "Target skips attack turn",
     "default_rounds": 1
   },
-  "SLOW": {
-    "description": "Reduces target defense and dodge chance",
+  "WET": {
+    "description": "Reduces target defense and increases Freeze chance",
     "defense_reduction": 30,
     "default_rounds": 3
   },

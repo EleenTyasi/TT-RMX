@@ -2586,6 +2586,20 @@ SuitSprintRamTaunts = {
         "Hey! That violates our personal boundary agreement!",
     ],
 }
+SuitHealThanks = [
+    "Much obliged!",
+    "Bailout approved!",
+    "Dividends paid!",
+    "Great synergy!",
+    "Assets restored!",
+    "Budget approved!",
+    "Liquid capital!",
+    "Stock rising!",
+    "Well invested!",
+    "Back in business!",
+    "Solid ROI!",
+    "Valued partner!",
+]
 SuitAttackNames = {'Audit': 'Audit!',
  'Bite': 'Bite!',
  'BounceCheck': 'Bounce Check!',

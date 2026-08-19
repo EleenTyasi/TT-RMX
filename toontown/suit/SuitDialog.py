@@ -61,3 +61,21 @@ def getSprintRamText(suitName=None):
     return random.choice(lines)
 
 
+def getHealThanksText():
+    thanksList = getattr(TTLocalizer, 'SuitHealThanks', [
+        "Thank you for the capital injection!",
+        "Quarterly restructuring approved!",
+        "Synergy at maximum efficiency!",
+        "Appreciate the corporate bailout!",
+        "Thanks for the operational budget increase!",
+        "My stock value just skyrocketed!",
+        "A well-timed asset recovery!",
+        "Excellent team synergy!",
+        "Thanks! Reallocating resources now!",
+        "Our partnership is paying dividends!",
+        "Depreciation reversed! Back to business!",
+        "Thanks for the emergency liquidity!",
+    ])
+    return random.choice(thanksList)
+
+

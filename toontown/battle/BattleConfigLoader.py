@@ -266,6 +266,24 @@ def load_or_create_config(suit_attributes, gag_damage, gag_accuracy, gag_xp, max
                     # Fallback to base status effect if defined in defaults
                     if atk_name in DEFAULT_SUIT_ATTACK_STATUS:
                         StatusEffectsConfig.SUIT_ATTACK_STATUS_EFFECTS[atk_name] = DEFAULT_SUIT_ATTACK_STATUS[atk_name]
+
+                # Support heal_percent, is_pure_heal, and self buffs directly from JSON
+                heal_pct = atk_data.get('heal_percent')
+                is_pure_heal = atk_data.get('is_pure_heal', False)
+                self_buff = atk_data.get('self_buff')
+                if heal_pct is not None or is_pure_heal or self_buff is not None:
+                    buff_entry = StatusEffectsConfig.SUIT_BUFF_ATTACKS.setdefault(atk_name, {})
+                    if heal_pct is not None:
+                        buff_entry['heal_percent'] = float(heal_pct)
+                    if is_pure_heal:
+                        buff_entry['is_pure_heal'] = True
+                    if self_buff is not None:
+                        if isinstance(self_buff, str):
+                            buff_entry['effect'] = self_buff.upper()
+                            buff_entry['rounds'] = atk_data.get('buff_rounds', 2)
+                        elif isinstance(self_buff, dict):
+                            buff_entry.update(self_buff)
+                    buff_entry.setdefault('chance', atk_data.get('buff_chance', 100))
         except Exception as e:
             print('[BATTLE-CONFIG] Warning: Could not read %s: %s' % (ATTACKS_FILE, e))
 

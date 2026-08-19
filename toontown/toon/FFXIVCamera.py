@@ -28,9 +28,9 @@ class FFXIVCamera(DirectObject):
         self.maxDistance = 35.0
 
         self.yaw = 0.0      # Orbit heading relative to avatar
-        self.pitch = 10.0   # Degrees above avatar horizon (-60 to 45)
-        self.minPitch = -60.0
-        self.maxPitch = 45.0
+        self.pitch = 10.0   # Degrees above avatar horizon (-25 to 55)
+        self.minPitch = -25.0
+        self.maxPitch = 55.0
 
         # Mouse tracking & cursor locking state
         self.isLeftDragging = False
@@ -82,8 +82,8 @@ class FFXIVCamera(DirectObject):
         # Save current pixel position before hiding
         if base.win.hasPointer(0):
             p = base.win.getPointer(0)
-            self.savedCursorPos = (p.getX(), p.getY())
-            self.lockedCursorPos = (p.getX(), p.getY())
+            self.savedCursorPos = (int(p.getX()), int(p.getY()))
+            self.lockedCursorPos = (int(p.getX()), int(p.getY()))
         else:
             winWidth = base.win.getXSize()
             winHeight = base.win.getYSize()
@@ -104,7 +104,7 @@ class FFXIVCamera(DirectObject):
         base.win.requestProperties(props)
 
         if self.savedCursorPos:
-            base.win.movePointer(0, self.savedCursorPos[0], self.savedCursorPos[1])
+            base.win.movePointer(0, int(self.savedCursorPos[0]), int(self.savedCursorPos[1]))
             self.savedCursorPos = None
         self.lockedCursorPos = None
 
@@ -170,9 +170,9 @@ class FFXIVCamera(DirectObject):
                     self.pitch = max(self.minPitch, min(self.maxPitch, self.pitch + deltaPitch))
 
                     # Re-center cursor at locked location so movement is infinite
-                    base.win.movePointer(0, self.lockedCursorPos[0], self.lockedCursorPos[1])
+                    base.win.movePointer(0, int(self.lockedCursorPos[0]), int(self.lockedCursorPos[1]))
             else:
-                self.lockedCursorPos = (curX, curY)
+                self.lockedCursorPos = (int(curX), int(curY))
 
         # Smooth distance zoom lerp
         self.distance += (self.targetDistance - self.distance) * 0.25
@@ -188,10 +188,21 @@ class FFXIVCamera(DirectObject):
         camX = horizDist * math.sin(radYaw)
         camY = -horizDist * math.cos(radYaw)
 
+        # Prevent camera from dipping below the floor
+        minCamZ = 0.5
+        if camZ < minCamZ:
+            camZ = minCamZ
+
         camPosRel = Point3(camX, camY, camZ)
         lookAtRel = Point3(0, 0, avHeight * 0.85)
 
         camera.setPos(self.avatar, camPosRel)
         camera.lookAt(self.avatar, lookAtRel)
+
+        # Trigger Toontown street visibility raycast from camera/avatar to load street geometry
+        if hasattr(self.avatar, 'putCameraFloorRayOnCamera') and hasattr(self.avatar, 'ccTravOnFloor'):
+            self.avatar.putCameraFloorRayOnCamera()
+            geom = getattr(self.avatar, '_LocalAvatar__geom', render)
+            self.avatar.ccTravOnFloor.traverse(geom)
 
         return Task.cont

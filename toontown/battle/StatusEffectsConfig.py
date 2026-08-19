@@ -63,9 +63,9 @@ SUIT_ATTACK_STATUS_EFFECTS = {
         'chance': 100,
     },
     'RedTape': {
-        'effect': 'SLOW',
+        'effect': 'WET',
         'rounds': 2,
-        'accuracy_reduction': 10,
+        'defense_reduction': 10,
         'chance': 80,
     },
     'Demotion': {
@@ -73,6 +73,46 @@ SUIT_ATTACK_STATUS_EFFECTS = {
         'rounds': 2,
         'defense_reduction': 10,
         'chance': 75,
+    },
+}
+
+# Cog Buff and Self-Heal Attacks!
+# When a Cog uses one of these attacks, they trigger a heal or defensive/offensive buff on themselves (or group).
+# If 'is_pure_heal' is True, it deals 0 damage to Toons and purely restores Cog HP!
+SUIT_BUFF_ATTACKS = {
+    'Watercooler': {
+        'heal_percent': 0.25,     # Restores 25% Max HP (group or self)
+        'is_pure_heal': True,     # Deals NO damage to Toons — strictly a repair/heal skill
+        'chance': 100,
+    },
+    'ReOrg': {
+        'heal_percent': 0.30,     # Restores 30% Max HP
+        'is_pure_heal': True,     # Deals NO damage to Toons — pure restructuring heal
+        'chance': 100,
+    },
+    'Synergy': {
+        'heal_percent': 0.15,     # Restores 15% Max HP to self
+        'effect': 'RALLIED',      # +20% damage boost
+        'rounds': 2,
+        'chance': 100,
+    },
+    'Schmooze': {
+        'effect': 'SHIELD',       # +30% damage reduction
+        'rounds': 2,
+        'damage_reduction': 0.30,
+        'chance': 100,
+    },
+    'ParadigmShift': {
+        'heal_percent': 0.20,     # Restores 20% Max HP
+        'effect': 'SHIELD',
+        'rounds': 2,
+        'damage_reduction': 0.25,
+        'chance': 100,
+    },
+    'Rolodex': {
+        'heal_percent': 0.20,     # Restores 20% Max HP
+        'is_pure_heal': True,
+        'chance': 100,
     },
 }
 
