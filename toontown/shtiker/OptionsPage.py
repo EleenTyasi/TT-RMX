@@ -51,7 +51,7 @@ speedChatStyles = ((2000,
   (170 / 255.0, 120 / 255.0, 20 / 255.0),
   (165 / 255.0, 120 / 255.0, 50 / 255.0),
   (210 / 255.0, 200 / 255.0, 180 / 255.0)))
-PageMode = PythonUtil.Enum('Options, Codes')
+PageMode = PythonUtil.Enum('Options, Controls, Codes')
 
 class OptionsPage(ShtikerPage.ShtikerPage):
     notify = DirectNotifyGlobal.directNotify.newCategory('OptionsPage')
@@ -63,6 +63,8 @@ class OptionsPage(ShtikerPage.ShtikerPage):
         ShtikerPage.ShtikerPage.load(self)
         self.optionsTabPage = OptionsTabPage(self)
         self.optionsTabPage.hide()
+        self.controlsTabPage = ControlsTabPage(self)
+        self.controlsTabPage.hide()
         self.codesTabPage = CodesTabPage(self)
         self.codesTabPage.hide()
         titleHeight = 0.61
@@ -72,8 +74,9 @@ class OptionsPage(ShtikerPage.ShtikerPage):
         rolloverColor = (0.15, 0.82, 1.0, 1)
         diabledColor = (1.0, 0.98, 0.15, 1)
         gui = loader.loadModel('phase_3.5/models/gui/fishingBook')
-        self.optionsTab = DirectButton(parent=self, relief=None, text=TTLocalizer.OptionsPageTitle, text_scale=TTLocalizer.OPoptionsTab, text_align=TextNode.ALeft, text_pos=(0.01, 0.0, 0.0), image=gui.find('**/tabs/polySurface1'), image_pos=(0.55, 1, -0.91), image_hpr=(0, 0, -90), image_scale=(0.033, 0.033, 0.035), image_color=normalColor, image1_color=clickColor, image2_color=rolloverColor, image3_color=diabledColor, text_fg=Vec4(0.2, 0.1, 0, 1), command=self.setMode, extraArgs=[PageMode.Options], pos=(-0.36, 0, 0.77))
-        self.codesTab = DirectButton(parent=self, relief=None, text=TTLocalizer.OptionsPageCodesTab, text_scale=TTLocalizer.OPoptionsTab, text_align=TextNode.ALeft, text_pos=(-0.035, 0.0, 0.0), image=gui.find('**/tabs/polySurface2'), image_pos=(0.12, 1, -0.91), image_hpr=(0, 0, -90), image_scale=(0.033, 0.033, 0.035), image_color=normalColor, image1_color=clickColor, image2_color=rolloverColor, image3_color=diabledColor, text_fg=Vec4(0.2, 0.1, 0, 1), command=self.setMode, extraArgs=[PageMode.Codes], pos=(0.11, 0, 0.77))
+        self.optionsTab = DirectButton(parent=self, relief=None, text=TTLocalizer.OptionsPageTitle, text_scale=TTLocalizer.OPoptionsTab, text_align=TextNode.ALeft, text_pos=(0.01, 0.0, 0.0), image=gui.find('**/tabs/polySurface1'), image_pos=(0.55, 1, -0.91), image_hpr=(0, 0, -90), image_scale=(0.033, 0.033, 0.035), image_color=normalColor, image1_color=clickColor, image2_color=rolloverColor, image3_color=diabledColor, text_fg=Vec4(0.2, 0.1, 0, 1), command=self.setMode, extraArgs=[PageMode.Options], pos=(-0.48, 0, 0.77))
+        self.controlsTab = DirectButton(parent=self, relief=None, text='Controls', text_scale=TTLocalizer.OPoptionsTab, text_align=TextNode.ALeft, text_pos=(-0.015, 0.0, 0.0), image=gui.find('**/tabs/polySurface2'), image_pos=(0.25, 1, -0.91), image_hpr=(0, 0, -90), image_scale=(0.033, 0.033, 0.035), image_color=normalColor, image1_color=clickColor, image2_color=rolloverColor, image3_color=diabledColor, text_fg=Vec4(0.2, 0.1, 0, 1), command=self.setMode, extraArgs=[PageMode.Controls], pos=(-0.08, 0, 0.77))
+        self.codesTab = DirectButton(parent=self, relief=None, text=TTLocalizer.OptionsPageCodesTab, text_scale=TTLocalizer.OPoptionsTab, text_align=TextNode.ALeft, text_pos=(-0.035, 0.0, 0.0), image=gui.find('**/tabs/polySurface2'), image_pos=(0.12, 1, -0.91), image_hpr=(0, 0, -90), image_scale=(0.033, 0.033, 0.035), image_color=normalColor, image1_color=clickColor, image2_color=rolloverColor, image3_color=diabledColor, text_fg=Vec4(0.2, 0.1, 0, 1), command=self.setMode, extraArgs=[PageMode.Codes], pos=(0.30, 0, 0.77))
         return
 
     def enter(self):
@@ -82,11 +85,13 @@ class OptionsPage(ShtikerPage.ShtikerPage):
 
     def exit(self):
         self.optionsTabPage.exit()
+        self.controlsTabPage.exit()
         self.codesTabPage.exit()
         ShtikerPage.ShtikerPage.exit(self)
 
     def unload(self):
         self.optionsTabPage.unload()
+        self.controlsTabPage.unload()
         del self.title
         ShtikerPage.ShtikerPage.unload(self)
 
@@ -102,6 +107,17 @@ class OptionsPage(ShtikerPage.ShtikerPage):
             self.title['text'] = TTLocalizer.OptionsPageTitle
             self.optionsTab['state'] = DGG.DISABLED
             self.optionsTabPage.enter()
+            self.controlsTab['state'] = DGG.NORMAL
+            self.controlsTabPage.exit()
+            self.codesTab['state'] = DGG.NORMAL
+            self.codesTabPage.exit()
+        elif mode == PageMode.Controls:
+            self.mode = PageMode.Controls
+            self.title['text'] = 'Keybinds'
+            self.optionsTab['state'] = DGG.NORMAL
+            self.optionsTabPage.exit()
+            self.controlsTab['state'] = DGG.DISABLED
+            self.controlsTabPage.enter()
             self.codesTab['state'] = DGG.NORMAL
             self.codesTabPage.exit()
         elif mode == PageMode.Codes:
@@ -109,6 +125,8 @@ class OptionsPage(ShtikerPage.ShtikerPage):
             self.title['text'] = TTLocalizer.CdrPageTitle
             self.optionsTab['state'] = DGG.NORMAL
             self.optionsTabPage.exit()
+            self.controlsTab['state'] = DGG.NORMAL
+            self.controlsTabPage.exit()
             self.codesTab['state'] = DGG.DISABLED
             self.codesTabPage.enter()
         else:
@@ -595,3 +613,215 @@ class CodesTabPage(DirectFrame):
         self.codeInput['state'] = DGG.NORMAL
         self.codeInput['focus'] = 1
         self.submitButton['state'] = DGG.NORMAL
+
+
+class ControlsTabPage(DirectFrame):
+    notify = DirectNotifyGlobal.directNotify.newCategory('ControlsTabPage')
+
+    BINDINGS_LIST = [
+        ('forward', 'Move Forward'),
+        ('reverse', 'Move Backward'),
+        ('turnLeft', 'Turn Left'),
+        ('turnRight', 'Turn Right'),
+        ('jump', 'Jump'),
+        ('sprint', 'Sprint'),
+        ('chat', 'Open Chat (SpeedChat+)'),
+        ('book', 'Shtiker Book'),
+    ]
+
+    def __init__(self, parent = aspect2d):
+        self._parent = parent
+        DirectFrame.__init__(self, parent=self._parent, relief=None, pos=(0.0, 0.0, 0.0), scale=(1.0, 1.0, 1.0))
+        self.listeningAction = None
+        self.buttons = {}
+        self.labels = {}
+        self.load()
+
+    def destroy(self):
+        self._parent = None
+        DirectFrame.destroy(self)
+
+    def load(self):
+        from toontown.toonbase import ToontownControlConfig
+        guiButton = loader.loadModel('phase_3/models/gui/quit_button')
+        textStartHeight = 0.44
+        textRowHeight = 0.10
+        leftMargin = -0.72
+        buttonbase_xcoord = 0.35
+        button_image_scale = (0.7, 1, 0.9)
+        button_textpos = (0, -0.015)
+        options_text_scale = 0.048
+
+        for idx, (action, labelText) in enumerate(self.BINDINGS_LIST):
+            yPos = textStartHeight - (idx * textRowHeight)
+            lbl = DirectLabel(
+                parent=self,
+                relief=None,
+                text=labelText,
+                text_align=TextNode.ALeft,
+                text_scale=options_text_scale,
+                pos=(leftMargin, 0, yPos),
+            )
+            self.labels[action] = lbl
+
+            currentKey = ToontownControlConfig.getKey(action)
+            btn = DirectButton(
+                parent=self,
+                relief=None,
+                image=(guiButton.find('**/QuitBtn_UP'), guiButton.find('**/QuitBtn_DN'), guiButton.find('**/QuitBtn_RLVR')),
+                image_scale=button_image_scale,
+                text=ToontownControlConfig.getKeyName(currentKey),
+                text_scale=0.042,
+                text_pos=button_textpos,
+                pos=(buttonbase_xcoord, 0.0, yPos),
+                command=self.__listenForKey,
+                extraArgs=[action],
+            )
+            self.buttons[action] = btn
+
+        # Camera Mode (Classic vs FFXIV Style)
+        yCamPos = textStartHeight - (len(self.BINDINGS_LIST) * textRowHeight) - 0.01
+        self.cameraModeLabel = DirectLabel(
+            parent=self,
+            relief=None,
+            text='FFXIV Camera Mode',
+            text_align=TextNode.ALeft,
+            text_scale=options_text_scale,
+            pos=(leftMargin, 0, yCamPos),
+        )
+        self.cameraModeButton = DirectButton(
+            parent=self,
+            relief=None,
+            image=(guiButton.find('**/QuitBtn_UP'), guiButton.find('**/QuitBtn_DN'), guiButton.find('**/QuitBtn_RLVR')),
+            image_scale=button_image_scale,
+            text='',
+            text_scale=0.042,
+            text_pos=button_textpos,
+            pos=(buttonbase_xcoord, 0.0, yCamPos),
+            command=self.__toggleCameraMode,
+        )
+
+        # Reset Defaults Button
+        self.resetButton = DirectButton(
+            parent=self,
+            relief=None,
+            image=(guiButton.find('**/QuitBtn_UP'), guiButton.find('**/QuitBtn_DN'), guiButton.find('**/QuitBtn_RLVR')),
+            image_scale=(0.9, 1.0, 1.0),
+            text='Reset Defaults',
+            text_scale=0.045,
+            text_pos=(0, -0.015),
+            pos=(0.0, 0.0, -0.60),
+            command=self.__resetDefaults,
+        )
+        guiButton.removeNode()
+
+    def __toggleCameraMode(self):
+        use_ffxiv = False
+        if hasattr(base, 'settings') and base.settings:
+            use_ffxiv = base.settings.getBool('game', 'ffxiv-camera', False)
+            use_ffxiv = not use_ffxiv
+            base.settings.updateSetting('game', 'ffxiv-camera', use_ffxiv)
+        messenger.send('camera-mode-changed')
+        self.__updateCameraModeButton()
+
+    def __updateCameraModeButton(self):
+        use_ffxiv = False
+        if hasattr(base, 'settings') and base.settings:
+            use_ffxiv = base.settings.getBool('game', 'ffxiv-camera', False)
+        if use_ffxiv:
+            self.cameraModeButton['text'] = 'Enabled'
+            self.cameraModeButton['text_fg'] = Vec4(0, 0.7, 0.2, 1)
+        else:
+            self.cameraModeButton['text'] = 'Disabled'
+            self.cameraModeButton['text_fg'] = Vec4(0.7, 0.2, 0.2, 1)
+
+    def __listenForKey(self, action):
+        from toontown.toonbase import ToontownControlConfig
+        if self.listeningAction:
+            self.__cancelListening()
+
+        self.listeningAction = action
+        if action in self.buttons:
+            self.buttons[action]['text'] = '<Press Key>'
+            self.buttons[action]['text_fg'] = Vec4(1, 1, 0, 1)
+
+        # Ignore other UI inputs while listening
+        self.accept('mouse1', self.__cancelListening)
+        self.accept('mouse3', self.__cancelListening)
+        
+        # Listen for any keypress event on base
+        taskMgr.add(self.__keyCatchTask, 'ControlsTabPage-keyCatch')
+
+    def __keyCatchTask(self, task):
+        # Scan watched events via base.buttonThrowers
+        return Task.cont
+
+    def __listenForKey(self, action):
+        from toontown.toonbase import ToontownControlConfig
+        if self.listeningAction:
+            self.__cancelListening()
+
+        self.listeningAction = action
+        if action in self.buttons:
+            self.buttons[action]['text'] = '<Press Key>'
+            self.buttons[action]['text_fg'] = Vec4(1, 1, 0, 1)
+
+        # Catch raw keypresses using base.buttonThrowers
+        self.ignoreAll()
+        self.accept('escape', self.__cancelListening)
+        
+        # Bind generic catchers on base
+        base.buttonThrowers[0].node().setButtonDownEvent('rebind-key-down')
+        self.accept('rebind-key-down', self.__handleKeyDown)
+
+    def __handleKeyDown(self, key):
+        if key == 'escape':
+            self.__cancelListening()
+            return
+        if self.listeningAction:
+            from toontown.toonbase import ToontownControlConfig
+            ToontownControlConfig.setKey(self.listeningAction, key)
+            self.__cancelListening()
+
+    def __cancelListening(self):
+        base.buttonThrowers[0].node().setButtonDownEvent('')
+        self.ignore('rebind-key-down')
+        self.listeningAction = None
+        self.updateButtonLabels()
+
+    def __resetDefaults(self):
+        from toontown.toonbase import ToontownControlConfig, DEFAULT_KEYBINDS
+        for action, defaultKey in DEFAULT_KEYBINDS.items():
+            ToontownControlConfig.setKey(action, defaultKey)
+        self.updateButtonLabels()
+
+    def updateButtonLabels(self):
+        from toontown.toonbase import ToontownControlConfig
+        for action, btn in self.buttons.items():
+            currentKey = ToontownControlConfig.getKey(action)
+            btn['text'] = ToontownControlConfig.getKeyName(currentKey)
+            btn['text_fg'] = Vec4(0, 0, 0, 1)
+
+    def enter(self):
+        self.show()
+        self.updateButtonLabels()
+        self.__updateCameraModeButton()
+
+    def exit(self):
+        self.__cancelListening()
+        self.hide()
+
+    def unload(self):
+        self.__cancelListening()
+        for btn in self.buttons.values():
+            btn.destroy()
+        for lbl in self.labels.values():
+            lbl.destroy()
+        if hasattr(self, 'cameraModeButton') and self.cameraModeButton:
+            self.cameraModeButton.destroy()
+        if hasattr(self, 'cameraModeLabel') and self.cameraModeLabel:
+            self.cameraModeLabel.destroy()
+        if hasattr(self, 'resetButton') and self.resetButton:
+            self.resetButton.destroy()
+        self.buttons = {}
+        self.labels = {}

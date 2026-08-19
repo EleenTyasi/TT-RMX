@@ -1,4 +1,4 @@
-﻿# =============================================================================
+# =============================================================================
 #  CombatLogPanel.py  —  In-Game Purple-Hued Combat Log UI (TT-RMX)
 #  Tracks all Toon & Cog battle actions, crits, status effects & damage
 # =============================================================================
@@ -63,6 +63,7 @@ class CombatLogPanel(DirectObject):
             sortOrder=DGG.FOREGROUND_SORT_INDEX,
             command=self.toggleLog,
         )
+        self.logButton.hide()
 
         # Popup Log Frame
         self.frame = DirectFrame(
@@ -117,6 +118,11 @@ class CombatLogPanel(DirectObject):
             command=self.clearLog,
         )
 
+        arrowGui = loader.loadModel('phase_3/models/gui/ChatPanel')
+        btn_up = arrowGui.find('**/ChtBx_ScrollUp')
+        btn_dn = arrowGui.find('**/ChtBx_ScrollDN')
+        btn_rlvr = arrowGui.find('**/ChtBx_ScrollRR')
+
         # Scrolled list of combat messages
         self.scrolledList = DirectScrolledList(
             parent=self.frame,
@@ -127,19 +133,18 @@ class CombatLogPanel(DirectObject):
             forceHeight=0.052,
             itemMakeFunction=None,
             itemMakeExtraArgs=[],
-            decButton_pos=(0.66, 0, 0.02),
+            decButton_pos=(1.35, 0, 0.05),
             decButton_image=(btn_up, btn_dn, btn_rlvr),
-            decButton_image_scale=(0.5, 0.5, 0.5),
-            decButton_image_color=Vec4(0.8, 0.4, 0.9, 1.0),
+            decButton_image_scale=(1.2, 1.2, 1.2),
             decButton_relief=None,
-            incButton_pos=(0.66, 0, -0.76),
-            incButton_image=(btn_up, btn_dn, btn_rlvr),
-            incButton_image_scale=(0.5, 0.5, 0.5),
-            incButton_image_color=Vec4(0.8, 0.4, 0.9, 1.0),
+            incButton_pos=(1.35, 0, -0.74),
+            incButton_image=(btn_dn, btn_up, btn_rlvr),
+            incButton_image_scale=(1.2, 1.2, 1.2),
             incButton_relief=None,
         )
 
         gui.removeNode()
+        arrowGui.removeNode()
         closeBtnGui.removeNode()
 
         self.frame.hide()
@@ -162,14 +167,24 @@ class CombatLogPanel(DirectObject):
         else:
             self.showLog()
 
+    def scrollUp(self):
+        self.scrolledList.scrollBy(-1)
+
+    def scrollDown(self):
+        self.scrolledList.scrollBy(1)
+
     def showLog(self):
         self.frame.show()
         self.isOpen = True
+        self.accept('wheel_up', self.scrollUp)
+        self.accept('wheel_down', self.scrollDown)
         self.scrollToBottom()
 
     def hideLog(self):
         self.frame.hide()
         self.isOpen = False
+        self.ignore('wheel_up')
+        self.ignore('wheel_down')
 
     def clearLog(self):
         for item in self.scrolledList['items']:
@@ -208,6 +223,8 @@ class CombatLogPanel(DirectObject):
         visible = self.scrolledList['numItemsVisible']
         if num_items > visible:
             self.scrolledList.scrollTo(num_items - visible)
+        else:
+            self.scrolledList.scrollTo(0)
 
     def destroy(self):
         self.ignoreAll()

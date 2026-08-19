@@ -51,6 +51,7 @@ class ToontownChatManager(ChatManager.ChatManager):
         self.whisperCancelButton = DirectButton(parent=self.whisperFrame, image=(gui.find('**/CloseBtn_UP'), gui.find('**/CloseBtn_DN'), gui.find('**/CloseBtn_Rllvr')), pos=(0.125, 0, -0.1), scale=1.179, relief=None, text=('', OTPLocalizer.ChatManagerCancel, OTPLocalizer.ChatManagerCancel), text_scale=0.05, text_fg=(0, 0, 0, 1), text_pos=(0, -0.09), textMayChange=0, command=self.__whisperCancelPressed)
         gui.removeNode()
         ChatManager.ChatManager.__init__(self, cr, localAvatar)
+        self.wantBackgroundFocus = 0
         from toontown.battle import CombatLogPanel
         self.combatLogPanel = CombatLogPanel.CombatLogPanel()
         self.defaultToWhiteList = base.config.GetBool('white-list-is-default', 1)
@@ -69,25 +70,6 @@ class ToontownChatManager(ChatManager.ChatManager):
         self.chatInputWhiteList.reparentTo(base.a2dTopLeft)
         self.chatInputWhiteList.desc = 'chatInputWhiteList'
         return
-
-    def delete(self):
-        ChatManager.ChatManager.delete(self)
-        loader.unloadModel('phase_3.5/models/gui/chat_input_gui')
-        self.normalButton.destroy()
-        del self.normalButton
-        self.scButton.destroy()
-        del self.scButton
-        del self.openScSfx
-        self.whisperFrame.destroy()
-        del self.whisperFrame
-        self.whisperButton.destroy()
-        del self.whisperButton
-        self.whisperScButton.destroy()
-        del self.whisperScButton
-        self.whisperCancelButton.destroy()
-        del self.whisperCancelButton
-        self.chatInputWhiteList.destroy()
-        del self.chatInputWhiteList
 
     def sendSCResistanceChatMessage(self, textId):
         messenger.send('chatUpdateSCResistance', [textId])
@@ -603,16 +585,41 @@ class ToontownChatManager(ChatManager.ChatManager):
     def messageSent(self):
         pass
 
+    def obscure(self, normal, sc):
+        ChatManager.ChatManager.obscure(self, normal, sc)
+        if hasattr(self, 'combatLogPanel') and self.combatLogPanel:
+            if sc:
+                self.combatLogPanel.hideButton()
+            else:
+                self.combatLogPanel.showButton()
+
     def checkObscurred(self):
         ChatManager.ChatManager.checkObscurred(self)
         if hasattr(self, 'combatLogPanel') and self.combatLogPanel:
-            self.combatLogPanel.showButton()
+            isNormalObscured, isScObscured = self.isObscured()
+            if not isScObscured:
+                self.combatLogPanel.showButton()
+            else:
+                self.combatLogPanel.hideButton()
+
+    def enterMainMenu(self):
+        ChatManager.ChatManager.enterMainMenu(self)
+        from toontown.toonbase import ToontownControlConfig
+        chatKey = ToontownControlConfig.getKey('chat') or '/'
+        self.accept(chatKey, self.__handleChatHotkey)
+
+    def __handleChatHotkey(self):
+        normObs, scObs = self.isObscured()
+        if not normObs:
+            self.fsm.request('normalChat')
 
     def exitMainMenu(self):
         ChatManager.ChatManager.exitMainMenu(self)
-        # Keep logButton accessible or manage visibility
+        from toontown.toonbase import ToontownControlConfig
+        chatKey = ToontownControlConfig.getKey('chat') or '/'
+        self.ignore(chatKey)
         if hasattr(self, 'combatLogPanel') and self.combatLogPanel:
-            self.combatLogPanel.showButton()
+            self.combatLogPanel.hideButton()
 
     def delete(self):
         if hasattr(self, 'combatLogPanel') and self.combatLogPanel:

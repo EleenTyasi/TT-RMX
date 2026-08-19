@@ -737,13 +737,21 @@ class LocalAvatar(DistributedAvatar.DistributedAvatar, DistributedSmoothNode.Dis
         self.__lastHprWrtRender = camera.getHpr(render)
         taskName = self.taskName('updateSmartCamera')
         taskMgr.remove(taskName)
-        taskMgr.add(self.updateSmartCamera, taskName, priority=47)
+        use_ffxiv = False
+        if hasattr(base, 'settings') and base.settings:
+            use_ffxiv = base.settings.getBool('game', 'ffxiv-camera', False)
+        if use_ffxiv and hasattr(self, 'ffxivCamera'):
+            self.ffxivCamera.enable()
+        else:
+            taskMgr.add(self.updateSmartCamera, taskName, priority=47)
         self.enableSmartCameraViews()
 
     def stopUpdateSmartCamera(self):
         if not self._smartCamEnabled:
             LocalAvatar.notify.warning('redundant call to stopUpdateSmartCamera')
             return
+        if hasattr(self, 'ffxivCamera'):
+            self.ffxivCamera.disable()
         self.disableSmartCameraViews()
         self.cTrav.removeCollider(self.ccSphereNodePath)
         self.ccTravOnFloor.removeCollider(self.ccRay2NodePath)

@@ -447,3 +447,5 @@ class ToonBase(OTPBase.OTPBase):
             loadPrcFileData('toonBase Settings Sfx Volume', 'audio-master-sfx-volume %s' % sfxVol)
             loadPrcFileData('toonBase Settings Toon Chat Sounds', 'toon-chat-sounds %s' % toonChatSounds)
             self.settings.loadFromSettings()
+            from toontown.toonbase import ToontownControlConfig
+            ToontownControlConfig.applyKeybinds()

@@ -416,12 +416,11 @@ class LocalToon(DistributedToon.DistributedToon, LocalAvatar.LocalAvatar):
         self.accept('time-delete-up', self.__endTossPie)
         self.accept('pieHit', self.__pieHit)
         self.accept('interrupt-pie', self.interruptPie)
-        self.accept('shift', self.__startSprint)
-        self.accept('shift-up', self.__stopSprint)
-        self.accept('lshift', self.__startSprint)
-        self.accept('lshift-up', self.__stopSprint)
-        self.accept('rshift', self.__startSprint)
-        self.accept('rshift-up', self.__stopSprint)
+        self.setupSprintKeys()
+        self.accept('keybinds-changed', self.setupSprintKeys)
+        from . import FFXIVCamera
+        self.ffxivCamera = FFXIVCamera.FFXIVCamera(self)
+        self.accept('camera-mode-changed', self.__updateCameraMode)
         self.accept('InputState-jump', self.__toonMoved)
         self.accept('InputState-forward', self.__toonMoved)
         self.accept('InputState-reverse', self.__toonMoved)
@@ -431,6 +430,45 @@ class LocalToon(DistributedToon.DistributedToon, LocalAvatar.LocalAvatar):
         self.startStaminaTask()
         QuestParser.init()
         return
+
+    def __updateCameraMode(self):
+        if hasattr(self, '_smartCamEnabled') and self._smartCamEnabled:
+            use_ffxiv = False
+            if hasattr(base, 'settings') and base.settings:
+                use_ffxiv = base.settings.getBool('game', 'ffxiv-camera', False)
+            if use_ffxiv:
+                taskMgr.remove(self.taskName('updateSmartCamera'))
+                self.ffxivCamera.enable()
+            else:
+                self.ffxivCamera.disable()
+                taskName = self.taskName('updateSmartCamera')
+                taskMgr.remove(taskName)
+                taskMgr.add(self.updateSmartCamera, taskName, priority=47)
+
+    def setupSprintKeys(self):
+        self.ignore('shift')
+        self.ignore('shift-up')
+        self.ignore('lshift')
+        self.ignore('lshift-up')
+        self.ignore('rshift')
+        self.ignore('rshift-up')
+        if hasattr(self, '_customSprintKey') and self._customSprintKey:
+            self.ignore(self._customSprintKey)
+            self.ignore(self._customSprintKey + '-up')
+
+        from toontown.toonbase import ToontownControlConfig
+        sprintKey = ToontownControlConfig.getKey('sprint') or 'shift'
+        self._customSprintKey = sprintKey
+        if sprintKey in ('shift', 'lshift', 'rshift'):
+            self.accept('shift', self.__startSprint)
+            self.accept('shift-up', self.__stopSprint)
+            self.accept('lshift', self.__startSprint)
+            self.accept('lshift-up', self.__stopSprint)
+            self.accept('rshift', self.__startSprint)
+            self.accept('rshift-up', self.__stopSprint)
+        else:
+            self.accept(sprintKey, self.__startSprint)
+            self.accept(sprintKey + '-up', self.__stopSprint)
 
     def __startSprint(self):
         self.shiftPressed = True

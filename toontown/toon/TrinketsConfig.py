@@ -107,7 +107,7 @@ TRINKET_CATALOG = {
     TRINKET_SHATTERING_FREEZING: {
         'id': TRINKET_SHATTERING_FREEZING,
         'name': 'Shattering Frost',
-        'desc': 'Attacking a Frozen Cog causes an ice explosion, dealing 50% damage to adjacent Cogs (xXx).',
+        'desc': 'When a Frozen Cog is defeated, it shatters in an ice explosion, dealing 50% damage to adjacent Cogs.',
     },
     TRINKET_VAMPIRIC_GAGS: {
         'id': TRINKET_VAMPIRIC_GAGS,

@@ -923,10 +923,8 @@ class InventoryNew(InventoryBase.InventoryBase, DirectFrame):
             else:
                 self.fireButton['state'] = DGG.DISABLED
         is_frozen = False
-        if hasattr(localAvatar, 'statusEffects'):
+        if hasattr(localAvatar, 'statusEffects') and localAvatar.statusEffects:
             is_frozen = any('FREEZE' in str(eff).upper() for eff in localAvatar.statusEffects)
-        elif hasattr(localAvatar, 'prevCleanStatusEffects'):
-            is_frozen = any('FREEZE' in str(eff).upper() for eff in localAvatar.prevCleanStatusEffects)
 
         if is_frozen:
             self.sosButton['state'] = DGG.DISABLED
@@ -936,6 +934,18 @@ class InventoryNew(InventoryBase.InventoryBase, DirectFrame):
             if hasattr(self, 'runButton'):
                 self.runButton['state'] = DGG.DISABLED
                 self.runButton['image_color'] = Vec4(0.4, 0.4, 0.4, 1)
+        else:
+            self.sosButton['state'] = DGG.NORMAL
+            self.sosButton['image_color'] = Vec4(0, 0.6, 1, 1)
+            if hasattr(self, 'runButton'):
+                self.runButton['state'] = DGG.NORMAL
+                self.runButton['image_color'] = Vec4(0, 0.6, 1, 1)
+            if localAvatar.getPinkSlips() > 0:
+                self.fireButton['state'] = DGG.NORMAL
+                self.fireButton['image_color'] = Vec4(0, 0.6, 1, 1)
+            else:
+                self.fireButton['state'] = DGG.DISABLED
+                self.fireButton['image_color'] = Vec4(0.4, 0.4, 0.4, 1)
 
         for track in range(len(Tracks)):
             if self.toon.hasTrackAccess(track):
