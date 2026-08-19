@@ -1423,35 +1423,43 @@ class DistributedBattleBase(DistributedNode.DistributedNode, BattleBase):
             'RALLIED': (1.0, 0.3, 0.6, 1.0),
         }
 
+        from toontown.battle import CombatLogPanel
+
         for suit in self.activeSuits:
             if suit.doId == avId:
                 prev = getattr(suit, 'prevCleanStatusEffects', [])
+                sName = suit.getName() if hasattr(suit, 'getName') else "Cog"
                 for eff in clean_effects:
                     eff_name = eff.split()[0].upper()
                     if not any(eff_name in p.upper() for p in prev):
                         color = STATUS_COLORS.get(eff_name, (1.0, 0.7, 0.0, 1.0))
                         if hasattr(suit, 'showHpString'):
                             suit.showHpString(f"+{eff_name}!", duration=1.2, scale=0.85, color=color)
+                        CombatLogPanel.logCombatEvent(f"{sName} received status effect: {eff_name}!", CombatLogPanel.COLOR_STATUS)
                 suit.prevCleanStatusEffects = list(clean_effects)
                 setattr(suit, 'statusEffects', clean_effects)
                 if poison_tick:
                     suit.poisonTick = poison_tick
+                    CombatLogPanel.logCombatEvent(f"{sName} suffered {poison_tick[0]} POISON damage!", CombatLogPanel.COLOR_STATUS)
                 if hasattr(self, 'townBattle') and self.townBattle and hasattr(self.townBattle, 'enemyHPPanel'):
                     self.townBattle.enemyHPPanel.updateSuitHP(suit, clean_effects)
                 break
         for toon in self.activeToons:
             if toon == avId or getattr(toon, 'doId', None) == avId:
                 prev = getattr(toon, 'prevCleanStatusEffects', [])
+                tName = toon.getName() if hasattr(toon, 'getName') else "Toon"
                 for eff in clean_effects:
                     eff_name = eff.split()[0].upper()
                     if not any(eff_name in p.upper() for p in prev):
                         color = STATUS_COLORS.get(eff_name, (1.0, 0.7, 0.0, 1.0))
                         if hasattr(toon, 'showHpString'):
                             toon.showHpString(f"+{eff_name}!", duration=1.2, scale=0.85, color=color)
+                        CombatLogPanel.logCombatEvent(f"{tName} received status effect: {eff_name}!", CombatLogPanel.COLOR_STATUS)
                 toon.prevCleanStatusEffects = list(clean_effects)
                 setattr(toon, 'statusEffects', clean_effects)
                 if poison_tick:
                     toon.poisonTick = poison_tick
+                    CombatLogPanel.logCombatEvent(f"{tName} suffered {poison_tick[0]} POISON damage!", CombatLogPanel.COLOR_STATUS)
                 if hasattr(self, 'townBattle') and self.townBattle and hasattr(self.townBattle, 'toonPanels'):
                     for panel in self.townBattle.toonPanels:
                         if panel.avatar and getattr(panel.avatar, 'doId', None) == avId:

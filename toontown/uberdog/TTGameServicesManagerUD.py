@@ -142,13 +142,14 @@ class SetNameTypedOperation(AvatarOperation):
         status = judgeName(self.name)
 
         if self.avId and status:
-            # Cool, this is a valid name, and we have an avId.
-            # Let's update their avatar with the new wish name & status.
+            # Single-Player Instant Name Approval:
+            # Directly approve and set the avatar's name!
             self.gameServicesManager.air.dbInterface.updateObject(self.gameServicesManager.air.dbId, self.avId,
                                                                   self.gameServicesManager.air.dclassesByName[
                                                                       'DistributedToonUD'],
-                                                                  {'WishNameState': ('PENDING',),
-                                                                   'WishName': (self.name,)})
+                                                                  {'WishNameState': ('LOCKED',),
+                                                                   'WishName': ('',),
+                                                                   'setName': (self.name,)})
 
         if self.avId:
             # If the avId is not 0, log this server event, as the avatar's

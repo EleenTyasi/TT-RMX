@@ -51,6 +51,8 @@ class ToontownChatManager(ChatManager.ChatManager):
         self.whisperCancelButton = DirectButton(parent=self.whisperFrame, image=(gui.find('**/CloseBtn_UP'), gui.find('**/CloseBtn_DN'), gui.find('**/CloseBtn_Rllvr')), pos=(0.125, 0, -0.1), scale=1.179, relief=None, text=('', OTPLocalizer.ChatManagerCancel, OTPLocalizer.ChatManagerCancel), text_scale=0.05, text_fg=(0, 0, 0, 1), text_pos=(0, -0.09), textMayChange=0, command=self.__whisperCancelPressed)
         gui.removeNode()
         ChatManager.ChatManager.__init__(self, cr, localAvatar)
+        from toontown.battle import CombatLogPanel
+        self.combatLogPanel = CombatLogPanel.CombatLogPanel()
         self.defaultToWhiteList = base.config.GetBool('white-list-is-default', 1)
         self.chatInputSpeedChat = TTChatInputSpeedChat(self)
         self.normalPos = Vec3(0.25, 0, -0.196)
@@ -601,5 +603,20 @@ class ToontownChatManager(ChatManager.ChatManager):
     def messageSent(self):
         pass
 
-    def deactivateChat(self):
-        pass
+    def checkObscurred(self):
+        ChatManager.ChatManager.checkObscurred(self)
+        if hasattr(self, 'combatLogPanel') and self.combatLogPanel:
+            self.combatLogPanel.showButton()
+
+    def exitMainMenu(self):
+        ChatManager.ChatManager.exitMainMenu(self)
+        # Keep logButton accessible or manage visibility
+        if hasattr(self, 'combatLogPanel') and self.combatLogPanel:
+            self.combatLogPanel.showButton()
+
+    def delete(self):
+        if hasattr(self, 'combatLogPanel') and self.combatLogPanel:
+            self.combatLogPanel.destroy()
+            self.combatLogPanel = None
+        ChatManager.ChatManager.delete(self)
+

@@ -234,8 +234,10 @@ class Movie(DirectObject.DirectObject):
             MovieUtil.shotDirection = 'left'
         else:
             MovieUtil.shotDirection = 'right'
-        for s in self.battle.activeSuits:
-            s.battleTrapIsFresh = 0
+        from toontown.battle import CombatLogPanel
+
+        # Emit log events on movie playback
+        ptrack.append(Func(self.__logBattleRound))
 
         tattacks, tcam = self.__doToonAttacks()
         if tattacks:
@@ -956,3 +958,105 @@ class Movie(DirectObject.DirectObject):
             camTrack.append(MovieCamera.allGroupShot(None, dur))
             return ticksTrack, camTrack
         return None, None
+
+    def __logBattleRound(self):
+        from toontown.battle import CombatLogPanel
+        CombatLogPanel.logCombatEvent("--- ROUND ENGAGED ---", CombatLogPanel.COLOR_SYSTEM)
+
+        # 1. Log Toon Attacks
+        for ta in self.toonAttackDicts:
+            toon = ta.get('toon')
+            toonName = toon.getName() if toon else "Toon"
+            track = ta.get('track', -1)
+            level = ta.get('level', 0)
+            target = ta.get('target')
+            crit_type = ta.get('crit_type', 0)
+            crit_str = ""
+            if crit_type == 1:
+                crit_str = " (DIRECT HIT!)"
+            elif crit_type == 2:
+                crit_str = " (CRITICAL HIT!)"
+            elif crit_type == 3:
+                crit_str = " (CRITICAL DIRECT HIT!)"
+
+            trackNames = ["Toon-Up", "Trap", "Lure", "Sound", "Throw", "Squirt", "Drop"]
+            trackName = trackNames[track] if 0 <= track < len(trackNames) else f"Track #{track}"
+
+            if track == HEAL:
+                if isinstance(target, list):
+                    for t in target:
+                        tToon = t.get('toon')
+                        tName = tToon.getName() if tToon else "Toon"
+                        hp = t.get('hp', 0)
+                        CombatLogPanel.logCombatEvent(f"{toonName} used {trackName} on {tName} -> +{hp} HP healed!{crit_str}", CombatLogPanel.COLOR_HEAL)
+                elif isinstance(target, dict):
+                    tToon = target.get('toon')
+                    tName = tToon.getName() if tToon else "Toon"
+                    hp = target.get('hp', 0)
+                    CombatLogPanel.logCombatEvent(f"{toonName} used {trackName} on {tName} -> +{hp} HP healed!{crit_str}", CombatLogPanel.COLOR_HEAL)
+            elif track == LURE:
+                CombatLogPanel.logCombatEvent(f"{toonName} used {trackName}!", CombatLogPanel.COLOR_TOON)
+            elif track == TRAP:
+                CombatLogPanel.logCombatEvent(f"{toonName} set a {trackName}!", CombatLogPanel.COLOR_TOON)
+            else:
+                if isinstance(target, list):
+                    for s in target:
+                        sSuit = s.get('suit')
+                        sName = sSuit.getName() if sSuit else "Cog"
+                        hp = s.get('hp', 0)
+                        if hp > 0:
+                            CombatLogPanel.logCombatEvent(f"{toonName} used {trackName} on {sName} -> {hp} DMG!{crit_str}", CombatLogPanel.COLOR_TOON)
+                        else:
+                            CombatLogPanel.logCombatEvent(f"{toonName} used {trackName} on {sName} -> MISSED!", CombatLogPanel.COLOR_MISS)
+                elif isinstance(target, dict):
+                    sSuit = target.get('suit')
+                    sName = sSuit.getName() if sSuit else "Cog"
+                    hp = target.get('hp', 0)
+                    if hp > 0:
+                        CombatLogPanel.logCombatEvent(f"{toonName} used {trackName} on {sName} -> {hp} DMG!{crit_str}", CombatLogPanel.COLOR_TOON)
+                    else:
+                        CombatLogPanel.logCombatEvent(f"{toonName} used {trackName} on {sName} -> MISSED!", CombatLogPanel.COLOR_MISS)
+
+        # 2. Log Suit Attacks
+        for sa in self.suitAttackDicts:
+            suit = sa.get('suit')
+            suitName = suit.getName() if suit else "Cog"
+            atkName = sa.get('name', 'Attack')
+            target = sa.get('target')
+
+            if isinstance(target, list):
+                for t in target:
+                    tToon = t.get('toon')
+                    tName = tToon.getName() if tToon else "Toon"
+                    hp = t.get('hp', 0)
+                    crit_type = t.get('crit_type', 0)
+                    crit_str = ""
+                    if crit_type == 1:
+                        crit_str = " (CRITICAL HIT!)"
+                    elif crit_type == 4:
+                        crit_str = " (BLOCKED! -50%)"
+                    elif crit_type == 5:
+                        crit_str = " (FULLY BLOCKED!)"
+                    
+                    if hp > 0:
+                        CombatLogPanel.logCombatEvent(f"{suitName} used {atkName} on {tName} -> {hp} DMG!{crit_str}", CombatLogPanel.COLOR_COG)
+                    else:
+                        CombatLogPanel.logCombatEvent(f"{suitName} used {atkName} on {tName} -> MISSED / DODGED!{crit_str}", CombatLogPanel.COLOR_MISS)
+            elif isinstance(target, dict):
+                tToon = target.get('toon')
+                tName = tToon.getName() if tToon else "Toon"
+                hp = target.get('hp', 0)
+                crit_type = target.get('crit_type', 0)
+                crit_str = ""
+                if crit_type == 1:
+                    crit_str = " (CRITICAL HIT!)"
+                elif crit_type == 4:
+                    crit_str = " (BLOCKED! -50%)"
+                elif crit_type == 5:
+                    crit_str = " (FULLY BLOCKED!)"
+                
+                if hp > 0:
+                    CombatLogPanel.logCombatEvent(f"{suitName} used {atkName} on {tName} -> {hp} DMG!{crit_str}", CombatLogPanel.COLOR_COG)
+                else:
+                    CombatLogPanel.logCombatEvent(f"{suitName} used {atkName} on {tName} -> MISSED / DODGED!{crit_str}", CombatLogPanel.COLOR_MISS)
+

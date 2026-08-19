@@ -938,12 +938,15 @@ class NameShop(StateData.StateData):
             if status == 1:
                 style = self.toon.getStyle()
                 avDNA = style.makeNetString()
-                self.names[1] = self.nameEntry.get()
-                self.notify.debug('typed name needs approval')
-                newPotAv = PotentialAvatar.PotentialAvatar(avId, self.names, avDNA, self.index, 1)
+                typedName = self.nameEntry.get()
+                self.names[0] = typedName
+                self.names[1] = ''
+                self.toon.setName(typedName)
+                self.notify.debug('typed name instantly approved')
+                newPotAv = PotentialAvatar.PotentialAvatar(avId, self.names, avDNA, self.index, 0)
                 if not self.newwarp:
                     self.avList.append(newPotAv)
-                self.fsm.request('ApprovalAccepted')
+                self.fsm.request('Accepted')
             elif status == 0:
                 self.fsm.request('Rejected')
             else:
