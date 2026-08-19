@@ -487,9 +487,10 @@ class LocalToon(DistributedToon.DistributedToon, LocalAvatar.LocalAvatar):
         from toontown.toon import ToonLevelGlobals
         lvl = getattr(self, 'toonLevel', 1) if hasattr(self, 'toonLevel') else 1
         base_max_stam = float(ToonLevelGlobals.getMaxStaminaForLevel(lvl))
-        from toontown.toon.TrinketsConfig import TRINKET_SPEEDING_TOON
+        from toontown.toon.TrinketsConfig import TRINKET_SPEEDING_TOON, TRINKET_VITAL_TOON
         has_speeding_toon = hasattr(self, 'hasTrinketEquipped') and self.hasTrinketEquipped(TRINKET_SPEEDING_TOON)
-        if has_speeding_toon:
+        has_vital_toon = hasattr(self, 'hasTrinketEquipped') and self.hasTrinketEquipped(TRINKET_VITAL_TOON)
+        if has_speeding_toon or has_vital_toon:
             self.maxStamina = base_max_stam * 0.5
         else:
             self.maxStamina = base_max_stam

@@ -42,6 +42,8 @@ want-gardening true
 want-cogdominiums true
 want-emblems true
 want-housing false
+want-pets false
+want-pets-in-battle false
 
 # Misc. settings
 respect-prev-transform true

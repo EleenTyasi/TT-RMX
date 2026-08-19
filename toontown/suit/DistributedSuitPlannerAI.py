@@ -389,8 +389,26 @@ class DistributedSuitPlannerAI(DistributedObjectAI.DistributedObjectAI, SuitPlan
         suitLevel, suitType, suitTrack = self.pickLevelTypeAndTrack(suitLevel, suitType, suitTrack)
         newSuit.setupSuitDNA(suitLevel, suitType, suitTrack)
 
-        # --- 5% Special Cog Variant Roll ---
-        if not skelecog and not revives and random.randint(1, 100) <= 5:
+        # --- World Boss / Special Cog Variant Roll ---
+        from toontown.suit import WorldBossGlobals
+        boss_cfg = WorldBossGlobals.get_world_boss_for_zone(self.zoneId)
+        spawn_chance = WorldBossGlobals.get_world_boss_spawn_chance(self.zoneId) if boss_cfg else 0.0
+        # Pity system: Scales up to 20% the more cogs are defeated on this street
+        if not skelecog and not revives and boss_cfg and (random.random() * 100.0) <= spawn_chance:
+            newSuit.isWorldBoss = True
+            newSuit.worldBossName = boss_cfg.get('name', 'World Boss')
+            newSuit.worldBossZoneId = boss_cfg.get('zone_id', self.zoneId)
+            newSuit.maxHP = WorldBossGlobals.get_boss_current_hp(self.zoneId)
+            newSuit.currHP = newSuit.maxHP
+            newSuit.isWaiter = (boss_cfg.get('uniform') == 'waiter')
+            if hasattr(newSuit, 'b_setWaiter') and newSuit.isWaiter:
+                newSuit.b_setWaiter(1)
+            WorldBossGlobals.reset_street_pity(self.zoneId)
+            zone_name = ToontownGlobals.StreetNames.get(self.zoneId, ('', '', f'zone {self.zoneId}'))[-1]
+            if hasattr(simbase.air, 'newsManager') and simbase.air.newsManager:
+                simbase.air.newsManager.sendUpdate('sendSystemMessage', [f"PLAYGROUND WORLD BOSS: {newSuit.worldBossName} has been sighted roaming on {zone_name}!", 0])
+            print(f"[WORLD BOSS SPAWN] {newSuit.worldBossName} spawned on {zone_name} with {spawn_chance:.1f}% pity rate (HP: {newSuit.maxHP}/{boss_cfg.get('max_hp', 1000)})")
+        elif not skelecog and not revives and random.randint(1, 100) <= 5:
             zone_name = ToontownGlobals.StreetNames.get(self.zoneId, ('', '', f'zone {self.zoneId}'))[-1]
             variant_roll = random.randint(1, 100)
             if variant_roll <= 5:  # Supertype (5% of special spawns -> RARE)

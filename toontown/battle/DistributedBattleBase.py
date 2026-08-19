@@ -163,6 +163,9 @@ class DistributedBattleBase(DistributedNode.DistributedNode, BattleBase):
         self.pendingToons = []
         self.activeToons = []
         self.runningToons = []
+        if hasattr(self, 'worldBossBar') and self.worldBossBar:
+            self.worldBossBar.destroy()
+            self.worldBossBar = None
         self.__stopTimer()
         self.__cleanupIntervals()
         self._removeMembersKeep()
@@ -506,6 +509,20 @@ class DistributedBattleBase(DistributedNode.DistributedNode, BattleBase):
 
         if len(activeSuits) > 0 or len(activeToons) > 0:
             self.__makeAvsActive(activeSuits, activeToons)
+
+        # Check for active World Boss and update Boss Bar GUI
+        for suit in self.activeSuits:
+            if getattr(suit, 'isWorldBoss', False) or getattr(suit, 'worldBossName', None):
+                if not hasattr(self, 'worldBossBar') or not self.worldBossBar:
+                    from toontown.battle.WorldBossBarGUI import WorldBossBarGUI
+                    bName = getattr(suit, 'worldBossName', 'World Boss')
+                    mHp = getattr(suit, 'maxHP', 1000)
+                    cHp = getattr(suit, 'currHP', mHp)
+                    self.worldBossBar = WorldBossBarGUI(bName, mHp, cHp)
+                else:
+                    self.worldBossBar.updateHp(getattr(suit, 'currHP', suit.maxHP))
+                break
+
         if toonGone == 1:
             validToons = []
             for toon in self.toons:

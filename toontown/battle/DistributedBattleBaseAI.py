@@ -1659,9 +1659,13 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
                  'isSupervisor': suit.isSupervisor(),
                  'isVirtual': suit.isVirtual(),
                  'hasRevives': suit.getMaxSkeleRevives(),
+                 'isWorldBoss': getattr(suit, 'isWorldBoss', False),
+                 'worldBossZoneId': getattr(suit, 'worldBossZoneId', getattr(self, 'zoneId', 0)),
                  'activeToons': self.activeToons[:]}
                 self.suitsKilled.append(encounter)
-                self.suitsKilledThisBattle.append(encounter)
+                if not getattr(suit, 'isWorldBoss', False):
+                    from toontown.suit import WorldBossGlobals
+                    WorldBossGlobals.increment_street_cogs_defeated(self.zoneId)
             self.__removeSuit(suit)
             needUpdate = 1
             suit.resume()
@@ -1756,6 +1760,27 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
                                 toon.takeDamage(dmg, quietly=1)
                             break
             self.broadcastStatusEffects()
+
+        # World Boss Persistent HP Tracking & 7-Turn Flee Mechanic
+        if not hasattr(self, 'roundCount'):
+            self.roundCount = 0
+        self.roundCount += 1
+
+        from toontown.suit import WorldBossGlobals
+        for suit in list(self.activeSuits):
+            if getattr(suit, 'isWorldBoss', False):
+                boss_zone = getattr(suit, 'worldBossZoneId', self.zoneId)
+                WorldBossGlobals.set_boss_current_hp(boss_zone, suit.currHP)
+                if self.roundCount >= 7 and suit.currHP > 0:
+                    self.notify.info("World Boss %s is fleeing after 7 turns! (Remaining HP: %d)" % (getattr(suit, 'worldBossName', 'Boss'), suit.currHP))
+                    deadSuits.append(suit)
+                    self.__removeSuit(suit)
+                    needUpdate = 1
+                    suit.flyAwayNow()
+                    for toonId in self.activeToons:
+                        toon = self.air.doId2do.get(toonId)
+                        if toon:
+                            toon.d_setSystemMessage(0, f"The World Boss {getattr(suit, 'worldBossName', 'Boss')} has fled! Remaining HP ({suit.currHP}) saved for your next encounter.")
 
         self.clearAttacks()
         self.d_setMovie()

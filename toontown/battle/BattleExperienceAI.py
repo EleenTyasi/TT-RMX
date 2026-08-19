@@ -166,9 +166,26 @@ def assignRewards(activeToons, toonSkillPtsGained, suitsKilled, zoneId, helpfulT
             suitExp = int(suitExp * 1.5)
         totalToonLevelExp += suitExp
 
+    # Check for Playground World Boss defeat
+    for suitDict in suitsKilled:
+        if suitDict.get('isWorldBoss', False):
+            boss_zone = suitDict.get('worldBossZoneId', zoneId)
+            for toon in activeToonList:
+                if hasattr(toon, 'markWorldBossDefeated'):
+                    toon.markWorldBossDefeated(boss_zone)
+            # Reset World Boss HP for the next encounter
+            from toontown.suit import WorldBossGlobals
+            WorldBossGlobals.reset_boss_hp(boss_zone)
+
     for toon in activeToonList:
-        if totalToonLevelExp > 0 and hasattr(toon, 'addToonExp'):
-            toon.addToonExp(totalToonLevelExp)
+        toonExpEarned = totalToonLevelExp
+        if toon and hasattr(toon, 'hasTrinketEquipped'):
+            from toontown.toon.TrinketsConfig import TRINKET_BELLIGERENT_INTEL
+            if toon.hasTrinketEquipped(TRINKET_BELLIGERENT_INTEL):
+                toonExpEarned *= 2
+
+        if toonExpEarned > 0 and hasattr(toon, 'addToonExp'):
+            toon.addToonExp(toonExpEarned)
 
         for i in range(len(ToontownBattleGlobals.Tracks)):
             exp = getSkillGained(toonSkillPtsGained, toon.doId, i)

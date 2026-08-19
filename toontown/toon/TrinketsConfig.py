@@ -35,6 +35,14 @@ TRINKET_LURED_DROP = 22
 TRINKET_LOUDER_SOUND = 23
 TRINKET_GENTLE_WATER = 24
 TRINKET_SPEEDING_TOON = 25
+TRINKET_HEAT_RAISER = 26
+TRINKET_PANIC_BAND = 27
+TRINKET_PERIL_BAND = 28
+TRINKET_TOUGHENED_TOON = 29
+TRINKET_VITAL_TOON = 30
+TRINKET_SMALL_MIGHTY = 31
+TRINKET_SMALL_SMART = 32
+TRINKET_BELLIGERENT_INTEL = 33
 
 TRINKET_CATALOG = {
     TRINKET_ORGANIC_THROW: {
@@ -168,6 +176,46 @@ TRINKET_CATALOG = {
         'id': TRINKET_SPEEDING_TOON,
         'name': 'Speeding Toon',
         'desc': 'Double sprint speed, but half Max Stamina. Deals & takes 4x Ram Damage when sprinting into Cogs.',
+    },
+    TRINKET_HEAT_RAISER: {
+        'id': TRINKET_HEAT_RAISER,
+        'name': 'Heat Raiser',
+        'desc': 'Burned Cogs take 1.5x more damage from your Gags.',
+    },
+    TRINKET_PANIC_BAND: {
+        'id': TRINKET_PANIC_BAND,
+        'name': 'Panic Band',
+        'desc': 'When at or below 50% Max Laff, your critical hit rate is doubled.',
+    },
+    TRINKET_PERIL_BAND: {
+        'id': TRINKET_PERIL_BAND,
+        'name': 'Peril Band',
+        'desc': 'When at 1% Max Laff (or 1 Laff), gain double dodge rate, 2x Crit chance, and deal 3x Gag damage.',
+    },
+    TRINKET_TOUGHENED_TOON: {
+        'id': TRINKET_TOUGHENED_TOON,
+        'name': 'Toughened Toon',
+        'desc': 'Blocking (PASS) reduces damage taken by 80%, but Cogs have perfect accuracy against you.',
+    },
+    TRINKET_VITAL_TOON: {
+        'id': TRINKET_VITAL_TOON,
+        'name': 'Vital Toon',
+        'desc': 'Increases Max Laff by 1.5x, but halves Max Stamina. (No positive Laff effect on Uber Toons).',
+    },
+    TRINKET_SMALL_MIGHTY: {
+        'id': TRINKET_SMALL_MIGHTY,
+        'name': 'Small But Mighty',
+        'desc': 'If your Toon has below 34 Max Laff or is an Uber, score Critical Direct Hits much more easily.',
+    },
+    TRINKET_SMALL_SMART: {
+        'id': TRINKET_SMALL_SMART,
+        'name': 'Small But Smart',
+        'desc': 'If your Toon has below 34 Max Laff or is an Uber, all Gag experience gained is doubled.',
+    },
+    TRINKET_BELLIGERENT_INTEL: {
+        'id': TRINKET_BELLIGERENT_INTEL,
+        'name': 'Belligerent Intelligence',
+        'desc': 'Halves your Max Laff, but doubles all Gag EXP and Toon Level EXP earned.',
     },
 }
 

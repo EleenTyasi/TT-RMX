@@ -409,6 +409,15 @@ class DistributedToonAI(DistributedPlayerAI.DistributedPlayerAI, DistributedSmoo
         if newLevel != oldLevel:
             self.b_setToonLevel(newLevel)
             self.notify.info('Toon %d leveled up from %d to %d (EXP: %d)' % (self.doId, oldLevel, newLevel, newExp))
+            # Check Level Laff Milestones (Levels 6, 12, 18, 24 = +2 Laff each)
+            old_boost = ToonLevelGlobals.getLaffBoostForLevel(oldLevel)
+            new_boost = ToonLevelGlobals.getLaffBoostForLevel(newLevel)
+            if new_boost > old_boost:
+                laff_diff = new_boost - old_boost
+                new_max = min(ToontownGlobals.MaxHpLimit, self.getMaxHp() + laff_diff)
+                self.b_setMaxHp(new_max)
+                self.toonUp(new_max)
+                self.d_setSystemMessage(0, "+%d MAX LAFF BONUS! (Level %d Reached)" % (laff_diff, newLevel))
             self.checkTrackUnlocks()
 
     def checkTrackUnlocks(self):
@@ -438,7 +447,24 @@ class DistributedToonAI(DistributedPlayerAI.DistributedPlayerAI, DistributedSmoo
 
     def setMaxHp(self, maxHp):
         laffCap = getattr(self, 'laffCap', 0)
-        if laffCap > 0:
+        is_uber = laffCap > 0
+        
+        # Apply Trinket Laff Modifiers
+        if hasattr(self, 'hasTrinketEquipped'):
+            from toontown.toon.TrinketsConfig import (
+                TRINKET_VITAL_TOON, TRINKET_BELLIGERENT_INTEL, TRINKET_CRIT_UP_LAFF_DOWN
+            )
+            # Vital Toon: +50% max laff (no positive effect on Uber toons)
+            if self.hasTrinketEquipped(TRINKET_VITAL_TOON) and not is_uber:
+                maxHp = int(maxHp * 1.5)
+            # Belligerent Intelligence: Halve max laff
+            if self.hasTrinketEquipped(TRINKET_BELLIGERENT_INTEL):
+                maxHp = max(1, int(maxHp * 0.5))
+            # Critical Focus: -10% max laff
+            if self.hasTrinketEquipped(TRINKET_CRIT_UP_LAFF_DOWN):
+                maxHp = max(1, int(maxHp * 0.9))
+
+        if is_uber:
             maxHp = min(maxHp, laffCap)
         DistributedPlayerAI.DistributedPlayerAI.setMaxHp(self, maxHp)
         if getattr(self, 'hp', None) is not None and self.hp > self.maxHp:
@@ -4009,8 +4035,42 @@ class DistributedToonAI(DistributedPlayerAI.DistributedPlayerAI, DistributedSmoo
     def unlockTrinket(self, trinket_id):
         unlocked = list(self.getUnlockedTrinkets())
         if trinket_id not in unlocked:
+            prev_count = len(unlocked)
             unlocked.append(trinket_id)
             self.b_setUnlockedTrinkets(unlocked)
+            new_count = len(unlocked)
+            # Every 5 trinkets up to 30 grants +3 Max Laff
+            if (new_count // 5 > prev_count // 5) and (new_count <= 30):
+                new_max = min(ToontownGlobals.MaxHpLimit, self.getMaxHp() + 3)
+                self.b_setMaxHp(new_max)
+                self.toonUp(new_max)
+                self.d_setSystemMessage(0, "+3 MAX LAFF BONUS! (Trinket Collection Milestone)")
+
+    def getWorldBossDefeatedList(self):
+        return getattr(self, 'worldBossDefeated', [])
+
+    def setWorldBossDefeatedList(self, bossList):
+        self.worldBossDefeated = list(bossList)
+
+    def d_setWorldBossDefeatedList(self, bossList):
+        self.sendUpdate('setWorldBossDefeatedList', [bossList])
+
+    def b_setWorldBossDefeatedList(self, bossList):
+        self.setWorldBossDefeatedList(bossList)
+        self.d_setWorldBossDefeatedList(bossList)
+
+    def markWorldBossDefeated(self, zone_id):
+        bossList = list(self.getWorldBossDefeatedList())
+        zone_str = str(zone_id)
+        if zone_str not in bossList:
+            bossList.append(zone_str)
+            self.b_setWorldBossDefeatedList(bossList)
+            new_max = min(ToontownGlobals.MaxHpLimit, self.getMaxHp() + 2)
+            self.b_setMaxHp(new_max)
+            self.toonUp(new_max)
+            self.d_setSystemMessage(0, "+2 MAX LAFF BONUS! (Playground World Boss Defeated)")
+            return True
+        return False
 
     def getCogKillsCount(self):
         return getattr(self, 'cogKillsCount', 0)

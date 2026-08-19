@@ -69,3 +69,10 @@ def getTrackCountForLevel(level):
 
 def getMaxStaminaForLevel(level):
     return 100 + max(0, level - 1) * 10
+
+
+TOON_LEVEL_LAFF_MILESTONES = [6, 12, 18, 24]
+
+def getLaffBoostForLevel(level):
+    """Returns +2 Max Laff for every 6 levels reached (Levels 6, 12, 18, 24 = max +8 Laff)."""
+    return (min(25, max(1, level)) // 6) * 2

@@ -1,0 +1,141 @@
+{
+  "2000": {
+    "zone_id": 2000,
+    "playground_name": "Toontown Central",
+    "name": "The Fixer",
+    "dept": "Cashbot",
+    "base_cog": "sc",
+    "level": 12,
+    "max_hp": 500,
+    "flee_turns": 7,
+    "uniform": "waiter",
+    "attacks": [
+      "Audit",
+      "Calculate",
+      "Tabulate",
+      "Bailout",
+      "DividendPayout",
+      "Spin"
+    ],
+    "taunts": [
+      "Your account balance is insufficient!",
+      "I am foreclosing on this playground!",
+      "Time for an executive audit!"
+    ]
+  },
+  "1000": {
+    "zone_id": 1000,
+    "playground_name": "Donalds Dock",
+    "name": "Loan Shark Tycoon",
+    "dept": "Cashbot",
+    "base_cog": "ls",
+    "level": 14,
+    "max_hp": 800,
+    "flee_turns": 7,
+    "uniform": "waiter",
+    "attacks": [
+      "Bite",
+      "Chomp",
+      "PlayHardball",
+      "CapitalInjection",
+      "DividendPayout"
+    ],
+    "taunts": [
+      "High tide, high interest rates!",
+      "Swimming with the big sharks now, Toons!",
+      "I will liquidate your harbor assets!"
+    ]
+  },
+  "5000": {
+    "zone_id": 5000,
+    "playground_name": "Daisy Gardens",
+    "name": "Lead Botanist",
+    "dept": "Bossbot",
+    "base_cog": "cr",
+    "level": 16,
+    "max_hp": 1100,
+    "flee_turns": 7,
+    "uniform": "waiter",
+    "attacks": [
+      "EvilEye",
+      "PlayHardball",
+      "PowerTie",
+      "Restructure",
+      "Synergy"
+    ],
+    "taunts": [
+      "Weeding out frivolous Toon activities!",
+      "Corporate pruning is in full effect!",
+      "Your flowers have been paved over!"
+    ]
+  },
+  "4000": {
+    "zone_id": 4000,
+    "playground_name": "Minnies Melodyland",
+    "name": "Maestro Manipulator",
+    "dept": "Sellbot",
+    "base_cog": "m",
+    "level": 18,
+    "max_hp": 1400,
+    "flee_turns": 7,
+    "uniform": "waiter",
+    "attacks": [
+      "BuzzWord",
+      "ParadigmShift",
+      "PowerTrip",
+      "Schmooze",
+      "ultrastomp"
+    ],
+    "taunts": [
+      "Playing to an empty house, Toons!",
+      "My performance is strictly top-billing!",
+      "Let us change the tempo to corporate march!"
+    ]
+  },
+  "3000": {
+    "zone_id": 3000,
+    "playground_name": "The Brrrgh",
+    "name": "Chief Cryomancer",
+    "dept": "Lawbot",
+    "base_cog": "sd",
+    "level": 20,
+    "max_hp": 1700,
+    "flee_turns": 7,
+    "uniform": "waiter",
+    "attacks": [
+      "FreezeAssets",
+      "ParadigmShift",
+      "Spin",
+      "LitigationDefense",
+      "ultrastomp"
+    ],
+    "taunts": [
+      "Zero degrees of separation from defeat!",
+      "I am putting your assets in the deep freeze!",
+      "Ice cold litigation is on your docket!"
+    ]
+  },
+  "9000": {
+    "zone_id": 9000,
+    "playground_name": "Donalds Dreamland",
+    "name": "Nightmare Auditor",
+    "dept": "Bossbot",
+    "base_cog": "tbc",
+    "level": 22,
+    "max_hp": 2000,
+    "flee_turns": 7,
+    "uniform": "waiter",
+    "attacks": [
+      "CigarSmoke",
+      "FloodTheMarket",
+      "TeeOff",
+      "Restructure",
+      "ultrastomp"
+    ],
+    "taunts": [
+      "Wake up, Toons! Business hours have begun!",
+      "Your pleasant dreams have been restructured!",
+      "The Big Cheese always collects!"
+    ]
+  }
+}

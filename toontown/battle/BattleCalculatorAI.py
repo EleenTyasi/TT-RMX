@@ -624,7 +624,7 @@ class BattleCalculatorAI:
                 if result > 0:
                     import math
                     from toontown.battle.CritGlobals import roll_hit_type, HIT_TYPE_NAMES, HIT_NORMAL, HIT_CRITICAL, HIT_DIRECT, HIT_CRIT_DIRECT
-                    hit_type, crit_mult = roll_hit_type(is_toon=True)
+                    hit_type, crit_mult = roll_hit_type(is_toon=True, toon=toon)
                     if toon and hasattr(toon, 'addStat'):
                         if hit_type == HIT_DIRECT:
                             toon.addStat(0, 1)
@@ -649,7 +649,8 @@ class BattleCalculatorAI:
                     from toontown.toon.TrinketsConfig import (
                         TRINKET_DEF_UP_ATK_DOWN, TRINKET_GLASS_CANNON, TRINKET_DARING_DANGER,
                         TRINKET_RALLYING_TU, TRINKET_CLEANSING_TU, TRINKET_SHATTERING_FREEZING,
-                        TRINKET_VAMPIRIC_GAGS, TRINKET_STATUS_CATALYST
+                        TRINKET_VAMPIRIC_GAGS, TRINKET_STATUS_CATALYST, TRINKET_HEAT_RAISER,
+                        TRINKET_PERIL_BAND
                     )
                     if toon:
                         if toon.hasTrinketEquipped(TRINKET_DEF_UP_ATK_DOWN):
@@ -658,9 +659,19 @@ class BattleCalculatorAI:
                             result = int(result * 1.25)
                         if toon.hasTrinketEquipped(TRINKET_DARING_DANGER) and (toon.hp / float(max(1, toon.maxHp)) <= 0.3):
                             result = int(result * 1.30)
+                        # Peril Band: 3x damage when at 1% Max Laff (or 1 Laff)
+                        if toon.hasTrinketEquipped(TRINKET_PERIL_BAND):
+                            is_one_laff = (toon.hp <= 1) or ((toon.hp / float(max(1, toon.maxHp))) <= 0.01)
+                            if is_one_laff:
+                                result = int(result * 3.0)
 
                     if atkTrack != HEAL:
-                        result = int(result * self.statusEffectMgr.get_damage_multiplier(targetId))
+                        base_mult = self.statusEffectMgr.get_damage_multiplier(targetId)
+                        # Heat Raiser: Burned Cogs take 1.5x more damage from your gags
+                        if toon and toon.hasTrinketEquipped(TRINKET_HEAT_RAISER):
+                            if self.statusEffectMgr.is_burned(targetId):
+                                base_mult *= 1.5
+                        result = int(result * base_mult)
                     else:
                         if toon and toon.hasTrinketEquipped(TRINKET_RALLYING_TU):
                             self.statusEffectMgr.apply_effect(targetId, 'RALLIED', 2)
@@ -901,7 +912,21 @@ class BattleCalculatorAI:
                  0,
                  0]
                 self.toonSkillPtsGained[id] = expList
-            expList[trk] = min(ExperienceCap, expList[trk] + (lvl + 1) * self.__skillCreditMultiplier)
+            
+            exp_mult = self.__skillCreditMultiplier
+            toonObj = self.battle.getToon(id)
+            if toonObj and hasattr(toonObj, 'hasTrinketEquipped'):
+                from toontown.toon.TrinketsConfig import TRINKET_SMALL_SMART, TRINKET_BELLIGERENT_INTEL
+                # Small But Smart: Under 34 Laff or Uber -> 2x Gag EXP
+                if toonObj.hasTrinketEquipped(TRINKET_SMALL_SMART):
+                    is_uber = getattr(toonObj, 'isUber', lambda: False)() or (getattr(toonObj, 'laffCap', 0) > 0)
+                    if (toonObj.maxHp < 34) or is_uber:
+                        exp_mult *= 2.0
+                # Belligerent Intelligence: 2x Gag EXP
+                if toonObj.hasTrinketEquipped(TRINKET_BELLIGERENT_INTEL):
+                    exp_mult *= 2.0
+
+            expList[trk] = min(ExperienceCap, expList[trk] + (lvl + 1) * exp_mult)
         return
 
     def __clearTgtDied(self, tgt, lastAtk, currAtk):
@@ -1324,7 +1349,20 @@ class BattleCalculatorAI:
         suitAcc = accList[min(max(0, theSuit.getLevel()), len(accList) - 1)]
         targetIdx = self.battle.suitAttacks[attackIndex][SUIT_TGT_COL]
         targetId = self.battle.activeToons[targetIdx] if (targetIdx >= 0 and targetIdx < len(self.battle.activeToons)) else None
+        targetToon = self.battle.getToon(targetId) if targetId else None
+
+        from toontown.toon.TrinketsConfig import TRINKET_TOUGHENED_TOON, TRINKET_PERIL_BAND
+        # Toughened Toon: Cogs have Perfect Accuracy against you
+        if targetToon and hasattr(targetToon, 'hasTrinketEquipped') and targetToon.hasTrinketEquipped(TRINKET_TOUGHENED_TOON):
+            return 1
+
         targetDefMod = self.statusEffectMgr.get_defense_mod(targetId) if targetId else 0
+        # Peril Band: Double dodge rate (halve hit chance or double defense) when at 1% max laff or 1 Laff
+        if targetToon and hasattr(targetToon, 'hasTrinketEquipped') and targetToon.hasTrinketEquipped(TRINKET_PERIL_BAND):
+            is_one_laff = (targetToon.hp <= 1) or ((targetToon.hp / float(max(1, targetToon.maxHp))) <= 0.01)
+            if is_one_laff:
+                targetDefMod += 50  # Doubles dodge effectiveness against Cog attacks
+
         acc = atkAcc + self.statusEffectMgr.get_accuracy_mod(theSuit.doId) - targetDefMod
         randChoice = random.randint(0, 99)
         hit = randChoice < acc
@@ -1397,7 +1435,9 @@ class BattleCalculatorAI:
                 
                 # Check if target Toon is BLOCKING (PASS action)
                 if toonId in self.blockingToons:
-                    result = int(result * 0.5)
+                    from toontown.toon.TrinketsConfig import TRINKET_TOUGHENED_TOON
+                    block_mult = 0.2 if (toon and hasattr(toon, 'hasTrinketEquipped') and toon.hasTrinketEquipped(TRINKET_TOUGHENED_TOON)) else 0.5
+                    result = int(result * block_mult)
                     hit_type = 4 if result > 0 else 5
 
                 if not isinstance(attack[SUIT_BEFORE_TOONS_COL], int):

@@ -702,7 +702,21 @@ class DistributedToon(DistributedPlayer.DistributedPlayer, Toon.Toon, Distribute
 
     def setMaxHp(self, hitPoints):
         laffCap = getattr(self, 'laffCap', 0)
-        if laffCap > 0:
+        is_uber = laffCap > 0
+
+        # Client-side preview of Trinket Laff Modifiers
+        if hasattr(self, 'hasTrinketEquipped'):
+            from toontown.toon.TrinketsConfig import (
+                TRINKET_VITAL_TOON, TRINKET_BELLIGERENT_INTEL, TRINKET_CRIT_UP_LAFF_DOWN
+            )
+            if self.hasTrinketEquipped(TRINKET_VITAL_TOON) and not is_uber:
+                hitPoints = int(hitPoints * 1.5)
+            if self.hasTrinketEquipped(TRINKET_BELLIGERENT_INTEL):
+                hitPoints = max(1, int(hitPoints * 0.5))
+            if self.hasTrinketEquipped(TRINKET_CRIT_UP_LAFF_DOWN):
+                hitPoints = max(1, int(hitPoints * 0.9))
+
+        if is_uber:
             hitPoints = min(hitPoints, laffCap)
         DistributedPlayer.DistributedPlayer.setMaxHp(self, hitPoints)
         if getattr(self, 'hp', None) is not None and self.hp > self.maxHp:
@@ -2176,6 +2190,12 @@ class DistributedToon(DistributedPlayer.DistributedPlayer, Toon.Toon, Distribute
 
     def setUnlockedTrinkets(self, unlocked):
         self.unlockedTrinkets = unlocked
+
+    def getWorldBossDefeatedList(self):
+        return getattr(self, 'worldBossDefeated', [])
+
+    def setWorldBossDefeatedList(self, bossList):
+        self.worldBossDefeated = list(bossList)
 
     def getCogKillsCount(self):
         return getattr(self, 'cogKillsCount', 0)

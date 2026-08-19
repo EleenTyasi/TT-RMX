@@ -63,9 +63,6 @@ class QuestRewardCounter:
         fishHp = int(len(av.fishCollection) / FishGlobals.FISH_PER_BONUS)
         self.notify.debug('Adding %s hp for fish collection' % fishHp)
         self.maxHp += fishHp
-        flowerHp = int(len(av.flowerCollection) / GardenGlobals.FLOWERS_PER_BONUS)
-        self.notify.debug('Adding %s hp for fish collection' % flowerHp)
-        self.maxHp += flowerHp
         HQdepts = (ToontownGlobals.cogHQZoneId2deptIndex(ToontownGlobals.SellbotHQ), ToontownGlobals.cogHQZoneId2deptIndex(ToontownGlobals.LawbotHQ), ToontownGlobals.cogHQZoneId2deptIndex(ToontownGlobals.CashbotHQ))
         levels = av.getCogLevels()
         cogTypes = av.getCogTypes()
@@ -85,9 +82,25 @@ class QuestRewardCounter:
         kartingHp = int(av.kartingTrophies.count(1) / RaceGlobals.TrophiesPerCup)
         self.notify.debug('Adding %s hp for karting trophies' % kartingHp)
         self.maxHp += kartingHp
-        golfHp = int(av.golfTrophies.count(True) / GolfGlobals.TrophiesPerCup)
-        self.notify.debug('Adding %s hp for golf trophies' % golfHp)
-        self.maxHp += golfHp
+
+        # Trinket Collection Milestones (+3 Laff every 5 trinkets up to 30 = max +18)
+        unlockedTrinkets = av.getUnlockedTrinkets() if hasattr(av, 'getUnlockedTrinkets') else []
+        trinketHp = min(18, (len(unlockedTrinkets) // 5) * 3)
+        self.notify.debug('Adding %s hp for trinket collection' % trinketHp)
+        self.maxHp += trinketHp
+
+        # Toon Level Milestones (+2 Laff at Levels 6, 12, 18, 24 = max +8)
+        toonLevel = av.getToonLevel() if hasattr(av, 'getToonLevel') else 1
+        from toontown.toon import ToonLevelGlobals
+        levelHp = ToonLevelGlobals.getLaffBoostForLevel(toonLevel)
+        self.notify.debug('Adding %s hp for toon level' % levelHp)
+        self.maxHp += levelHp
+
+        # Playground World Bosses (+2 Laff per defeated boss, 6 bosses = max +12)
+        worldBossesDefeated = av.getWorldBossDefeatedList() if hasattr(av, 'getWorldBossDefeatedList') else []
+        bossHp = min(12, len(worldBossesDefeated) * 2)
+        self.notify.debug('Adding %s hp for world bosses defeated' % bossHp)
+        self.maxHp += bossHp
 
     def setRewardIndex(self, tier, rewardIds, rewardHistory):
         self.reset()
