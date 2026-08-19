@@ -8,7 +8,7 @@
     "level": 12,
     "max_hp": 500,
     "flee_turns": 7,
-    "uniform": "waiter",
+    "uniform": "standard",
     "attacks": [
       "Audit",
       "Calculate",
@@ -32,7 +32,7 @@
     "level": 14,
     "max_hp": 800,
     "flee_turns": 7,
-    "uniform": "waiter",
+    "uniform": "standard",
     "attacks": [
       "Bite",
       "Chomp",
@@ -55,7 +55,7 @@
     "level": 16,
     "max_hp": 1100,
     "flee_turns": 7,
-    "uniform": "waiter",
+    "uniform": "standard",
     "attacks": [
       "EvilEye",
       "PlayHardball",
@@ -78,7 +78,7 @@
     "level": 18,
     "max_hp": 1400,
     "flee_turns": 7,
-    "uniform": "waiter",
+    "uniform": "standard",
     "attacks": [
       "BuzzWord",
       "ParadigmShift",
@@ -101,7 +101,7 @@
     "level": 20,
     "max_hp": 1700,
     "flee_turns": 7,
-    "uniform": "waiter",
+    "uniform": "standard",
     "attacks": [
       "FreezeAssets",
       "ParadigmShift",
@@ -124,7 +124,7 @@
     "level": 22,
     "max_hp": 2000,
     "flee_turns": 7,
-    "uniform": "waiter",
+    "uniform": "standard",
     "attacks": [
       "CigarSmoke",
       "FloodTheMarket",

@@ -400,9 +400,6 @@ class DistributedSuitPlannerAI(DistributedObjectAI.DistributedObjectAI, SuitPlan
             newSuit.worldBossZoneId = boss_cfg.get('zone_id', self.zoneId)
             newSuit.maxHP = WorldBossGlobals.get_boss_current_hp(self.zoneId)
             newSuit.currHP = newSuit.maxHP
-            newSuit.isWaiter = (boss_cfg.get('uniform') == 'waiter')
-            if hasattr(newSuit, 'b_setWaiter') and newSuit.isWaiter:
-                newSuit.b_setWaiter(1)
             WorldBossGlobals.reset_street_pity(self.zoneId)
             zone_name = ToontownGlobals.StreetNames.get(self.zoneId, ('', '', f'zone {self.zoneId}'))[-1]
             if hasattr(simbase.air, 'newsManager') and simbase.air.newsManager:

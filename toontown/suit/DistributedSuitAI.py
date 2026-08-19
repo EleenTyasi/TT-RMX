@@ -78,6 +78,20 @@ class DistributedSuitAI(DistributedSuitBaseAI.DistributedSuitBaseAI):
             return
         self.confrontPos = Point3(x, y, z)
         self.confrontHpr = Vec3(h, p, r)
+
+        toon = self.air.doId2do.get(toonId)
+        # Apply Sprint Ram Damage on server if toon engaged while sprinting
+        if toon and getattr(toon, 'isSprinting', False):
+            from toontown.toon.TrinketsConfig import TRINKET_SPEEDING_TOON
+            has_speeding_toon = hasattr(toon, 'hasTrinketEquipped') and toon.hasTrinketEquipped(TRINKET_SPEEDING_TOON)
+            cog_pct = 0.40 if has_speeding_toon else 0.10
+            toon_pct = 0.20 if has_speeding_toon else 0.05
+            cog_damage = max(1, int(self.maxHP * cog_pct))
+            self.currHP = max(1, self.currHP - cog_damage)
+            toon_damage = max(1, int(toon.maxHp * toon_pct))
+            toon.takeDamage(toon_damage)
+            self.notify.info('Toon %d sprint-rammed Cog %d for %d damage (Cog HP now %d, Toon HP now %d)' % (toonId, self.getDoId(), cog_damage, self.currHP, toon.hp))
+
         if self.sp.requestBattle(self.zoneId, self, toonId):
             if self.notify.getDebug():
                 self.notify.debug('Suit %d requesting battle in zone %d' % (self.getDoId(), self.zoneId))

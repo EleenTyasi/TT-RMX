@@ -28,8 +28,10 @@ def reset_street_pity(zone_id):
     """Resets the pity counter for this street when a World Boss spawns."""
     _street_cogs_defeated[zone_id] = 0
 
-def load_world_bosses():
+def load_world_bosses(force=False):
     global WORLD_BOSSES
+    if WORLD_BOSSES and not force:
+        return
     if os.path.exists(CONFIG_PATH):
         try:
             with open(CONFIG_PATH, 'r', encoding='utf-8') as f:
@@ -39,7 +41,8 @@ def load_world_bosses():
             notify.warning('Failed to load world_bosses.json: %s' % e)
 
 def get_world_boss_for_zone(zone_id):
-    load_world_bosses()
+    if not WORLD_BOSSES:
+        load_world_bosses()
     # Zone ID matching (e.g. 2100 -> 2000)
     hood_id = (zone_id // 1000) * 1000
     return WORLD_BOSSES.get(str(hood_id)) or WORLD_BOSSES.get(str(zone_id))

@@ -506,15 +506,18 @@ class LocalToon(DistributedToon.DistributedToon, LocalAvatar.LocalAvatar):
             is_safe_zone = True
 
         is_moving = False
-        if hasattr(self, 'controlManager') and getattr(self.controlManager, 'isEnabled', 0):
+        forward = inputState.isSet('forward') if hasattr(inputState, 'isSet') else False
+        reverse = inputState.isSet('reverse') if hasattr(inputState, 'isSet') else False
+        slide = inputState.isSet('slide') if hasattr(inputState, 'isSet') else False
+        turn_left = inputState.isSet('turnLeft') if hasattr(inputState, 'isSet') else False
+        turn_right = inputState.isSet('turnRight') if hasattr(inputState, 'isSet') else False
+
+        if forward or reverse or slide or turn_left or turn_right:
+            is_moving = True
+        elif hasattr(self, 'controlManager') and getattr(self.controlManager, 'isEnabled', 0):
             curr = getattr(self.controlManager, 'currentControls', None)
-            is_airborne = getattr(curr, 'isAirborne', 0) if curr else 0
-            if not is_airborne:
-                forward = inputState.isSet('forward') if hasattr(inputState, 'isSet') else False
-                reverse = inputState.isSet('reverse') if hasattr(inputState, 'isSet') else False
-                slide = inputState.isSet('slide') if hasattr(inputState, 'isSet') else False
-                if forward or reverse or slide:
-                    is_moving = True
+            if curr and hasattr(curr, 'speed') and abs(getattr(curr, 'speed', 0)) > 0.1:
+                is_moving = True
 
         dt = globalClock.getDt()
         sprint_speed = 3.0 if has_speeding_toon else 1.5
