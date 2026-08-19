@@ -2410,8 +2410,132 @@ class PrintChildren(MagicWord):
 
 
 
+class GetPity(MagicWord):
+    aliases = ["getpity", "pity", "bosspity"]
+    desc = "Shows the spawn pity chance and stats for the current playground's World Boss."
+    execLocation = MagicWordConfig.EXEC_LOC_SERVER
+    affectRange = [MagicWordConfig.AFFECT_SINGLE]
+
+    def handleWord(self, invoker, avId, toon, *args):
+        from toontown.suit import WorldBossGlobals
+        target = toon or invoker
+        zoneId = 0
+        if target:
+            if hasattr(target, 'zoneId') and target.zoneId:
+                zoneId = target.zoneId
+            elif hasattr(target, 'getLocation'):
+                loc = target.getLocation()
+                if loc and len(loc) >= 2:
+                    zoneId = loc[1]
+
+        boss_cfg = WorldBossGlobals.get_world_boss_for_zone(zoneId)
+        if not boss_cfg:
+            return "No Playground World Boss configured for zone %d!" % zoneId
+
+        boss_name = boss_cfg.get('name', 'World Boss')
+        base_cog = boss_cfg.get('base_cog', 'sc').upper()
+        boss_lvl = boss_cfg.get('level', 12)
+        curr_hp = WorldBossGlobals.get_boss_current_hp(zoneId)
+        max_hp = boss_cfg.get('max_hp', 1000)
+        pity_chance = WorldBossGlobals.get_world_boss_spawn_chance(zoneId)
+        cogs_defeated = WorldBossGlobals.get_street_cogs_defeated(zoneId)
+        zone_name = ToontownGlobals.StreetNames.get(zoneId, ('', '', f'Zone {zoneId}'))[-1]
+
+        return (
+            "[WORLD BOSS STATUS - %s]\n"
+            "Boss: %s (%s, Level %d)\n"
+            "HP: %d / %d\n"
+            "Cogs Defeated on Street: %d\n"
+            "Current Spawn Pity Chance: %.1f%%" % (
+                zone_name, boss_name, base_cog, boss_lvl, curr_hp, max_hp, cogs_defeated, pity_chance
+            )
+        )
+
+
+class BossCall(MagicWord):
+    aliases = ["bosscall", "spawnboss", "callboss", "forceboss"]
+    desc = "Sets street boss pity to 100% and immediately spawns the World Boss in this area."
+    execLocation = MagicWordConfig.EXEC_LOC_SERVER
+    affectRange = [MagicWordConfig.AFFECT_SINGLE]
+
+    def handleWord(self, invoker, avId, toon, *args):
+        from toontown.suit import WorldBossGlobals
+        target = toon or invoker
+        zoneId = 0
+        if target:
+            if hasattr(target, 'zoneId') and target.zoneId:
+                zoneId = target.zoneId
+            elif hasattr(target, 'getLocation'):
+                loc = target.getLocation()
+                if loc and len(loc) >= 2:
+                    zoneId = loc[1]
+
+        boss_cfg = WorldBossGlobals.get_world_boss_for_zone(zoneId)
+        if not boss_cfg:
+            return "No Playground World Boss configured for zone %d!" % zoneId
+
+        hood_id = (zoneId // 1000) * 1000
+        boss_name = boss_cfg.get('name', 'World Boss')
+        zone_name = ToontownGlobals.StreetNames.get(zoneId, ('', '', f'Zone {zoneId}'))[-1]
+
+        # Check if a World Boss is already alive in this neighborhood / street
+        for sp_zone, sp in list(simbase.air.suitPlanners.items()):
+            if (sp_zone // 1000) * 1000 == hood_id:
+                for existingSuit in sp.suitList:
+                    if getattr(existingSuit, 'isWorldBoss', False) and not existingSuit.isDeleted() and existingSuit.currHP > 0:
+                        curr_st = ToontownGlobals.StreetNames.get(sp.zoneId, ('', '', f'Zone {sp.zoneId}'))[-1]
+                        return "World Boss '%s' is ALREADY active on %s (HP: %d/%d)!" % (boss_name, curr_st, existingSuit.currHP, getattr(existingSuit, 'maxHP', 1000))
+
+        # 1. Identify all matching SuitPlanners for this zone / neighborhood
+        target_planners = []
+        if (zoneId % 1000) != 0:
+            # Player is on a specific street: target this street's planner
+            planner_zone = zoneId - (zoneId % 100)
+            sp = simbase.air.suitPlanners.get(planner_zone) or simbase.air.suitPlanners.get(zoneId)
+            if sp:
+                target_planners.append(sp)
+        else:
+            # Player is in the playground: target all connecting streets in this neighborhood!
+            for sp_zone, sp in list(simbase.air.suitPlanners.items()):
+                if (sp_zone // 1000) * 1000 == hood_id:
+                    target_planners.append(sp)
+
+        # Fallback: if no specific planner matched, find any in the neighborhood
+        if not target_planners:
+            for sp_zone, sp in list(simbase.air.suitPlanners.items()):
+                if (sp_zone // 1000) * 1000 == hood_id:
+                    target_planners.append(sp)
+
+        # 2. Set pity to 100% and force flag across the zone and neighborhood
+        WorldBossGlobals.set_street_pity_100(zoneId)
+        WorldBossGlobals.set_force_next_spawn(zoneId, True)
+        WorldBossGlobals.set_force_next_spawn(hood_id, True)
+
+        # 3. Immediately fire off spawn on the planners
+        spawned_streets = []
+        for sp in target_planners:
+            WorldBossGlobals.set_street_pity_100(sp.zoneId)
+            WorldBossGlobals.set_force_next_spawn(sp.zoneId, True)
+            pointmap = list(sp.streetPointList)
+            suit = sp.createNewSuit([], pointmap)
+            st_name = ToontownGlobals.StreetNames.get(sp.zoneId, ('', '', f'Zone {sp.zoneId}'))[-1]
+            if suit and getattr(suit, 'isWorldBoss', False):
+                spawned_streets.append(st_name)
+                # Found and spawned our boss!
+                break
+            elif suit:
+                # Spawned a suit on this planner
+                spawned_streets.append(st_name)
+
+        if spawned_streets:
+            return "World Boss '%s' pity set to 100%% and immediate spawn triggered on %s!" % (boss_name, ', '.join(spawned_streets))
+        else:
+            return "World Boss '%s' pity set to 100%% for %s! It will appear on the next spawn tick." % (boss_name, zone_name)
+
+
 # Instantiate all classes defined here to register them.
 # A bit hacky, but better than the old system
 for item in list(globals().values()):
     if isinstance(item, type) and issubclass(item, MagicWord):
         i = item()
+

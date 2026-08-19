@@ -66,6 +66,8 @@ class DistributedSuitBase(DistributedAvatar.DistributedAvatar, Suit.Suit, SuitBa
         return 0
 
     def updateMaxHP(self):
+        if getattr(self, 'isWorldBoss', False):
+            return
         if not hasattr(self, 'dna') or not self.dna:
             return
         from toontown.battle import SuitBattleGlobals
@@ -99,9 +101,28 @@ class DistributedSuitBase(DistributedAvatar.DistributedAvatar, Suit.Suit, SuitBa
     def getVariantFlags(self):
         return (1 if getattr(self, 'isAlphatype', False) else 0, 1 if getattr(self, 'isPrototype', False) else 0, 1 if getattr(self, 'isSupertype', False) else 0)
 
+    def setWorldBoss(self, bossName, maxHP, currHP):
+        if bossName:
+            self.isWorldBoss = True
+            self.worldBossName = bossName
+            self.maxHP = maxHP
+            self.currHP = currHP
+        else:
+            self.isWorldBoss = False
+            self.worldBossName = ''
+        self.updateNameText()
+        messenger.send('suit-hp-change', [self])
+
+    def getWorldBoss(self):
+        if getattr(self, 'isWorldBoss', False):
+            return (getattr(self, 'worldBossName', ''), getattr(self, 'maxHP', 0), getattr(self, 'currHP', 0))
+        return ('', 0, 0)
+
     def updateNameText(self):
         levelStr = str(self.getActualLevel())
-        if getattr(self, 'isSupertype', False):
+        if getattr(self, 'isWorldBoss', False):
+            levelStr += '.WB'
+        elif getattr(self, 'isSupertype', False):
             levelStr += '.S'
         elif getattr(self, 'isAlphatype', False) and getattr(self, 'isPrototype', False):
             levelStr += '.A.P'
@@ -113,8 +134,11 @@ class DistributedSuitBase(DistributedAvatar.DistributedAvatar, Suit.Suit, SuitBa
         if self.getSkeleRevives() > 0:
             levelStr += TTLocalizer.SkeleRevivePostFix
 
+        bossTitle = getattr(self, 'worldBossName', None)
+        displayName = bossTitle if (getattr(self, 'isWorldBoss', False) and bossTitle) else self._name
+
         nameInfo = TTLocalizer.SuitBaseNameWithLevel % {
-            'name': self._name,
+            'name': displayName,
             'dept': self.getStyleDept(),
             'level': levelStr
         }
@@ -170,10 +194,15 @@ class DistributedSuitBase(DistributedAvatar.DistributedAvatar, Suit.Suit, SuitBa
         return self.currHP
 
     def setHP(self, hp):
-        if hp > self.maxHP:
+        if getattr(self, 'isWorldBoss', False):
+            self.currHP = hp
+            if hp > self.maxHP:
+                self.maxHP = hp
+        elif hp > self.maxHP:
             self.currHP = self.maxHP
         else:
             self.currHP = hp
+        messenger.send('suit-hp-change', [self])
         return None
 
     def getDialogueArray(self, *args):

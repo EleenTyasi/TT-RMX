@@ -118,17 +118,18 @@ class EnemyHPPanel(DirectObject):
         self.accept('suit-hp-change', self.__handleSuitHPChange)
 
     def setPosition(self, index, total):
+        # Position on the left side of the screen so it doesn't block the Cogs or Boss Bar
         if total <= 1:
-            xPositions = [0.0]
+            yPositions = [0.28]
         elif total == 2:
-            xPositions = [-0.55, 0.55]
+            yPositions = [0.42, 0.14]
         elif total == 3:
-            xPositions = [-0.72, 0.0, 0.72]
+            yPositions = [0.55, 0.28, 0.01]
         else:
-            xPositions = [-0.95, -0.32, 0.32, 0.95]
+            yPositions = [0.65, 0.40, 0.15, -0.10]
 
-        posX = xPositions[index] if index < len(xPositions) else 0.0
-        self.frame.setPos(posX, 0, 0.75)
+        posY = yPositions[index] if index < len(yPositions) else 0.28
+        self.frame.setPos(-0.95, 0, posY)
         self.frame.reparentTo(aspect2d)
 
     def __handleSuitHPChange(self, suit):
@@ -170,6 +171,7 @@ class EnemyHPPanel(DirectObject):
                 except:
                     baseMaxHP = attributes['hp'][-1]
 
+        isWorldBoss = getattr(suit, 'isWorldBoss', False) or bool(getattr(suit, 'worldBossName', None))
         isSuper = getattr(suit, 'isSupertype', False)
         isProto = getattr(suit, 'isPrototype', False)
         isAlpha = getattr(suit, 'isAlphatype', False)
@@ -177,21 +179,29 @@ class EnemyHPPanel(DirectObject):
         revives = getattr(suit, 'skeleRevives', 0) if not hasattr(suit, 'getSkeleRevives') else suit.getSkeleRevives()
         isV2 = revives > 0 or getattr(suit, 'isV20', False)
 
-        if isSuper or isProto:
+        if isWorldBoss:
+            name = getattr(suit, 'worldBossName', name)
+            maxHP = getattr(suit, 'maxHP', baseMaxHP)
+            currHP = getattr(suit, 'currHP', maxHP)
+        elif isSuper or isProto:
             maxHP = baseMaxHP * 2
+            currHP = getattr(suit, 'currHP', maxHP)
         elif isSkele:
             maxHP = max(1, int(baseMaxHP * 0.75))
+            currHP = getattr(suit, 'currHP', maxHP)
         else:
             maxHP = baseMaxHP
+            currHP = getattr(suit, 'currHP', maxHP)
 
         suit.maxHP = maxHP
-        currHP = getattr(suit, 'currHP', maxHP)
         if currHP > maxHP:
             currHP = maxHP
-            suit.currHP = currHP
+        suit.currHP = currHP
 
         levelStr = str(actualLevel)
-        if isSuper:
+        if isWorldBoss:
+            levelStr += '.WB'
+        elif isSuper:
             levelStr += '.S'
         elif isAlpha and isProto:
             levelStr += '.A.P'
@@ -202,7 +212,7 @@ class EnemyHPPanel(DirectObject):
 
         if isV2:
             levelStr += ' v2.0'
-        elif isSkele and not isSuper:
+        elif isSkele and not isSuper and not isWorldBoss:
             levelStr += ' (Skele)'
 
         nameStr = f"{name} (Lvl {levelStr})"

@@ -326,6 +326,14 @@ class DistributedSuitPlannerAI(DistributedObjectAI.DistributedObjectAI, SuitPlan
                 startTime = SuitTimings.fromSky
 
         if startPoint == None:
+            from toontown.suit import WorldBossGlobals
+            if WorldBossGlobals.get_and_clear_force_spawn(self.zoneId):
+                boss_cfg = WorldBossGlobals.get_world_boss_for_zone(self.zoneId)
+                boss_name = boss_cfg.get('name', 'World Boss') if boss_cfg else 'World Boss'
+                err_msg = f"[WORLD BOSS ERROR] Failed to spawn {boss_name} in zone {self.zoneId}: No available origin start point (collision or blocked points)."
+                print(err_msg)
+                if hasattr(simbase.air, 'newsManager') and simbase.air.newsManager:
+                    simbase.air.newsManager.sendUpdate('sendSystemMessage', [err_msg, 0])
             return
         newSuit = DistributedSuitAI.DistributedSuitAI(simbase.air, self)
         newSuit.startPoint = startPoint
@@ -393,18 +401,51 @@ class DistributedSuitPlannerAI(DistributedObjectAI.DistributedObjectAI, SuitPlan
         from toontown.suit import WorldBossGlobals
         boss_cfg = WorldBossGlobals.get_world_boss_for_zone(self.zoneId)
         spawn_chance = WorldBossGlobals.get_world_boss_spawn_chance(self.zoneId) if boss_cfg else 0.0
-        # Pity system: Scales up to 20% the more cogs are defeated on this street
-        if not skelecog and not revives and boss_cfg and (random.random() * 100.0) <= spawn_chance:
+        forced_spawn = WorldBossGlobals.get_and_clear_force_spawn(self.zoneId)
+
+        # Check if a World Boss already exists on this street or neighborhood
+        hood_id = (self.zoneId // 1000) * 1000
+        boss_already_exists = False
+        for sp_zone, sp in list(self.air.suitPlanners.items()):
+            if sp_zone == self.zoneId or (sp_zone // 1000) * 1000 == hood_id:
+                for existingSuit in sp.suitList:
+                    if getattr(existingSuit, 'isWorldBoss', False) and not existingSuit.isDeleted() and existingSuit.currHP > 0:
+                        boss_already_exists = True
+                        break
+            if boss_already_exists:
+                break
+
+        # Pity system: Scales up to 20% the more cogs are defeated on this street (or forced by ~bosscall)
+        if not boss_already_exists and not skelecog and not revives and boss_cfg and (forced_spawn or (random.random() * 100.0) <= spawn_chance):
             newSuit.isWorldBoss = True
             newSuit.worldBossName = boss_cfg.get('name', 'World Boss')
             newSuit.worldBossZoneId = boss_cfg.get('zone_id', self.zoneId)
+            
+            # Configure exact World Boss DNA and Level
+            base_cog = boss_cfg.get('base_cog', 'sc')
+            boss_lvl = boss_cfg.get('level', 12)
+            boss_track = SuitDNA.getSuitDept(base_cog)
+            newSuit.dna = SuitDNA.SuitDNA()
+            newSuit.dna.newSuit(base_cog)
+            newSuit.track = boss_track
+            newSuit.setLevel(boss_lvl)
+
             newSuit.maxHP = WorldBossGlobals.get_boss_current_hp(self.zoneId)
             newSuit.currHP = newSuit.maxHP
             WorldBossGlobals.reset_street_pity(self.zoneId)
             zone_name = ToontownGlobals.StreetNames.get(self.zoneId, ('', '', f'zone {self.zoneId}'))[-1]
             if hasattr(simbase.air, 'newsManager') and simbase.air.newsManager:
                 simbase.air.newsManager.sendUpdate('sendSystemMessage', [f"PLAYGROUND WORLD BOSS: {newSuit.worldBossName} has been sighted roaming on {zone_name}!", 0])
-            print(f"[WORLD BOSS SPAWN] {newSuit.worldBossName} spawned on {zone_name} with {spawn_chance:.1f}% pity rate (HP: {newSuit.maxHP}/{boss_cfg.get('max_hp', 1000)})")
+            print("=" * 65)
+            print(f"[WORLD BOSS SPAWN INITIATED]")
+            print(f"  • Name:           {newSuit.worldBossName}")
+            print(f"  • Base Cog:       {base_cog.upper()} (Dept: {boss_track.upper()})")
+            print(f"  • Level:          {boss_lvl}")
+            print(f"  • Health Pool:    {newSuit.currHP} / {boss_cfg.get('max_hp', 1000)} HP")
+            print(f"  • Location:       {zone_name} (Zone {self.zoneId})")
+            print(f"  • Trigger:        {'FORCED (~forceboss)' if forced_spawn else f'PITY ROLL ({spawn_chance:.1f}%)'}")
+            print(f"  • Origin Node:    Point #{startPoint.getIndex() if hasattr(startPoint, 'getIndex') else startPoint} ({'From Sky' if newSuit.flyInSuit else 'From Building'})")
+            print("=" * 65)
         elif not skelecog and not revives and random.randint(1, 100) <= 5:
             zone_name = ToontownGlobals.StreetNames.get(self.zoneId, ('', '', f'zone {self.zoneId}'))[-1]
             variant_roll = random.randint(1, 100)
@@ -443,6 +484,12 @@ class DistributedSuitPlannerAI(DistributedObjectAI.DistributedObjectAI, SuitPlan
         gotDestination = self.chooseDestination(newSuit, startTime, toonBlockTakeover=toonBlockTakeover, cogdoTakeover=cogdoTakeover, minPathLen=minPathLen, maxPathLen=maxPathLen)
         if not gotDestination:
             self.notify.debug("Couldn't get a destination in %d!" % self.zoneId)
+            if getattr(newSuit, 'isWorldBoss', False):
+                boss_name = getattr(newSuit, 'worldBossName', 'World Boss')
+                err_msg = f"[WORLD BOSS ERROR] {boss_name} failed to spawn in zone {self.zoneId}: Could not find a valid street path/destination!"
+                print(err_msg)
+                if hasattr(simbase.air, 'newsManager') and simbase.air.newsManager:
+                    simbase.air.newsManager.sendUpdate('sendSystemMessage', [err_msg, 0])
             newSuit.doNotDeallocateChannel = None
             newSuit.delete()
             return
@@ -452,6 +499,8 @@ class DistributedSuitPlannerAI(DistributedObjectAI.DistributedObjectAI, SuitPlan
             newSuit.setSkelecog(skelecog)
         if revives:
             newSuit.setSkeleRevives(revives)
+        if getattr(newSuit, 'isWorldBoss', False):
+            newSuit.setWorldBoss(newSuit.worldBossName, newSuit.maxHP, newSuit.currHP)
         newSuit.setVariantFlags(
             1 if getattr(newSuit, 'isAlphatype', False) else 0,
             1 if getattr(newSuit, 'isPrototype', False) else 0,
@@ -460,6 +509,13 @@ class DistributedSuitPlannerAI(DistributedObjectAI.DistributedObjectAI, SuitPlan
         newSuit.generateWithRequired(newSuit.zoneId)
         newSuit.moveToNextLeg(None)
         self.suitList.append(newSuit)
+        if getattr(newSuit, 'isWorldBoss', False):
+            print(f"[WORLD BOSS DEPLOYED ON STREET]")
+            print(f"  • Entity DoId:    {newSuit.getDoId()}")
+            print(f"  • Street Zone:    {newSuit.zoneId}")
+            print(f"  • Destination:    Point #{newSuit.endPoint.getIndex() if hasattr(newSuit, 'endPoint') and hasattr(newSuit.endPoint, 'getIndex') else getattr(newSuit, 'endPoint', 'Unknown')}")
+            print(f"  • Path Length:    {newSuit.path.getNumPoints() if hasattr(newSuit, 'path') and newSuit.path else 'Direct'}")
+            print("=" * 65)
         if newSuit.flyInSuit:
             self.numFlyInSuits += 1
         if newSuit.buildingSuit:

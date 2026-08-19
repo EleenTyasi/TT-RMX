@@ -86,10 +86,15 @@ class DistributedBattleBase(DistributedNode.DistributedNode, BattleBase):
 
     def generate(self):
         self.notify.debug('generate(%s)' % self.doId)
-        DistributedNode.DistributedNode.generate(self)
         self.__battleCleanedUp = 0
+        self.accept('suit-hp-change', self.__handleSuitHpChange)
         self.reparentTo(render)
         self._skippingRewardMovie = False
+
+    def __handleSuitHpChange(self, suit):
+        if hasattr(self, 'worldBossBar') and self.worldBossBar:
+            if getattr(suit, 'isWorldBoss', False) or getattr(suit, 'worldBossName', None):
+                self.worldBossBar.updateHp(getattr(suit, 'currHP', 0))
 
     def storeInterval(self, interval, name):
         if name in self.activeIntervals:
@@ -562,6 +567,11 @@ class DistributedBattleBase(DistributedNode.DistributedNode, BattleBase):
         self.notify.debug('setMovie()')
         if int(active) == 1:
             self.notify.debug('setMovie() - movie is active')
+            if not hasattr(self, 'currentRound'):
+                self.currentRound = 0
+            self.currentRound += 1
+            if hasattr(self, 'worldBossBar') and self.worldBossBar:
+                self.worldBossBar.updateTurn(self.currentRound + 1)
             self.movie.genAttackDicts(toons, suits, id0, tr0, le0, tg0, hp0, ac0, hpb0, kbb0, died0, revive0, id1, tr1, le1, tg1, hp1, ac1, hpb1, kbb1, died1, revive1, id2, tr2, le2, tg2, hp2, ac2, hpb2, kbb2, died2, revive2, id3, tr3, le3, tg3, hp3, ac3, hpb3, kbb3, died3, revive3, sid0, at0, stg0, dm0, sd0, sb0, st0, sid1, at1, stg1, dm1, sd1, sb1, st1, sid2, at2, stg2, dm2, sd2, sb2, st2, sid3, at3, stg3, dm3, sd3, sb3, st3)
 
     def setChosenToonAttacks(self, ids, tracks, levels, targets):

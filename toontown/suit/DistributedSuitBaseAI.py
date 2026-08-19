@@ -75,6 +75,28 @@ class DistributedSuitBaseAI(DistributedAvatarAI.DistributedAvatarAI, SuitBase.Su
     def getVariantFlags(self):
         return (1 if getattr(self, 'isAlphatype', False) else 0, 1 if getattr(self, 'isPrototype', False) else 0, 1 if getattr(self, 'isSupertype', False) else 0)
 
+    def b_setWorldBoss(self, bossName, maxHP, currHP):
+        self.setWorldBoss(bossName, maxHP, currHP)
+        self.d_setWorldBoss(bossName, maxHP, currHP)
+
+    def d_setWorldBoss(self, bossName, maxHP, currHP):
+        self.sendUpdate('setWorldBoss', [bossName, maxHP, currHP])
+
+    def setWorldBoss(self, bossName, maxHP, currHP):
+        if bossName:
+            self.isWorldBoss = True
+            self.worldBossName = bossName
+            self.maxHP = maxHP
+            self.currHP = currHP
+        else:
+            self.isWorldBoss = False
+            self.worldBossName = ''
+
+    def getWorldBoss(self):
+        if getattr(self, 'isWorldBoss', False):
+            return [getattr(self, 'worldBossName', ''), getattr(self, 'maxHP', 0), getattr(self, 'currHP', 0)]
+        return ['', 0, 0]
+
     def setupSuitDNA(self, level, type, track):
         dna = SuitDNA.SuitDNA()
         dna.newSuitRandom(type, track)

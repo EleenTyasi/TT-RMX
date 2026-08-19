@@ -117,11 +117,23 @@ class ToontownChatManager(ChatManager.ChatManager):
     def enterMainMenu(self):
         self.chatInputNormal.setPos(self.normalPos)
         self.chatInputWhiteList.reparentTo(base.a2dTopLeft)
-        if self.chatInputWhiteList.isActive():
-            self.notify.debug('enterMainMenu calling checkObscured')
-            ChatManager.ChatManager.checkObscurred(self)
-        else:
-            ChatManager.ChatManager.enterMainMenu(self)
+        ChatManager.ChatManager.enterMainMenu(self)
+        from toontown.toonbase import ToontownControlConfig
+        chatKey = ToontownControlConfig.getKey('chat') or '/'
+        self.accept(chatKey, self.__handleChatHotkey)
+
+    def __handleChatHotkey(self):
+        normObs, scObs = self.isObscured()
+        if not normObs:
+            self.fsm.request('normalChat')
+
+    def exitMainMenu(self):
+        ChatManager.ChatManager.exitMainMenu(self)
+        from toontown.toonbase import ToontownControlConfig
+        chatKey = ToontownControlConfig.getKey('chat') or '/'
+        self.ignore(chatKey)
+        if hasattr(self, 'combatLogPanel') and self.combatLogPanel:
+            self.combatLogPanel.hideButton()
 
     def exitOpenChatWarning(self):
         self.openChatWarning.hide()
@@ -601,25 +613,6 @@ class ToontownChatManager(ChatManager.ChatManager):
                 self.combatLogPanel.showButton()
             else:
                 self.combatLogPanel.hideButton()
-
-    def enterMainMenu(self):
-        ChatManager.ChatManager.enterMainMenu(self)
-        from toontown.toonbase import ToontownControlConfig
-        chatKey = ToontownControlConfig.getKey('chat') or '/'
-        self.accept(chatKey, self.__handleChatHotkey)
-
-    def __handleChatHotkey(self):
-        normObs, scObs = self.isObscured()
-        if not normObs:
-            self.fsm.request('normalChat')
-
-    def exitMainMenu(self):
-        ChatManager.ChatManager.exitMainMenu(self)
-        from toontown.toonbase import ToontownControlConfig
-        chatKey = ToontownControlConfig.getKey('chat') or '/'
-        self.ignore(chatKey)
-        if hasattr(self, 'combatLogPanel') and self.combatLogPanel:
-            self.combatLogPanel.hideButton()
 
     def delete(self):
         if hasattr(self, 'combatLogPanel') and self.combatLogPanel:

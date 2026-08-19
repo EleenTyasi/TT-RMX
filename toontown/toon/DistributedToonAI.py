@@ -445,6 +445,13 @@ class DistributedToonAI(DistributedPlayerAI.DistributedPlayerAI, DistributedSmoo
         self.d_setInventory(self.inventory.makeNetString())
 
     def setMaxHp(self, maxHp):
+        # We store the raw/unmodified maxHp on self.baseMaxHp
+        self.baseMaxHp = maxHp
+        self.recomputeMaxHp()
+
+    def recomputeMaxHp(self):
+        baseMax = getattr(self, 'baseMaxHp', getattr(self, 'maxHp', 15))
+        maxHp = baseMax
         laffCap = getattr(self, 'laffCap', 0)
         is_uber = laffCap > 0
         
@@ -465,9 +472,14 @@ class DistributedToonAI(DistributedPlayerAI.DistributedPlayerAI, DistributedSmoo
 
         if is_uber:
             maxHp = min(maxHp, laffCap)
+        
         DistributedPlayerAI.DistributedPlayerAI.setMaxHp(self, maxHp)
-        if getattr(self, 'hp', None) is not None and self.hp > self.maxHp:
-            self.b_setHp(self.maxHp)
+        if getattr(self, 'doId', None) and self.isPlayerControlled():
+            self.d_setMaxHp(maxHp)
+            if getattr(self, 'hp', None) is not None and self.hp > self.maxHp:
+                self.b_setHp(self.maxHp)
+        elif getattr(self, 'hp', None) is not None and self.hp > self.maxHp:
+            self.setHp(self.maxHp)
 
     def deleteDummy(self):
         self.notify.debug('----deleteDummy DistributedToonAI %d ' % self.doId)
@@ -3998,9 +4010,13 @@ class DistributedToonAI(DistributedPlayerAI.DistributedPlayerAI, DistributedSmoo
         else:
             self.sendUpdate('setTrinketSlots', [slot1, slot2])
 
+    def getBaseMaxHp(self):
+        return getattr(self, 'baseMaxHp', self.getMaxHp())
+
     def b_setTrinketSlots(self, slot1=0, slot2=0):
         self.setTrinketSlots(slot1, slot2)
         self.d_setTrinketSlots(slot1, slot2)
+        self.recomputeMaxHp()
 
     def requestEquipTrinket(self, slot_index, trinket_id):
         # Validate trinket ownership

@@ -842,7 +842,8 @@ class ControlsTabPage(DirectFrame):
         base.buttonThrowers[0].node().setButtonDownEvent('')
         self.ignore('rebind-key-down')
         self.listeningAction = None
-        self.updateButtonLabels()
+        if hasattr(self, 'buttons') and self.buttons:
+            self.updateButtonLabels()
 
     def __resetDefaults(self):
         from toontown.toonbase import ToontownControlConfig, DEFAULT_KEYBINDS
@@ -852,10 +853,11 @@ class ControlsTabPage(DirectFrame):
 
     def updateButtonLabels(self):
         from toontown.toonbase import ToontownControlConfig
-        for action, btn in self.buttons.items():
-            currentKey = ToontownControlConfig.getKey(action)
-            btn['text'] = ToontownControlConfig.getKeyName(currentKey)
-            btn['text_fg'] = Vec4(0, 0, 0, 1)
+        for action, btn in list(self.buttons.items()):
+            if btn and hasattr(btn, '_optionInfo') and not btn.isEmpty():
+                currentKey = ToontownControlConfig.getKey(action)
+                btn['text'] = ToontownControlConfig.getKeyName(currentKey)
+                btn['text_fg'] = Vec4(0, 0, 0, 1)
 
     def enter(self):
         self.show()
@@ -868,7 +870,9 @@ class ControlsTabPage(DirectFrame):
         self.hide()
 
     def unload(self):
-        self.__cancelListening()
+        self.ignore('rebind-key-down')
+        base.buttonThrowers[0].node().setButtonDownEvent('')
+        self.listeningAction = None
         for btn in self.buttons.values():
             btn.destroy()
         for lbl in self.labels.values():

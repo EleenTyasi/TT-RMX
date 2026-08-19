@@ -8,10 +8,28 @@ CONFIG_PATH = os.path.join(os.getcwd(), 'config', 'cogs', 'world_bosses.json')
 WORLD_BOSSES = {}
 _boss_hp_storage = {}
 _street_cogs_defeated = {}  # {zone_id: count}
+_force_next_spawn = {}      # {zone_id: bool}
 
 def increment_street_cogs_defeated(zone_id):
     """Increments the defeated cogs counter on this street to increase pity spawn rate."""
     _street_cogs_defeated[zone_id] = _street_cogs_defeated.get(zone_id, 0) + 1
+
+def get_street_cogs_defeated(zone_id):
+    return _street_cogs_defeated.get(zone_id, 0)
+
+def set_force_next_spawn(zone_id, flag=True):
+    _force_next_spawn[zone_id] = flag
+
+def get_and_clear_force_spawn(zone_id):
+    if _force_next_spawn.get(zone_id, False):
+        _force_next_spawn[zone_id] = False
+        return True
+    # Also check if hood_id was forced
+    hood_id = (zone_id // 1000) * 1000
+    if _force_next_spawn.get(hood_id, False):
+        _force_next_spawn[hood_id] = False
+        return True
+    return False
 
 def get_world_boss_spawn_chance(zone_id):
     """
@@ -20,9 +38,13 @@ def get_world_boss_spawn_chance(zone_id):
     scaling up to a maximum of 20% spawn rate.
     """
     defeated = _street_cogs_defeated.get(zone_id, 0)
-    # Starts at 2.0%, reaches 20.0% after defeating ~36 cogs on the street
-    pity_chance = min(20.0, 2.0 + (defeated * 0.5))
+    # Starts at 2.0%, reaches 20.0% after defeating ~36 cogs on the street (or 100% if forced)
+    pity_chance = min(100.0, 2.0 + (defeated * 0.5))
     return pity_chance
+
+def set_street_pity_100(zone_id):
+    """Sets pity defeated count high enough so pity reaches 100%."""
+    _street_cogs_defeated[zone_id] = 200
 
 def reset_street_pity(zone_id):
     """Resets the pity counter for this street when a World Boss spawns."""
