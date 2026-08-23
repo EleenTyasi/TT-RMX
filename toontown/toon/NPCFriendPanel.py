@@ -124,6 +124,23 @@ class NPCFriendCard(DirectFrame):
          rolloverButton,
          upButton), image_color=(1.0, 0.2, 0.2, 1), image0_color=Vec4(1.0, 0.4, 0.4, 1), image3_color=Vec4(1.0, 0.4, 0.4, 0.4), image_scale=(4.4, 1, 3.6), image_pos=Vec3(0, 0, 0.08), pos=(-1.15, 0, callButtonPosZ), scale=1.25, command=self.__chooseNPCFriend)
         self.sosCallButton.hide()
+
+        # Info Button on each card to inspect Trinkets & stats
+        self.infoButton = DirectButton(
+            parent=self.front,
+            relief=DGG.RAISED,
+            frameColor=(0.2, 0.5, 0.8, 0.9),
+            borderWidth=(0.04, 0.04),
+            text="?",
+            text_scale=0.35,
+            text_fg=(1, 1, 1, 1),
+            text_shadow=(0, 0, 0, 1),
+            text_font=ToontownGlobals.getSignFont(),
+            pos=(1.25, 0, 1.15),
+            scale=0.8,
+            command=self.showTrinketDetails
+        )
+
         self.sosCountInfo = DirectLabel(parent=self.front, relief=None, text='', text_fg=self.normalTextColor, text_scale=0.75, text_align=TextNode.ALeft, textMayChange=1, pos=(0.0, 0, -1.0))
         star = loader.loadModel('phase_3.5/models/gui/name_star')
         self.rarityStars = []
@@ -132,9 +149,132 @@ class NPCFriendCard(DirectFrame):
             label.hide()
             self.rarityStars.append(label)
 
+        self.detailsDialog = None
         return
 
+    def showTrinketDetails(self):
+        npcId = self['NPCID']
+        if not npcId:
+            return
+        
+        if self.detailsDialog:
+            self.detailsDialog.destroy()
+            self.detailsDialog = None
+
+        from toontown.toon.TrinketsConfig import get_trinket_info
+        name = NPCToons.getNPCName(npcId) or f"Merc #{npcId}"
+        track, level, hp, stars = NPCToons.getNPCTrackLevelHpRarity(npcId)
+        profile = NPCToons.get_companion_profile(npcId)
+        maxHp = profile['maxHp']
+        trinketIds = profile['trinkets']
+
+        starStr = "★" * stars
+        rarityNames = {1: "Novice", 2: "Adept", 3: "Veteran", 4: "Elite", 5: "Legendary"}
+        tierTitle = rarityNames.get(stars, "Mercenary")
+
+        trackNames = {
+            ToontownBattleGlobals.HEAL_TRACK: "Toon-Up",
+            ToontownBattleGlobals.TRAP_TRACK: "Trap",
+            ToontownBattleGlobals.LURE_TRACK: "Lure",
+            ToontownBattleGlobals.SOUND_TRACK: "Sound",
+            ToontownBattleGlobals.THROW_TRACK: "Throw",
+            ToontownBattleGlobals.SQUIRT_TRACK: "Squirt",
+            ToontownBattleGlobals.DROP_TRACK: "Drop",
+        }
+        mainTrack = trackNames.get(track, "Offensive")
+        secTracks = [trackNames.get(t, "") for t in profile['preferredTracks'] if t != track]
+        secStr = f" / {secTracks[0]}" if secTracks and secTracks[0] else ""
+
+        # Modal Dialog Frame
+        self.detailsDialog = DirectFrame(
+            parent=aspect2d,
+            relief=DGG.SUNKEN,
+            frameColor=(0.10, 0.12, 0.20, 0.96),
+            frameSize=(-0.55, 0.55, -0.45, 0.45),
+            borderWidth=(0.015, 0.015),
+            pos=(0, 0, 0)
+        )
+
+        title = DirectLabel(
+            parent=self.detailsDialog,
+            relief=None,
+            text=f"{name} ({starStr})",
+            text_scale=0.055,
+            text_fg=Vec4(0.3, 0.9, 1.0, 1),
+            text_shadow=Vec4(0, 0, 0, 1),
+            text_font=ToontownGlobals.getSignFont(),
+            pos=(0, 0, 0.35)
+        )
+
+        stats = DirectLabel(
+            parent=self.detailsDialog,
+            relief=None,
+            text=f"Tier: {stars}-Star {tierTitle}  |  Max Laff: {maxHp} Laff\nSpecialty: {mainTrack}{secStr}  |  Duration: 5 Turns",
+            text_scale=0.035,
+            text_fg=Vec4(1, 1, 1, 1),
+            text_shadow=Vec4(0, 0, 0, 1),
+            text_font=ToontownGlobals.getToonFont(),
+            pos=(0, 0, 0.22)
+        )
+
+        trinketTitle = DirectLabel(
+            parent=self.detailsDialog,
+            relief=None,
+            text="Equipped Predefined Trinkets:",
+            text_scale=0.04,
+            text_fg=Vec4(1, 0.85, 0.3, 1),
+            text_shadow=Vec4(0, 0, 0, 1),
+            text_font=ToontownGlobals.getSignFont(),
+            text_align=TextNode.ALeft,
+            pos=(-0.48, 0, 0.10)
+        )
+
+        trinketTexts = []
+        for t_id in trinketIds:
+            if t_id != 0:
+                t_info = get_trinket_info(t_id)
+                if t_info:
+                    trinketTexts.append(f"• {t_info['name']}:\n  {t_info['desc']}")
+
+        descStr = "\n\n".join(trinketTexts) if trinketTexts else "Standard high-tier Gag distribution."
+
+        trinketDesc = DirectLabel(
+            parent=self.detailsDialog,
+            relief=None,
+            text=descStr,
+            text_scale=0.032,
+            text_fg=Vec4(0.9, 0.92, 0.95, 1),
+            text_shadow=Vec4(0, 0, 0, 1),
+            text_font=ToontownGlobals.getToonFont(),
+            text_align=TextNode.ALeft,
+            text_wordwrap=28,
+            pos=(-0.48, 0, 0.02)
+        )
+
+        closeBtn = DirectButton(
+            parent=self.detailsDialog,
+            relief=DGG.RAISED,
+            frameColor=(0.8, 0.2, 0.2, 0.9),
+            borderWidth=(0.01, 0.01),
+            text="Close",
+            text_scale=0.045,
+            text_fg=(1, 1, 1, 1),
+            text_shadow=(0, 0, 0, 1),
+            text_font=ToontownGlobals.getToonFont(),
+            pos=(0, 0, -0.36),
+            command=self.__closeDetailsDialog,
+            pad=(0.04, 0.015)
+        )
+
+    def __closeDetailsDialog(self):
+        if self.detailsDialog:
+            self.detailsDialog.destroy()
+            self.detailsDialog = None
+
     def __chooseNPCFriend(self):
+        if self.detailsDialog:
+            self.detailsDialog.destroy()
+            self.detailsDialog = None
         if self['NPCID'] and self['doneEvent']:
             doneStatus = {}
             doneStatus['mode'] = 'NPCFriend'
@@ -142,6 +282,9 @@ class NPCFriendCard(DirectFrame):
             messenger.send(self['doneEvent'], [doneStatus])
 
     def destroy(self):
+        if self.detailsDialog:
+            self.detailsDialog.destroy()
+            self.detailsDialog = None
         if self.NPCHead:
             self.NPCHead.detachNode()
             self.NPCHead.delete()
