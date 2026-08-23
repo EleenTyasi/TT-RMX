@@ -129,6 +129,9 @@ class ToontownMagicWordManager(MagicWordManager.MagicWordManager):
             except:
                 pass
 
+        elif wordIs('~guard'):
+            base.localAvatar.playGuardBubble()
+
         elif wordIs('~rogues'):
             suitname = None
             if len(word) > 7:

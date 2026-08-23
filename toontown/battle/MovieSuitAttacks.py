@@ -542,9 +542,9 @@ def getToonTrack(attack, damageDelay = 1e-06, damageAnimNames = None, dodgeDelay
     dmg = target['hp']
     animTrack = Sequence()
     animTrack.append(Func(toon.headsUp, battle, suitPos))
-    if dmg > 0:
-        crit_type = target.get('crit_type', 0)
-        animTrack.append(getToonTakeDamageTrack(toon, target['died'], dmg, damageDelay, damageAnimNames, splicedDamageAnims, showDamageExtraTime, crit_type=crit_type))
+    crit_type = target.get('crit_type', 0)
+    if dmg > 0 or crit_type in (4, 5):
+        animTrack.append(getToonTakeDamageTrack(toon, target.get('died', 0), dmg, damageDelay if dmg > 0 else dodgeDelay, damageAnimNames, splicedDamageAnims, showDamageExtraTime if dmg > 0 else showMissedExtraTime, crit_type=crit_type))
         return animTrack
     else:
         animTrack.append(getToonDodgeTrack(target, dodgeDelay, dodgeAnimNames, splicedDodgeAnims, showMissedExtraTime))
@@ -700,9 +700,120 @@ def throwPos(t, object, duration, target, values, gravity = -32.144):
     object.setPos(x, y, z)
 
 
+def makeGuardBubble(toon):
+    from panda3d.core import (
+        GeomVertexFormat, GeomVertexData, GeomVertexWriter,
+        Geom, GeomTriangles, GeomNode, NodePath,
+        TransparencyAttrib, Vec4, VBase4
+    )
+    import math
+    
+    num_lat, num_lon, radius = 16, 16, 1.0
+    format = GeomVertexFormat.getV3n3c4t2()
+    vdata = GeomVertexData('guardBubble', format, Geom.UHStatic)
+    vertex = GeomVertexWriter(vdata, 'vertex')
+    normal = GeomVertexWriter(vdata, 'normal')
+    color = GeomVertexWriter(vdata, 'color')
+    texcoord = GeomVertexWriter(vdata, 'texcoord')
+    
+    for i in range(num_lat + 1):
+        lat = math.pi * (-0.5 + float(i) / num_lat)
+        z = math.sin(lat) * radius
+        zr = math.cos(lat) * radius
+        for j in range(num_lon + 1):
+            lon = 2.0 * math.pi * float(j) / num_lon
+            x = math.cos(lon) * zr
+            y = math.sin(lon) * zr
+            vertex.addData3(x, y, z)
+            normal.addData3(x / radius, y / radius, z / radius)
+            color.addData4(1, 1, 1, 1)
+            texcoord.addData2(float(j) / num_lon, float(i) / num_lat)
+            
+    geom = Geom(vdata)
+    for i in range(num_lat):
+        triangles = GeomTriangles(Geom.UHStatic)
+        for j in range(num_lon):
+            idx1 = i * (num_lon + 1) + j
+            idx2 = (i + 1) * (num_lon + 1) + j
+            idx3 = (i + 1) * (num_lon + 1) + (j + 1)
+            idx4 = i * (num_lon + 1) + (j + 1)
+            triangles.addVertices(idx1, idx2, idx3)
+            triangles.addVertices(idx1, idx3, idx4)
+        triangles.closePrimitive()
+        geom.addPrimitive(triangles)
+        
+    node = GeomNode('guardBubbleNode')
+    node.addGeom(geom)
+    bubble = NodePath(node)
+    
+    toonColor = Vec4(0.3, 0.7, 1.0, 1.0)
+    try:
+        from toontown.toon import ToonDNA
+        if hasattr(toon, 'style') and toon.style:
+            head_color_idx = getattr(toon.style, 'headColor', getattr(toon.style, 'armColor', 0))
+            if isinstance(head_color_idx, int) and head_color_idx < len(ToonDNA.allColorsList):
+                toonColor = ToonDNA.allColorsList[head_color_idx]
+            elif isinstance(head_color_idx, (Vec4, VBase4)):
+                toonColor = head_color_idx
+    except Exception:
+        pass
+        
+    bubble.setColorScale(toonColor[0], toonColor[1], toonColor[2], 0.65)
+    bubble.setTransparency(TransparencyAttrib.MAlpha)
+    bubble.setTwoSided(True)
+    bubble.setDepthWrite(False)
+    bubble.setBin('transparent', 50)
+    
+    height = toon.getHeight() if hasattr(toon, 'getHeight') else 3.0
+    bubble.reparentTo(toon)
+    bubble.setPos(0, 0, height * 0.5)
+    bubble.setScale(0.01)
+    return bubble
+
+
+def getGuardBubbleTrack(toon, targetScale = 2.4, duration = 1.2):
+    bubble = makeGuardBubble(toon)
+    growTime = 0.18
+    pulseTime = 0.20
+    fadeOutTime = 0.30
+    holdTime = max(0.0, duration - growTime - pulseTime - fadeOutTime)
+    
+    s1 = targetScale
+    s2 = targetScale * 1.15
+    
+    bubbleTrack = Sequence(
+        Parallel(
+            LerpScaleInterval(bubble, growTime, Point3(s1, s1, s1), startScale=Point3(0.01, 0.01, 0.01), blendType='easeOut'),
+            LerpColorScaleInterval(bubble, growTime, Vec4(bubble.getColorScale()[0], bubble.getColorScale()[1], bubble.getColorScale()[2], 0.75), blendType='easeOut'),
+        ),
+        LerpScaleInterval(bubble, pulseTime * 0.5, Point3(s2, s2, s2), blendType='easeInOut'),
+        LerpScaleInterval(bubble, pulseTime * 0.5, Point3(s1, s1, s1), blendType='easeInOut'),
+        Wait(holdTime),
+        Parallel(
+            LerpScaleInterval(bubble, fadeOutTime, Point3(s2, s2, s2), blendType='easeIn'),
+            LerpColorScaleInterval(bubble, fadeOutTime, Vec4(bubble.getColorScale()[0], bubble.getColorScale()[1], bubble.getColorScale()[2], 0.0), blendType='easeIn'),
+        ),
+        Func(bubble.removeNode)
+    )
+    return bubbleTrack
+
+
 def getToonTakeDamageTrack(toon, died, dmg, delay, damageAnimNames = None, splicedDamageAnims = None, showDamageExtraTime = 0.01, crit_type = 0):
     toonTrack = Sequence()
     toonTrack.append(Wait(delay))
+    
+    # If the attack was BLOCKED (PASS action / Guard), play the crossed-arms block with Toon-colored bubble!
+    if crit_type in (4, 5):
+        bubbleTrack = getGuardBubbleTrack(toon, targetScale=max(2.0, (toon.getHeight() if hasattr(toon, 'getHeight') else 3.5) * 0.68), duration=1.2)
+        blockAnim = Sequence(
+            ActorInterval(toon, 'cringe', startTime=0.15, duration=1.05),
+            Func(toon.loop, 'neutral')
+        )
+        guardTrack = Parallel(bubbleTrack, blockAnim)
+        toonTrack.append(guardTrack)
+        indicatorTrack = Sequence(Wait(delay + showDamageExtraTime), Func(__doDamage, toon, dmg, died, crit_type))
+        return Parallel(toonTrack, indicatorTrack)
+
     if damageAnimNames:
         for d in damageAnimNames:
             toonTrack.append(ActorInterval(toon, d))

@@ -160,6 +160,10 @@ class TutorialManagerAI(DistributedObjectAI):
             av.addQuest(
                 (110, Quests.getQuestFromNpcId(110), Quests.getQuestToNpcId(110), Quests.getQuestReward(110, av), 0), 0)
             self.air.questManager.toonRodeTrolleyFirstTime(av)
+            if av.inventory.numItem(4, 0) == 0 and av.inventory.numItem(5, 0) == 0:
+                av.inventory.addItem(4, 0)
+                av.inventory.addItem(5, 0)
+                av.d_setInventory(av.inventory.makeNetString())
             self.d_skipTutorialResponse(avId, 1)
         else:
             self.d_skipTutorialResponse(avId, 0)

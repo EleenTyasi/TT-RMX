@@ -2651,7 +2651,7 @@ class DistributedToon(DistributedPlayer.DistributedPlayer, Toon.Toon, Distribute
                     if hasInteractivePropBonus:
                         hpGainedStr += '\n' + TTLocalizer.InteractivePropTrackBonusTerms[0]
                     self.HpTextGenerator.setText(hpGainedStr)
-                _CRIT_LABELS = {1: '\nCritical!', 2: '\nDirect Hit!', 3: '\nCrit Direct!'}
+                _CRIT_LABELS = {1: '\nCritical!', 2: '\nDirect Hit!', 3: '\nCrit Direct!', 4: '\nBlocked!', 5: '\nFully Blocked!'}
                 if crit_type in _CRIT_LABELS:
                     self.HpTextGenerator.setText(self.HpTextGenerator.getText() + _CRIT_LABELS[crit_type])
                 self.HpTextGenerator.clearShadow()
@@ -2679,6 +2679,11 @@ class DistributedToon(DistributedPlayer.DistributedPlayer, Toon.Toon, Distribute
                 elif crit_type == 3:  # Crit Direct — magenta
                     r = 1.0
                     g = 0.2
+                    b = 1.0
+                    a = 1
+                elif crit_type in (4, 5):  # Blocked / Fully Blocked — shield cyan
+                    r = 0.2
+                    g = 0.8
                     b = 1.0
                     a = 1
                 elif number < 0:

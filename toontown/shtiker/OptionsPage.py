@@ -681,30 +681,8 @@ class ControlsTabPage(DirectFrame):
             )
             self.buttons[action] = btn
 
-        # Camera Mode (Classic vs FFXIV Style)
-        yCamPos = textStartHeight - (len(self.BINDINGS_LIST) * textRowHeight) - 0.005
-        self.cameraModeLabel = DirectLabel(
-            parent=self,
-            relief=None,
-            text='FFXIV Camera Mode',
-            text_align=TextNode.ALeft,
-            text_scale=options_text_scale,
-            pos=(leftMargin, 0, yCamPos),
-        )
-        self.cameraModeButton = DirectButton(
-            parent=self,
-            relief=None,
-            image=(guiButton.find('**/QuitBtn_UP'), guiButton.find('**/QuitBtn_DN'), guiButton.find('**/QuitBtn_RLVR')),
-            image_scale=button_image_scale,
-            text='',
-            text_scale=0.036,
-            text_pos=button_textpos,
-            pos=(buttonbase_xcoord, 0.0, yCamPos),
-            command=self.__toggleCameraMode,
-        )
-
         # Camera Sensitivity Slider/Adjuster
-        ySensPos = yCamPos - 0.065
+        ySensPos = textStartHeight - (len(self.BINDINGS_LIST) * textRowHeight) - 0.015
         self.cameraSensLabel = DirectLabel(
             parent=self,
             relief=None,
@@ -753,7 +731,7 @@ class ControlsTabPage(DirectFrame):
             text='Reset Defaults',
             text_scale=0.040,
             text_pos=(0, -0.012),
-            pos=(0.0, 0.0, -0.40),
+            pos=(0.0, 0.0, -0.36),
             command=self.__resetDefaults,
         )
         guiButton.removeNode()
@@ -771,47 +749,6 @@ class ControlsTabPage(DirectFrame):
         if hasattr(base, 'settings') and base.settings:
             curSens = base.settings.getFloat('game', 'camera-sensitivity', 1.0)
         self.sensValueLabel['text'] = '%.1fx' % curSens
-
-    def __toggleCameraMode(self):
-        use_ffxiv = False
-        if hasattr(base, 'settings') and base.settings:
-            use_ffxiv = base.settings.getBool('game', 'ffxiv-camera', False)
-            use_ffxiv = not use_ffxiv
-            base.settings.updateSetting('game', 'ffxiv-camera', use_ffxiv)
-        messenger.send('camera-mode-changed')
-        self.__updateCameraModeButton()
-
-    def __updateCameraModeButton(self):
-        use_ffxiv = False
-        if hasattr(base, 'settings') and base.settings:
-            use_ffxiv = base.settings.getBool('game', 'ffxiv-camera', False)
-        if use_ffxiv:
-            self.cameraModeButton['text'] = 'Enabled'
-            self.cameraModeButton['text_fg'] = Vec4(0, 0.7, 0.2, 1)
-        else:
-            self.cameraModeButton['text'] = 'Disabled'
-            self.cameraModeButton['text_fg'] = Vec4(0.7, 0.2, 0.2, 1)
-
-    def __listenForKey(self, action):
-        from toontown.toonbase import ToontownControlConfig
-        if self.listeningAction:
-            self.__cancelListening()
-
-        self.listeningAction = action
-        if action in self.buttons:
-            self.buttons[action]['text'] = '<Press Key>'
-            self.buttons[action]['text_fg'] = Vec4(1, 1, 0, 1)
-
-        # Ignore other UI inputs while listening
-        self.accept('mouse1', self.__cancelListening)
-        self.accept('mouse3', self.__cancelListening)
-        
-        # Listen for any keypress event on base
-        taskMgr.add(self.__keyCatchTask, 'ControlsTabPage-keyCatch')
-
-    def __keyCatchTask(self, task):
-        # Scan watched events via base.buttonThrowers
-        return Task.cont
 
     def __listenForKey(self, action):
         from toontown.toonbase import ToontownControlConfig
@@ -864,7 +801,6 @@ class ControlsTabPage(DirectFrame):
     def enter(self):
         self.show()
         self.updateButtonLabels()
-        self.__updateCameraModeButton()
         self.__updateSensitivityDisplay()
 
     def exit(self):

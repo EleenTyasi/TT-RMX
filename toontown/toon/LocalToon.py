@@ -433,17 +433,9 @@ class LocalToon(DistributedToon.DistributedToon, LocalAvatar.LocalAvatar):
 
     def __updateCameraMode(self):
         if hasattr(self, '_smartCamEnabled') and self._smartCamEnabled:
-            use_ffxiv = False
-            if hasattr(base, 'settings') and base.settings:
-                use_ffxiv = base.settings.getBool('game', 'ffxiv-camera', False)
-            if use_ffxiv:
+            if hasattr(self, 'ffxivCamera'):
                 taskMgr.remove(self.taskName('updateSmartCamera'))
                 self.ffxivCamera.enable()
-            else:
-                self.ffxivCamera.disable()
-                taskName = self.taskName('updateSmartCamera')
-                taskMgr.remove(taskName)
-                taskMgr.add(self.updateSmartCamera, taskName, priority=47)
 
     def setupSprintKeys(self):
         self.ignore('shift')

@@ -83,7 +83,7 @@ class NameShop(StateData.StateData):
           'Approval',
           'Accepted',
           'Rejected']),
-         State.State('Approval', self.enterApprovalState, self.exitApprovalState, ['PickAName', 'ApprovalAccepted']),
+         State.State('Approval', self.enterApprovalState, self.exitApprovalState, ['PickAName', 'ApprovalAccepted', 'Accepted', 'Done', 'Rejected']),
          State.State('ApprovalAccepted', self.enterApprovalAcceptedState, self.exitApprovalAcceptedState, ['Done']),
          State.State('Accepted', self.enterAcceptedState, self.exitAcceptedState, ['Done']),
          State.State('Rejected', self.enterRejectedState, self.exitRejectedState, ['TypeAName']),
@@ -1016,27 +1016,13 @@ class NameShop(StateData.StateData):
         base.cr.skipTutorialRequest = self.requestingSkipTutorial
 
     def __isFirstTime(self):
-        if self.makeAToon.warp:
-            self.__createAvatar()
-        else:
-            self.promptTutorial()
+        self.__handleSkipTutorial()
 
     def promptTutorial(self):
-        self.promptTutorialDialog = TTDialog.TTDialog(parent=aspect2dp, text=TTLocalizer.PromptTutorial, text_scale=0.06, text_align=TextNode.ACenter, text_wordwrap=22, command=self.__openTutorialDialog, fadeScreen=0.5, style=TTDialog.TwoChoice, buttonTextList=[TTLocalizer.MakeAToonEnterTutorial, TTLocalizer.MakeAToonSkipTutorial], button_text_scale=0.06, buttonPadSF=5.5, sortOrder=DGG.NO_FADE_SORT_INDEX)
-        self.promptTutorialDialog.show()
+        self.__handleSkipTutorial()
 
     def __openTutorialDialog(self, choice = 0):
-        if choice == 1:
-            self.notify.debug('enterTutorial')
-            if base.config.GetBool('want-qa-regression', 0):
-                self.notify.info('QA-REGRESSION: ENTERTUTORIAL: Enter Tutorial')
-            self.__createAvatar()
-        else:
-            self.notify.debug('skipTutorial')
-            if base.config.GetBool('want-qa-regression', 0):
-                self.notify.info('QA-REGRESSION: SKIPTUTORIAL: Skip Tutorial')
-            self.__handleSkipTutorial()
-        self.promptTutorialDialog.destroy()
+        self.__handleSkipTutorial()
 
     def logAvatarCreation(self):
         dislId = 0

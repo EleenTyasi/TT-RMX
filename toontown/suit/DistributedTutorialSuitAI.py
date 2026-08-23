@@ -29,6 +29,8 @@ class DistributedTutorialSuitAI(DistributedSuitBaseAI):
         suitDNA.newSuit('f')
         self.dna = suitDNA
         self.setLevel(1)
+        self.maxHP = 20
+        self.currHP = 20
         self.confrontPosHpr = (0, 0, 0, 0, 0, 0)
 
     def destroy(self):

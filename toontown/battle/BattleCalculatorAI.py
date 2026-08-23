@@ -1433,12 +1433,24 @@ class BattleCalculatorAI:
                 if hit_type != HIT_NORMAL:
                     result = max(result + 1, int(math.ceil(raw_hp * crit_mult * dmg_mult)))
                 
-                # Check if target Toon is BLOCKING (PASS action)
-                if toonId in self.blockingToons:
+                # Check if target Toon is BLOCKING (PASS action or 5% Natural Block)
+                is_blocking = toonId in self.blockingToons
+                if not is_blocking:
+                    # 5% Natural Block chance on incoming Cog attacks
+                    if random.random() < 0.05:
+                        is_blocking = True
+                        self.notify.info("Toon %d naturally BLOCKED the attack! (5%% natural block)" % toonId)
+
+                if is_blocking:
                     from toontown.toon.TrinketsConfig import TRINKET_TOUGHENED_TOON
                     block_mult = 0.2 if (toon and hasattr(toon, 'hasTrinketEquipped') and toon.hasTrinketEquipped(TRINKET_TOUGHENED_TOON)) else 0.5
                     result = int(result * block_mult)
+                    if self.tutorialFlag:
+                        result = 0 if (toon and toon.hp <= 1) else min(result, 1)
                     hit_type = 4 if result > 0 else 5
+                elif self.tutorialFlag and toon:
+                    # In tutorial, non-blocked hits never drop Toon below 1 HP
+                    result = min(result, max(0, toon.hp - 1))
 
                 if not isinstance(attack[SUIT_BEFORE_TOONS_COL], int):
                     attack[SUIT_BEFORE_TOONS_COL] = 0
@@ -1449,6 +1461,9 @@ class BattleCalculatorAI:
                     eff_cfg = SUIT_ATTACK_STATUS_EFFECTS[atkName]
                     hit_name = HIT_TYPE_NAMES.get(hit_type, 'NORMAL')
                     proc_chance = self.statusEffectMgr.calc_proc_chance(eff_cfg.get('chance', 100), 0, hit_name)
+                    # GUARD / Block reduces status affliction chance by 10%
+                    if is_blocking:
+                        proc_chance = max(0, proc_chance - 10)
                     if random.randint(1, 100) <= proc_chance:
                         self.statusEffectMgr.apply_effect(toonId, eff_cfg['effect'], eff_cfg['rounds'], eff_cfg)
 
@@ -1490,6 +1505,14 @@ class BattleCalculatorAI:
                                     if hasattr(suitRecipient, 'd_setChat'):
                                         suitRecipient.d_setChat(thanksQuote)
                                     self.notify.info('Suit %d thanked ally %d: "%s"' % (suitRecipient.doId, theSuit.doId, thanksQuote))
+            else:
+                # Attack missed, but if Toon is blocking, mark block hit_type 5 (Full Block)
+                if toonId in self.blockingToons:
+                    hit_type = 5
+                    if not isinstance(attack[SUIT_BEFORE_TOONS_COL], int):
+                        attack[SUIT_BEFORE_TOONS_COL] = 0
+                    targetIndex = self.battle.activeToons.index(toonId)
+                    attack[SUIT_BEFORE_TOONS_COL] |= ((hit_type & 0x7) << (targetIndex * 3))
             targetIndex = self.battle.activeToons.index(toonId)
             while len(attack[SUIT_HP_COL]) <= targetIndex:
                 attack[SUIT_HP_COL].append(0)
@@ -1591,6 +1614,7 @@ class BattleCalculatorAI:
             self.notify.debug(' toon ' + str(currTgt) + ' at position ' + str(tgtPos) + ' was attacked ' + str(self.suitAtkStats[currTgt]) + ' times')
 
     def calculateSuitAttacks(self):
+        self.blockingToons = set()
         self.__calculateSuitAttacks()
 
     def __calculateSuitAttacks(self):
@@ -1640,7 +1664,6 @@ class BattleCalculatorAI:
                     self.__applySuitAttackDamages(i)
                 if self.notify.getDebug():
                     self.notify.debug('Suit attack: ' + str(self.battle.suitAttacks[i]))
-                attack[SUIT_BEFORE_TOONS_COL] = 0
 
     def __updateLureTimeouts(self):
         if self.notify.getDebug():
@@ -1773,6 +1796,7 @@ toonsHit, cogsMiss)
         if self.notify.getDebug():
             self.notify.debug('Toon skills gained after this round: ' + repr(self.toonSkillPtsGained))
             self.__printSuitAtkStats()
+        self.blockingToons = set()
         return None
 
     def __calculateFiredCogs():

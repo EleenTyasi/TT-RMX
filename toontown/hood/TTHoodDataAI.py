@@ -33,6 +33,8 @@ class TTHoodDataAI(HoodDataAI.HoodDataAI):
         from toontown.toon import NPCToons
         self.healerHank = NPCToons.createHealerHank(self.air, self.zoneId, (-69.5166, -89.0383, 0.525), -31.0)
         self.addDistObj(self.healerHank)
+        self.combatChris = NPCToons.createCombatChris(self.air, self.zoneId, (-56.189, -15.8605, -1.975), -120.0)
+        self.addDistObj(self.combatChris)
         self.createButterflies(ButterflyGlobals.TTC)
         if simbase.blinkTrolley:
             taskMgr.doMethodLater(0.5, self._deleteTrolley, 'deleteTrolley')

@@ -246,7 +246,14 @@ class InventoryNew(InventoryBase.InventoryBase, DirectFrame):
 
         return
 
+    def __isLocalAvatarFrozen(self):
+        if hasattr(localAvatar, 'statusEffects') and localAvatar.statusEffects:
+            return any('FREEZE' in str(eff).upper() for eff in localAvatar.statusEffects)
+        return False
+
     def __handleSelection(self, track, level):
+        if self.__isLocalAvatarFrozen():
+            return
         if self.activateMode == 'purchaseDelete' or self.activateMode == 'bookDelete' or self.activateMode == 'storePurchaseDelete':
             if self.numItem(track, level):
                 self.useItem(track, level)
@@ -262,12 +269,18 @@ class InventoryNew(InventoryBase.InventoryBase, DirectFrame):
             messenger.send('inventory-selection', [track, level])
 
     def __handleRun(self):
+        if self.__isLocalAvatarFrozen():
+            return
         messenger.send('inventory-run')
 
     def __handleFire(self):
+        if self.__isLocalAvatarFrozen():
+            return
         messenger.send('inventory-fire')
 
     def __handleSOS(self):
+        if self.__isLocalAvatarFrozen():
+            return
         messenger.send('inventory-sos')
 
     def __handlePass(self):

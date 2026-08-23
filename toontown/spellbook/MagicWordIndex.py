@@ -2184,6 +2184,23 @@ class SetSos(MagicWord):
         return "Restocked {0} {1} SOS cards successfully!".format(amt, npcName)
 
 
+class GrantAllMercs(MagicWord):
+    desc = "Grants an unlimited/max stack of all SOS summoning cards."
+    execLocation = MagicWordConfig.EXEC_LOC_SERVER
+    aliases = ["grantallmercs", "allmercs", "allcards"]
+
+    def handleWord(self, invoker, avId, toon, *args):
+        amount = 100
+        if args and len(args) > 0 and isinstance(args[0], int):
+            amount = args[0]
+        
+        for npcId in list(NPCToons.npcFriends.keys()):
+            toon.NPCFriendsDict[npcId] = amount
+            
+        toon.d_setNPCFriendsDict(toon.NPCFriendsDict)
+        return f"Successfully granted {amount} of all {len(NPCToons.npcFriends)} SOS Merc cards!"
+
+
 class FreeBldg(MagicWord):
     desc = "Closest cog building gets freed."
     execLocation = MagicWordConfig.EXEC_LOC_SERVER

@@ -737,10 +737,7 @@ class LocalAvatar(DistributedAvatar.DistributedAvatar, DistributedSmoothNode.Dis
         self.__lastHprWrtRender = camera.getHpr(render)
         taskName = self.taskName('updateSmartCamera')
         taskMgr.remove(taskName)
-        use_ffxiv = False
-        if hasattr(base, 'settings') and base.settings:
-            use_ffxiv = base.settings.getBool('game', 'ffxiv-camera', False)
-        if use_ffxiv and hasattr(self, 'ffxivCamera'):
+        if hasattr(self, 'ffxivCamera'):
             self.ffxivCamera.enable()
         else:
             taskMgr.add(self.updateSmartCamera, taskName, priority=47)

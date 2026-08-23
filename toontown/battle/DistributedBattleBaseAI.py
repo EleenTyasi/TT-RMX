@@ -654,6 +654,14 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
         self.__removeToon(avId, userAborted=userAborted)
         if self.fsm.getCurrentState().getName() == 'PlayMovie' or self.fsm.getCurrentState().getName() == 'MakeMovie':
             self.exitedToons.append(avId)
+
+        # Despawn any companions belonging to this exiting/sad summoner
+        for t in list(self.toons):
+            comp = self.getToon(t)
+            if comp and getattr(comp, 'isCompanion', False) and getattr(comp, 'summonerId', 0) == avId:
+                self.__removeToon(comp.doId, userAborted=userAborted)
+                comp.requestDelete()
+
         self.d_setMembers()
         if len(self.toons) == 0:
             self.notify.debug('last toon is gone - battle is finished')
@@ -839,7 +847,10 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
 
     def allToonsResponded(self):
         for t in self.toons:
-            if self.responses[t] == 0:
+            toon = self.getToon(t)
+            if toon and getattr(toon, 'isCompanion', False):
+                continue
+            if self.responses.get(t, 0) == 0:
                 return 0
 
         self.ignoreResponses = 1
@@ -847,7 +858,10 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
 
     def __allPendingActiveToonsResponded(self):
         for t in self.pendingToons + self.activeToons:
-            if self.responses[t] == 0:
+            toon = self.getToon(t)
+            if toon and getattr(toon, 'isCompanion', False):
+                continue
+            if self.responses.get(t, 0) == 0:
                 return 0
 
         self.ignoreResponses = 1
@@ -855,7 +869,10 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
 
     def __allActiveToonsResponded(self):
         for t in self.activeToons:
-            if self.responses[t] == 0:
+            toon = self.getToon(t)
+            if toon and getattr(toon, 'isCompanion', False):
+                continue
+            if self.responses.get(t, 0) == 0:
                 return 0
 
         self.ignoreResponses = 1
@@ -1056,6 +1073,12 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
         if toon == None:
             self.notify.warning('requestAttack() - no toon: %d' % toonId)
             return
+        if hasattr(self, 'battleCalc') and hasattr(self.battleCalc, 'statusEffectMgr') and self.battleCalc.statusEffectMgr.is_frozen(toonId):
+            self.notify.info('requestAttack() - toon %d is FROZEN and cannot attack! Forcing PASS.' % toonId)
+            self.toonAttacks[toonId] = getToonAttack(toonId, track=PASS)
+            self.responses[toonId] = 1
+            self.d_setChosenToonAttacks()
+            return
         validResponse = 1
         if track == SOS:
             self.notify.debug('toon: %d calls for help' % toonId)
@@ -1068,16 +1091,27 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
             if toon == None:
                 return
             if av in toon.NPCFriendsDict:
-                npcCollision = 0
-                if av in self.npcAttacks:
-                    callingToon = self.npcAttacks[av]
-                    if self.activeToons.count(callingToon) == 1:
-                        self.toonAttacks[toonId] = getToonAttack(toonId, track=PASS)
-                        npcCollision = 1
-                if npcCollision == 0:
-                    self.toonAttacks[toonId] = getToonAttack(toonId, track=NPCSOS, level=5, target=av)
-                    self.numNPCAttacks += 1
-                    self.npcAttacks[av] = toonId
+                from toontown.toon import NPCToons
+                myCompanions = [c for c in self.toons if getattr(self.getToon(c), 'isCompanion', False) and getattr(self.getToon(c), 'summonerId', 0) == toonId]
+                if len(self.toons) >= 4 or len(myCompanions) >= 3:
+                    toon.d_setSystemMessage(0, "Cannot summon SOS Companion: Battle is full or maximum 3 companions reached!")
+                    self.toonAttacks[toonId] = getToonAttack(toonId, track=PASS)
+                    return
+
+                # Consume 1 SOS card
+                toon.NPCFriendsDict[av] -= 1
+                if toon.NPCFriendsDict[av] <= 0:
+                    del toon.NPCFriendsDict[av]
+                toon.d_setNPCFriendsDict(toon.NPCFriendsDict)
+
+                # Spawn Companion
+                companion = NPCToons.createSOSCompanion(self.air, av, toon, self.zoneId)
+                if companion:
+                    pos = self.getPos()
+                    self.signupToon(companion.doId, pos[0], pos[1], pos[2])
+                    self.d_setMembers()
+                    toon.d_setSystemMessage(0, f"{companion.getName()} has joined the battle! (5 turns remaining)")
+                self.toonAttacks[toonId] = getToonAttack(toonId, track=PASS)
         elif track == PETSOS:
             self.notify.debug('toon: %d calls for pet: %d' % (toonId, av))
             self.air.writeServerEvent('PETSOS', toonId, '%s' % av)
@@ -1243,7 +1277,10 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
         self.movieHasPlayed = 0
         self.rewardHasPlayed = 0
         for t in self.activeToons:
-            if t not in self.toonAttacks:
+            comp = self.getToon(t)
+            if comp and getattr(comp, 'isCompanion', False):
+                self.toonAttacks[t] = comp.chooseAction(self)
+            elif t not in self.toonAttacks:
                 self.toonAttacks[t] = getToonAttack(t)
             attack = self.toonAttacks[t]
             if attack[TOON_TRACK_COL] == UN_ATTACK:
@@ -1309,6 +1346,7 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
 
     def enterWaitForInput(self):
         self.notify.debug('enterWaitForInput()')
+        self.clearAttacks()
         self.joinableFsm.request('Joinable')
         self.runableFsm.request('Runable')
         self.resetResponses()
@@ -1328,6 +1366,7 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
                     toon.doRestock(0)
 
         if hasattr(self, 'battleCalc') and self.battleCalc:
+            self.battleCalc.blockingToons = set()
             self.battleCalc.calculateSuitAttacks()
         self.broadcastCogIntentions()
         return
@@ -1781,6 +1820,26 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
                         toon = self.air.doId2do.get(toonId)
                         if toon:
                             toon.d_setSystemMessage(0, f"The World Boss {getattr(suit, 'worldBossName', 'Boss')} has fled! Remaining HP ({suit.currHP}) saved for your next encounter.")
+
+        # Companion 5-Turn Countdown & Safe Departure
+        expiredCompanions = []
+        for t in list(self.activeToons):
+            comp = self.getToon(t)
+            if comp and getattr(comp, 'isCompanion', False):
+                rem = comp.decrementTurn()
+                summoner = self.getToon(getattr(comp, 'summonerId', 0))
+                if rem <= 0:
+                    expiredCompanions.append(comp)
+                elif summoner:
+                    summoner.d_setSystemMessage(0, f"{comp.getName()} has {rem} turn{'s' if rem > 1 else ''} remaining!")
+
+        for comp in expiredCompanions:
+            summoner = self.getToon(getattr(comp, 'summonerId', 0))
+            if summoner:
+                summoner.d_setSystemMessage(0, f"{comp.getName()}'s 5 turns expired and they departed safely!")
+            self.__removeToon(comp.doId)
+            comp.requestDelete()
+            needUpdate = 1
 
         self.clearAttacks()
         self.d_setMovie()

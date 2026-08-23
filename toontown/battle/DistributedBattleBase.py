@@ -1492,6 +1492,10 @@ class DistributedBattleBase(DistributedNode.DistributedNode, BattleBase):
                         if panel.avatar and getattr(panel.avatar, 'doId', None) == avId:
                             panel.setStatusEffects(clean_effects)
                 break
+        if avId == base.localAvatar.doId:
+            setattr(base.localAvatar, 'statusEffects', clean_effects)
+            if hasattr(base.localAvatar, 'inventory') and base.localAvatar.inventory:
+                base.localAvatar.inventory.updateGUI()
 
     def setCogIntentions(self, cogIds, attackNames, damages):
         if hasattr(self, 'townBattle') and self.townBattle and hasattr(self.townBattle, 'enemyHPPanel'):

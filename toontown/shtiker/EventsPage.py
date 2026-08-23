@@ -26,10 +26,9 @@ class EventsPage(ShtikerPage.ShtikerPage):
         
         # Main Title Header
         self.titleLabel = DirectLabel(
-            parent=self, relief=None, text='TRINKET EQUIPMENT',
-            text_scale=0.095, text_font=ToontownGlobals.getSignFont(),
-            text_fg=(0.1, 0.3, 0.7, 1), text_shadow=(1, 1, 1, 0.8),
-            pos=(0, 0, 0.6)
+            parent=self, relief=None, text=TTLocalizer.EventsPageName,
+            text_scale=0.12, text_font=ToontownGlobals.getSignFont(),
+            pos=(0, 0, 0.61)
         )
 
         # --- Left Panel: Equipped Slots Frame ---

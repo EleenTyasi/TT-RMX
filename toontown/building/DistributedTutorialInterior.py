@@ -142,6 +142,10 @@ class DistributedTutorialInterior(DistributedObject.DistributedObject):
 
     def playMovie(self):
         self.notify.info('Tutorial movie: Play.')
+        if hasattr(base.localAvatar, 'expGui') and base.localAvatar.expGui:
+            base.localAvatar.expGui.show()
+        if hasattr(base.localAvatar, 'chatMgr') and hasattr(base.localAvatar.chatMgr, 'combatLogPanel') and base.localAvatar.chatMgr.combatLogPanel:
+            base.localAvatar.chatMgr.combatLogPanel.showButton()
         self.mickeyMovie.play()
 
     def createSuit(self):

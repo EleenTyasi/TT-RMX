@@ -148,6 +148,8 @@ from toontown.toon import DistributedNPCPetclerk/AI
 from toontown.toon import DistributedNPCKartClerk/AI
 from toontown.toon import DistributedNPCHealer/AI
 from toontown.toon import DistributedNPCBanker/AI
+from toontown.toon import DistributedNPCCombatChris/AI
+from toontown.toon import DistributedSOSCompanion/AI
 from toontown.building import DistributedKnockKnockDoor/AI
 from toontown.building import DistributedElevator/AI
 from toontown.building import DistributedElevatorFSM/AI
@@ -2463,6 +2465,15 @@ dclass DistributedNPCBanker : DistributedNPCToonBase {
   setMovie(uint8, uint32, uint32, int16) broadcast ram;
   transferMoney(int32) airecv clsend;
   setSpawnPos(float64, float64, float64, float64) broadcast ram;
+};
+
+dclass DistributedNPCCombatChris : DistributedNPCToonBase {
+  setMovie(uint8, uint32, uint32) broadcast ram;
+  setMovieDone() airecv clsend;
+  setSpawnPos(float64, float64, float64, float64) broadcast ram;
+};
+
+dclass DistributedSOSCompanion : DistributedToon {
 };
 
 dclass DistributedKnockKnockDoor : DistributedAnimatedProp {

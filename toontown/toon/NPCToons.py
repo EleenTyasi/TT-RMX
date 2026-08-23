@@ -61,6 +61,10 @@ BANKER_MOVIE_GUI = 1
 BANKER_MOVIE_TRANSDONE = 2
 BANKER_MOVIE_CANCEL = 3
 BANKER_MOVIE_TIMEOUT = 4
+COMBATCHRIS_MOVIE_CLEAR = 0
+COMBATCHRIS_MOVIE_START = 1
+COMBATCHRIS_MOVIE_COMPLETE = 2
+COMBATCHRIS_MOVIE_TIMEOUT = 3
 NPC_REGULAR = 0
 NPC_CLERK = 1
 NPC_TAILOR = 2
@@ -225,6 +229,27 @@ def createBanker(air, zoneId, pos, h, name=None, npcId=20060, dnaProperties=None
     npc.setDNAString(dna.makeNetString())
     npc.setHp(15)
     npc.setMaxHp(15)
+    npc.setPositionIndex(255)
+    npc.generateWithRequired(zoneId)
+    npc.setSpawnPos(pos[0], pos[1], pos[2], h)
+    npc.sendUpdate('setSpawnPos', [pos[0], pos[1], pos[2], h])
+    npc.d_setAnimState('neutral', 1.0)
+    return npc
+
+
+def createCombatChris(air, zoneId, pos, h, name="Combat Chris", npcId=20070, dnaProperties=None):
+    from . import DistributedNPCCombatChrisAI
+    npc = DistributedNPCCombatChrisAI.DistributedNPCCombatChrisAI(air, npcId)
+    npc.setName(name)
+    dna = ToonDNA.ToonDNA()
+    if dnaProperties:
+        dna.newToonFromProperties(*dnaProperties)
+    else:
+        # Cool warrior cat look: Crimson red cat with athletic battle gear
+        dna.newToonFromProperties('cls', 'ms', 'm', 'm', 26, 0, 26, 26, 0, 1, 0, 1, 0, 2)
+    npc.setDNAString(dna.makeNetString())
+    npc.setHp(150)
+    npc.setMaxHp(150)
     npc.setPositionIndex(255)
     npc.generateWithRequired(zoneId)
     npc.setSpawnPos(pos[0], pos[1], pos[2], h)
@@ -11718,110 +11743,110 @@ HQnpcFriends = {2001: (ToontownBattleGlobals.HEAL_TRACK,
         5,
         60,
         3),
- 3137: (ToontownBattleGlobals.NPC_COGS_MISS,
-        0,
-        0,
-        4),
- 4327: (ToontownBattleGlobals.NPC_COGS_MISS,
-        0,
-        0,
-        4),
- 4230: (ToontownBattleGlobals.NPC_COGS_MISS,
-        0,
-        0,
-        4),
- 3135: (ToontownBattleGlobals.NPC_TOONS_HIT,
-        0,
-        0,
-        4),
- 2208: (ToontownBattleGlobals.NPC_TOONS_HIT,
-        0,
-        0,
-        4),
- 5124: (ToontownBattleGlobals.NPC_TOONS_HIT,
-        0,
-        0,
-        4),
- 2003: (ToontownBattleGlobals.NPC_RESTOCK_GAGS,
-        -1,
-        0,
+ 3137: (ToontownBattleGlobals.THROW_TRACK,
+        5,
+        150,
         5),
- 2126: (ToontownBattleGlobals.NPC_RESTOCK_GAGS,
-        ToontownBattleGlobals.HEAL_TRACK,
-        0,
+ 4327: (ToontownBattleGlobals.DROP_TRACK,
+        5,
+        120,
+        4),
+ 4230: (ToontownBattleGlobals.SQUIRT_TRACK,
+        4,
+        85,
         3),
- 4007: (ToontownBattleGlobals.NPC_RESTOCK_GAGS,
-        ToontownBattleGlobals.TRAP_TRACK,
-        0,
+ 3135: (ToontownBattleGlobals.THROW_TRACK,
+        5,
+        115,
+        4),
+ 2208: (ToontownBattleGlobals.TRAP_TRACK,
+        4,
+        80,
         3),
- 1315: (ToontownBattleGlobals.NPC_RESTOCK_GAGS,
-        ToontownBattleGlobals.LURE_TRACK,
-        0,
+ 5124: (ToontownBattleGlobals.HEAL_TRACK,
+        4,
+        85,
         3),
- 5207: (ToontownBattleGlobals.NPC_RESTOCK_GAGS,
-        ToontownBattleGlobals.SQUIRT_TRACK,
-        0,
+ 2003: (ToontownBattleGlobals.THROW_TRACK,
+        5,
+        160,
+        5),
+ 2126: (ToontownBattleGlobals.HEAL_TRACK,
+        4,
+        80,
         3),
- 3129: (ToontownBattleGlobals.NPC_RESTOCK_GAGS,
-        ToontownBattleGlobals.THROW_TRACK,
-        0,
+ 4007: (ToontownBattleGlobals.TRAP_TRACK,
+        4,
+        80,
         3),
- 4125: (ToontownBattleGlobals.NPC_RESTOCK_GAGS,
-        ToontownBattleGlobals.SOUND_TRACK,
-        0,
+ 1315: (ToontownBattleGlobals.LURE_TRACK,
+        4,
+        80,
         3),
- 1329: (ToontownBattleGlobals.NPC_RESTOCK_GAGS,
-        ToontownBattleGlobals.DROP_TRACK,
-        0,
+ 5207: (ToontownBattleGlobals.SQUIRT_TRACK,
+        4,
+        80,
+        3),
+ 3129: (ToontownBattleGlobals.THROW_TRACK,
+        4,
+        80,
+        3),
+ 4125: (ToontownBattleGlobals.SOUND_TRACK,
+        4,
+        80,
+        3),
+ 1329: (ToontownBattleGlobals.DROP_TRACK,
+        4,
+        80,
         3)}
 FOnpcFriends = {9310: (ToontownBattleGlobals.LURE_TRACK,
         1,
         0,
-        0),
- 9311: (ToontownBattleGlobals.LURE_TRACK,
-        1,
-        0,
         1),
+ 9311: (ToontownBattleGlobals.LURE_TRACK,
+        2,
+        0,
+        2),
  9312: (ToontownBattleGlobals.LURE_TRACK,
         3,
         0,
-        2),
+        3),
  9307: (ToontownBattleGlobals.SOUND_TRACK,
         1,
         10,
-        0),
+        1),
  9308: (ToontownBattleGlobals.SOUND_TRACK,
         3,
         20,
-        1),
+        2),
  9309: (ToontownBattleGlobals.SOUND_TRACK,
         4,
         30,
-        2),
+        3),
  9304: (ToontownBattleGlobals.DROP_TRACK,
         1,
         20,
-        0),
+        1),
  9305: (ToontownBattleGlobals.DROP_TRACK,
         2,
         35,
-        1),
+        2),
  9306: (ToontownBattleGlobals.DROP_TRACK,
         3,
         50,
-        2),
+        3),
  9301: (ToontownBattleGlobals.HEAL_TRACK,
-        3,
+        2,
         10,
-        0),
+        1),
  9302: (ToontownBattleGlobals.HEAL_TRACK,
         3,
         20,
-        1),
+        2),
  9303: (ToontownBattleGlobals.HEAL_TRACK,
-        3,
+        4,
         30,
-        2)}
+        3)}
 npcFriends = dict(HQnpcFriends)
 npcFriends.update(FOnpcFriends)
 
@@ -11859,3 +11884,157 @@ def getNPCTrackLevelHpRarity(npcId):
     if npcId in npcFriends:
         return npcFriends[npcId]
     return (None, None, None, None)
+
+
+def get_companion_profile(npcId):
+    """
+    Returns (maxHp, trinkets, preferredTracks, gags) for an SOS companion.
+    Max Laff ranges from 15 to 160 across 1-Star to 5-Star tiers.
+    """
+    from toontown.toon.TrinketsConfig import (
+        TRINKET_ORGANIC_THROW, TRINKET_ORGANIC_SQUIRT, TRINKET_ORGANIC_SOUND,
+        TRINKET_ORGANIC_TOONUP, TRINKET_ORGANIC_LURE, TRINKET_ORGANIC_TRAP,
+        TRINKET_ORGANIC_DROP, TRINKET_TOUGHENED_TOON, TRINKET_THORNS,
+        TRINKET_CRIT_UP_LAFF_DOWN, TRINKET_LUCKY_CHARM, TRINKET_VAMPIRIC_GAGS,
+        TRINKET_PATIENT_LURING, TRINKET_RALLYING_TU, TRINKET_LURED_DROP, TRINKET_LOUDER_SOUND
+    )
+
+    friendData = npcFriends.get(npcId, (ToontownBattleGlobals.THROW_TRACK, 5, 100, 3))
+    track, level, hp, stars = friendData
+
+    # Laff scaling (15 to 160)
+    laff_map = {
+        1: 25,
+        2: 55,
+        3: 85,
+        4: 120,
+        5: 160
+    }
+    maxHp = laff_map.get(stars, 80)
+
+    # Predefined custom loadouts for famous NPC friends
+    custom_profiles = {
+        2001: { # Flippy (5 Stars)
+            'maxHp': 160,
+            'trinkets': [TRINKET_ORGANIC_THROW, TRINKET_RALLYING_TU],
+            'preferredTracks': [ToontownBattleGlobals.THROW_TRACK, ToontownBattleGlobals.HEAL_TRACK],
+            'gags': {ToontownBattleGlobals.THROW_TRACK: [4, 5, 6], ToontownBattleGlobals.HEAL_TRACK: [4, 5, 6]}
+        },
+        1116: { # Barnacle Bess (5 Stars)
+            'maxHp': 155,
+            'trinkets': [TRINKET_LURED_DROP, TRINKET_ORGANIC_DROP],
+            'preferredTracks': [ToontownBattleGlobals.DROP_TRACK, ToontownBattleGlobals.SQUIRT_TRACK],
+            'gags': {ToontownBattleGlobals.DROP_TRACK: [4, 5, 6], ToontownBattleGlobals.SQUIRT_TRACK: [3, 4, 5]}
+        },
+        3112: { # Lil Oldman (5 Stars)
+            'maxHp': 150,
+            'trinkets': [TRINKET_PATIENT_LURING, TRINKET_ORGANIC_LURE],
+            'preferredTracks': [ToontownBattleGlobals.LURE_TRACK, ToontownBattleGlobals.THROW_TRACK],
+            'gags': {ToontownBattleGlobals.LURE_TRACK: [4, 5, 6], ToontownBattleGlobals.THROW_TRACK: [4, 5, 6]}
+        },
+        4119: { # Moe Zart (5 Stars)
+            'maxHp': 150,
+            'trinkets': [TRINKET_LOUDER_SOUND, TRINKET_ORGANIC_SOUND],
+            'preferredTracks': [ToontownBattleGlobals.SOUND_TRACK, ToontownBattleGlobals.DROP_TRACK],
+            'gags': {ToontownBattleGlobals.SOUND_TRACK: [4, 5, 6], ToontownBattleGlobals.DROP_TRACK: [3, 4, 5]}
+        },
+        2011: { # Trap Master (5 Stars)
+            'maxHp': 150,
+            'trinkets': [TRINKET_ORGANIC_TRAP, TRINKET_VAMPIRIC_GAGS],
+            'preferredTracks': [ToontownBattleGlobals.TRAP_TRACK, ToontownBattleGlobals.LURE_TRACK],
+            'gags': {ToontownBattleGlobals.TRAP_TRACK: [4, 5, 6], ToontownBattleGlobals.LURE_TRACK: [4, 5]}
+        },
+        3137: { # Professor Pete (5 Stars - Shock Merc)
+            'maxHp': 155,
+            'trinkets': [TRINKET_TOUGHENED_TOON, TRINKET_THORNS],
+            'preferredTracks': [ToontownBattleGlobals.THROW_TRACK, ToontownBattleGlobals.SOUND_TRACK],
+            'gags': {ToontownBattleGlobals.THROW_TRACK: [4, 5, 6], ToontownBattleGlobals.SOUND_TRACK: [4, 5, 6]}
+        },
+        3135: { # Daffy Don (4 Stars - Crit Merc)
+            'maxHp': 120,
+            'trinkets': [TRINKET_CRIT_UP_LAFF_DOWN, TRINKET_LUCKY_CHARM],
+            'preferredTracks': [ToontownBattleGlobals.THROW_TRACK, ToontownBattleGlobals.SQUIRT_TRACK],
+            'gags': {ToontownBattleGlobals.THROW_TRACK: [3, 4, 5], ToontownBattleGlobals.SQUIRT_TRACK: [3, 4]}
+        },
+        4327: { # Franz Neckvein (4 Stars - Drop Merc)
+            'maxHp': 125,
+            'trinkets': [TRINKET_LURED_DROP, TRINKET_ORGANIC_DROP],
+            'preferredTracks': [ToontownBattleGlobals.DROP_TRACK, ToontownBattleGlobals.SQUIRT_TRACK],
+            'gags': {ToontownBattleGlobals.DROP_TRACK: [3, 4, 5], ToontownBattleGlobals.SQUIRT_TRACK: [3, 4]}
+        }
+    }
+
+    if npcId in custom_profiles:
+        return custom_profiles[npcId]
+
+    # Standard generated profile by stars and primary track
+    organic_trinket_map = {
+        ToontownBattleGlobals.HEAL_TRACK: TRINKET_ORGANIC_TOONUP,
+        ToontownBattleGlobals.TRAP_TRACK: TRINKET_ORGANIC_TRAP,
+        ToontownBattleGlobals.LURE_TRACK: TRINKET_ORGANIC_LURE,
+        ToontownBattleGlobals.SOUND_TRACK: TRINKET_ORGANIC_SOUND,
+        ToontownBattleGlobals.THROW_TRACK: TRINKET_ORGANIC_THROW,
+        ToontownBattleGlobals.SQUIRT_TRACK: TRINKET_ORGANIC_SQUIRT,
+        ToontownBattleGlobals.DROP_TRACK: TRINKET_ORGANIC_DROP,
+    }
+    trinket = organic_trinket_map.get(track, TRINKET_ORGANIC_THROW)
+
+    if stars <= 1:
+        gag_range = [0, 1, 2] # Levels 1-3
+    elif stars == 2:
+        gag_range = [1, 2, 3] # Levels 2-4
+    elif stars == 3:
+        gag_range = [2, 3, 4] # Levels 3-5
+    elif stars == 4:
+        gag_range = [3, 4, 5] # Levels 4-6
+    else:
+        gag_range = [4, 5, 6] # Levels 5-7
+
+    sec_track = ToontownBattleGlobals.SQUIRT_TRACK if track != ToontownBattleGlobals.SQUIRT_TRACK else ToontownBattleGlobals.THROW_TRACK
+    return {
+        'maxHp': maxHp,
+        'trinkets': [trinket, TRINKET_LUCKY_CHARM if stars >= 4 else 0],
+        'preferredTracks': [track, sec_track],
+        'gags': {track: gag_range, sec_track: [max(0, g - 1) for g in gag_range]}
+    }
+
+
+def createSOSCompanion(air, npcId, summonerToon, zoneId):
+    from toontown.toon.DistributedSOSCompanionAI import DistributedSOSCompanionAI
+    from toontown.toon import ToonDNA
+    
+    desc = NPCToonDict.get(npcId)
+    name = desc[1] if desc else f"SOS Friend {npcId}"
+    dnaType = desc[2] if desc else 'm'
+    
+    profile = get_companion_profile(npcId)
+    maxHp = profile['maxHp']
+    trinkets = profile['trinkets']
+    preferredTracks = profile['preferredTracks']
+    gags = profile['gags']
+    
+    companion = DistributedSOSCompanionAI(air, npcId, summonerToon.doId, maxHp=maxHp, trinkets=trinkets, preferredTracks=preferredTracks, gags=gags)
+    
+    dna = ToonDNA.ToonDNA()
+    if isinstance(dnaType, str) and len(dnaType) > 0:
+        dna.newToonRandom(npcId, dnaType, 1)
+    elif isinstance(dnaType, tuple):
+        dna.newToonFromProperties(*dnaType)
+    else:
+        dna.newToonRandom(npcId, 'm', 1)
+        
+    companion.dna = dna
+    companion.setName(name)
+    companion.setMaxHp(maxHp)
+    companion.setHp(maxHp)
+    companion.setTrinketSlots(trinkets[0] if len(trinkets) > 0 else 0, trinkets[1] if len(trinkets) > 1 else 0)
+    
+    companion.generateWithRequired(zoneId)
+
+    companion.d_setName(name)
+    companion.d_setMaxHp(maxHp)
+    companion.d_setHp(maxHp)
+    companion.d_setDNAString(dna.makeNetString())
+    companion.d_setTrinketSlots(trinkets[0] if len(trinkets) > 0 else 0, trinkets[1] if len(trinkets) > 1 else 0)
+    return companion
+

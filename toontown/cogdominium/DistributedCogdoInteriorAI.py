@@ -967,16 +967,10 @@ class DistributedCogdoInteriorAI(DistributedObjectAI.DistributedObjectAI):
         return None
 
     def chooseSOSCard(self, difficulty):
-        if difficulty < 0 or difficulty > 5:
-            return None
-
-        if difficulty <= 1:
-            card = random.choice(NPCToons.npcFriendsMinMaxStars(0, 1))
-        elif difficulty <= 3:
-            card = random.choice(NPCToons.npcFriendsMinMaxStars(1, 1))
-        else:
-            card = random.choice(NPCToons.npcFriendsMinMaxStars(2, 2))
-        return card
+        eligible = NPCToons.npcFriendsMinMaxStars(1, 3)
+        if eligible:
+            return random.choice(eligible)
+        return random.choice(list(NPCToons.npcFriends.keys()))
 
     def getEmblemReward(self):
         hoodIdMap = {

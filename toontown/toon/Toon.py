@@ -2722,6 +2722,21 @@ class Toon(Avatar.Avatar, ToonHead):
             return Sequence(Func(self.nametag3d.show), self.__doToonGhostColorScale(None, lerpTime, keepDefault=1))
         return Sequence()
 
+    def getGuardBubbleTrack(self, duration = 1.2):
+        from toontown.battle.MovieSuitAttacks import getGuardBubbleTrack
+        scale = max(2.0, self.getHeight() * 0.68)
+        bubbleTrack = getGuardBubbleTrack(self, targetScale=scale, duration=duration)
+        blockAnim = Sequence(
+            ActorInterval(self, 'cringe', startTime=0.15, duration=max(0.6, duration - 0.15)),
+            Func(self.loop, 'neutral')
+        )
+        return Parallel(bubbleTrack, blockAnim)
+
+    def playGuardBubble(self, duration = 1.2):
+        track = self.getGuardBubbleTrack(duration)
+        track.start()
+        return track
+
     def putOnSuit(self, suitType, setDisplayName = True, rental = False):
         if self.isDisguised:
             self.takeOffSuit()
