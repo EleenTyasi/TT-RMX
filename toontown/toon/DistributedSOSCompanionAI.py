@@ -1,4 +1,4 @@
-﻿# =============================================================================
+# =============================================================================
 #  DistributedSOSCompanionAI.py  —  Autonomous SOS AI Companion Toon
 #  TT-RMX Personal Tinkering Project
 # =============================================================================
@@ -10,6 +10,22 @@ from toontown.toon import ToonDNA
 from toontown.toonbase import ToontownBattleGlobals
 from toontown.toonbase.ToontownBattleGlobals import *
 from toontown.battle.BattleBase import *
+
+class CompanionExperience:
+    def getExp(self, track):
+        return 500
+
+    def getExpLevel(self, track):
+        return 6
+
+    def getExpVal(self, track):
+        return 500
+
+    def getCurrentTotalExp(self):
+        return 3500
+
+    def getNextExpValue(self, track, curSkill):
+        return 10000
 
 class DistributedSOSCompanionAI(DistributedNPCToonBaseAI):
     notify = DirectNotifyGlobal.directNotify.newCategory('DistributedSOSCompanionAI')
@@ -26,6 +42,12 @@ class DistributedSOSCompanionAI(DistributedNPCToonBaseAI):
         self.trinketSlots = trinkets or [0, 0]
         self.preferredTracks = preferredTracks or [THROW_TRACK, SQUIRT_TRACK]
         self.companionGags = gags or {}
+        self.experience = CompanionExperience()
+        self.quests = []
+        self.cogMerits = [0, 0, 0, 0]
+        self.immortalMode = False
+        self.hpOwnedByBattle = 0
+        self.battleId = 0
 
     def isPlayerControlled(self):
         return False
@@ -35,6 +57,58 @@ class DistributedSOSCompanionAI(DistributedNPCToonBaseAI):
 
     def hasTrinketEquipped(self, trinketId):
         return trinketId in self.trinketSlots
+
+    def d_setEarnedExperience(self, roundList):
+        pass
+
+    def stopToonUp(self):
+        pass
+
+    def toonUp(self, hp):
+        self.hp = min(self.maxHp, self.hp + hp)
+        self.d_setHp(self.hp)
+
+    def takeDamage(self, hp):
+        self.hp = max(0, self.hp - hp)
+        self.d_setHp(self.hp)
+
+    def getHp(self):
+        return self.hp
+
+    def setHp(self, hp):
+        self.hp = hp
+
+    def d_setHp(self, hp):
+        self.sendUpdate('setHp', [hp])
+
+    def b_setHp(self, hp):
+        self.setHp(hp)
+        self.d_setHp(hp)
+
+    def getMaxHp(self):
+        return self.maxHp
+
+    def setMaxHp(self, maxHp):
+        self.maxHp = maxHp
+
+    def d_setMaxHp(self, maxHp):
+        self.sendUpdate('setMaxHp', [maxHp])
+
+    def b_setMaxHp(self, maxHp):
+        self.setMaxHp(maxHp)
+        self.d_setMaxHp(maxHp)
+
+    def d_setTrinketSlots(self, t1, t2):
+        self.sendUpdate('setTrinketSlots', [t1, t2])
+
+    def setTrinketSlots(self, t1, t2):
+        self.trinketSlots = [t1, t2]
+
+    def b_setBattleId(self, battleId):
+        self.battleId = battleId
+
+    def d_setBattleId(self, battleId):
+        pass
 
     def chooseAction(self, battle):
         """

@@ -534,16 +534,17 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
         self.toons.append(avId)
         toon = simbase.air.doId2do.get(avId)
         if toon:
+            isCompanion = getattr(toon, 'isCompanion', False)
             if hasattr(self, 'doId'):
-                if hasattr(toon, 'b_setBattleId'):
-                    toon.b_setBattleId(self.doId)
-                else:
+                if isCompanion:
                     toon.battleId = self.doId
-            else:
-                if hasattr(toon, 'b_setBattleId'):
-                    toon.b_setBattleId(-1)
                 else:
+                    toon.b_setBattleId(self.doId)
+            else:
+                if isCompanion:
                     toon.battleId = -1
+                else:
+                    toon.b_setBattleId(-1)
             messageToonAdded = 'Battle adding toon %s' % avId
             messenger.send(messageToonAdded, [avId])
         if self.fsm != None and self.fsm.getCurrentState().getName() == 'PlayMovie':
