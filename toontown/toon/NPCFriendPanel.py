@@ -168,7 +168,6 @@ class NPCFriendCard(DirectFrame):
         maxHp = profile['maxHp']
         trinketIds = profile['trinkets']
 
-        starStr = "★" * stars
         rarityNames = {1: "Novice", 2: "Adept", 3: "Veteran", 4: "Elite", 5: "Legendary"}
         tierTitle = rarityNames.get(stars, "Mercenary")
 
@@ -198,7 +197,7 @@ class NPCFriendCard(DirectFrame):
         title = DirectLabel(
             parent=self.detailsDialog,
             relief=None,
-            text=f"{name} ({starStr})",
+            text=f"{name} ({stars}-Star)",
             text_scale=0.055,
             text_fg=Vec4(0.3, 0.9, 1.0, 1),
             text_shadow=Vec4(0, 0, 0, 1),
