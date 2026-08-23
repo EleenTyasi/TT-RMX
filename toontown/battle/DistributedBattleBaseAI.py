@@ -1107,7 +1107,7 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
                 # Spawn Companion
                 companion = NPCToons.createSOSCompanion(self.air, av, toon, self.zoneId)
                 if companion:
-                    pos = self.getPos()
+                    pos = getattr(self, 'pos', Point3(0, 0, 0))
                     self.signupToon(companion.doId, pos[0], pos[1], pos[2])
                     self.d_setMembers()
                     toon.d_setSystemMessage(0, f"{companion.getName()} has joined the battle! (5 turns remaining)")

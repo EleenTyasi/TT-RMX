@@ -238,26 +238,18 @@ class NPCFriendPage(ShtikerPage.ShtikerPage):
                 frameColor=(0.25, 0.4, 0.65, 0.9) if npcId == self.selectedNpcId else (0.18, 0.25, 0.4, 0.8),
                 borderWidth=(0.008, 0.008),
                 text=f"{name}\n{stars}-Star {tierTitle}  (x{count})",
-                text_scale=0.030,
+                text_scale=0.032,
                 text_fg=(1, 1, 1, 1),
                 text_shadow=(0, 0, 0, 1),
                 text_font=ToontownGlobals.getToonFont(),
                 text_align=TextNode.ALeft,
+                text_pos=(0.04, 0.01),
                 frameSize=(-0.02, 0.62, -0.05, 0.06),
                 pos=(-0.72, 0, yOffset),
                 command=self.selectMerc,
                 extraArgs=[npcId]
             )
             self.cardButtons.append(btn)
-            
-            # Mini head
-            try:
-                head = self.createNPCToonHead(npcId, dimension=0.09)
-                head.reparentTo(btn)
-                head.setPos(0.04, 0, 0.005)
-                self.mercHeads.append(head)
-            except Exception:
-                pass
                 
             yOffset -= 0.13
 

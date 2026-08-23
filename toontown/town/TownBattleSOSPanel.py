@@ -343,27 +343,18 @@ class TownBattleSOSPanel(DirectFrame, StateData.StateData):
                 frameColor=(0.20, 0.45, 0.70, 0.95) if isSelected else (0.16, 0.22, 0.35, 0.85),
                 borderWidth=(0.008, 0.008),
                 text=f"{name} ({trackStr})\n{stars}-Star {tierTitle}  (x{count})",
-                text_scale=0.026,
+                text_scale=0.028,
                 text_fg=(1, 1, 1, 1),
                 text_shadow=(0, 0, 0, 1),
                 text_font=ToontownGlobals.getToonFont(),
                 text_align=TextNode.ALeft,
+                text_pos=(0.04, 0.01),
                 frameSize=(-0.02, 0.62, -0.045, 0.055),
                 pos=(-0.72, 0, yOffset),
                 command=self.selectMerc,
                 extraArgs=[npcId]
             )
             self.cardButtons.append(btn)
-            
-            # Mini Toon Head
-            try:
-                head = self.createNPCToonHead(npcId, dimension=0.08)
-                if head:
-                    head.reparentTo(btn)
-                    head.setPos(0.04, 0, 0.005)
-                    self.mercHeads.append(head)
-            except Exception:
-                pass
                 
             yOffset -= 0.12
 
@@ -430,16 +421,6 @@ class TownBattleSOSPanel(DirectFrame, StateData.StateData):
             self.useSosButton['state'] = DGG.NORMAL
         else:
             self.useSosButton['state'] = DGG.DISABLED
-
-        # Large Toon Portrait Head in Inspector
-        try:
-            head = self.createNPCToonHead(npcId, dimension=0.18)
-            if head:
-                head.reparentTo(self.inspectorFrame)
-                head.setPos(0.66, 0, 0.26)
-                self.inspectorHead = head
-        except Exception:
-            pass
 
     def __useSelectedSOS(self):
         if self.selectedNpcId:
