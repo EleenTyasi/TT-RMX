@@ -95,16 +95,17 @@ def showProp(prop, hand, pos = None, hpr = None, scale = None):
 
 
 def showProps(props, hands, pos = None, hpr = None, scale = None):
-    index = 0
-    for prop in props:
-        prop.reparentTo(hands[index])
+    if not hands:
+        return
+    for index, prop in enumerate(props):
+        hand = hands[min(index, len(hands) - 1)]
+        prop.reparentTo(hand)
         if pos:
             prop.setPos(pos)
         if hpr:
             prop.setHpr(hpr)
         if scale:
             prop.setScale(scale)
-        index += 1
 
 
 def hideProps(props):

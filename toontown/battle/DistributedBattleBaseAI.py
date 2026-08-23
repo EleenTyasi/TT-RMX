@@ -1123,10 +1123,14 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
                 # Spawn Companion
                 companion = NPCToons.createSOSCompanion(self.air, av, toon, self.zoneId)
                 if companion:
-                    pos = getattr(self, 'pos', Point3(0, 0, 0))
-                    self.signupToon(companion.doId, pos[0], pos[1], pos[2])
-                    self.d_setMembers()
-                    toon.d_setSystemMessage(0, f"{companion.getName()} has joined the battle! (5 turns remaining)")
+                    if self.addToon(companion.doId):
+                        if companion.doId in self.newToons:
+                            self.newToons.remove(companion.doId)
+                        if companion.doId not in self.activeToons:
+                            self.activeToons.append(companion.doId)
+                        self.d_setMembers()
+                        self.d_adjust()
+                        toon.d_setSystemMessage(0, f"{companion.getName()} has joined the battle! (5 turns remaining)")
                 self.toonAttacks[toonId] = getToonAttack(toonId, track=PASS)
         elif track == PETSOS:
             self.notify.debug('toon: %d calls for pet: %d' % (toonId, av))
@@ -1517,7 +1521,7 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
                         pass
                     elif track != SOS:
                         toon = self.getToon(toonId)
-                        if toon != None:
+                        if toon != None and not getattr(toon, 'isCompanion', False):
                             check = toon.inventory.useItem(track, level)
                             if check == -1:
                                 self.air.writeServerEvent('suspicious', toonId, 'Toon generating movie for non-existant gag track %s level %s' % (track, level))

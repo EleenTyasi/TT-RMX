@@ -365,7 +365,7 @@ def __doWaterGlass(squirt, delay, fShowStun):
     glass = globalPropPool.getProp('glass')
     hands = toon.getRightHands()
     hand_jointpath0 = hands[0].attachNewNode('handJoint0-path')
-    hand_jointpath1 = hand_jointpath0.instanceTo(hands[1])
+    hand_jointpath1 = hand_jointpath0.instanceTo(hands[1]) if len(hands) > 1 else NodePath()
     glassTrack = Sequence(Func(MovieUtil.showProp, glass, hand_jointpath0), ActorInterval(glass, 'glass'), Func(hand_jointpath1.removeNode), Func(hand_jointpath0.removeNode), Func(MovieUtil.removeProp, glass))
     tracks.append(glassTrack)
     targetPoint = lambda suit = suit: __suitTargetPoint(suit)
@@ -441,7 +441,7 @@ def __doWaterGun(squirt, delay, fShowStun):
     pistol = globalPropPool.getProp('water-gun')
     hands = toon.getRightHands()
     hand_jointpath0 = hands[0].attachNewNode('handJoint0-path')
-    hand_jointpath1 = hand_jointpath0.instanceTo(hands[1])
+    hand_jointpath1 = hand_jointpath0.instanceTo(hands[1]) if len(hands) > 1 else NodePath()
     targetPoint = lambda suit = suit: __suitTargetPoint(suit)
 
     def getSprayStartPos(pistol = pistol, toon = toon):
@@ -516,7 +516,7 @@ def __doSeltzerBottle(squirt, delay, fShowStun):
 
     sprayTrack = MovieUtil.getSprayTrack(battle, WaterSprayColor, getSprayStartPos, targetPoint, dSprayScale, dSprayHold, dSprayScale, horizScale=scale, vertScale=scale)
     hand_jointpath0 = hands[0].attachNewNode('handJoint0-path')
-    hand_jointpath1 = hand_jointpath0.instanceTo(hands[1])
+    hand_jointpath1 = hand_jointpath0.instanceTo(hands[1]) if len(hands) > 1 else NodePath()
     bottleTrack = Sequence(Func(MovieUtil.showProp, bottle, hand_jointpath0), LerpScaleInterval(bottle, dBottleScale, bottle.getScale(), startScale=MovieUtil.PNT3_NEARZERO), Wait(tSpray - dBottleScale))
     bottleTrack.append(sprayTrack)
     bottleTrack.append(Wait(dBottleHold))

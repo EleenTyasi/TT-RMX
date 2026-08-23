@@ -27,6 +27,18 @@ class CompanionExperience:
     def getNextExpValue(self, track, curSkill):
         return 10000
 
+class CompanionInventory:
+    def zeroInv(self, *args, **kwargs):
+        pass
+    def getTrackAndLevel(self, *args, **kwargs):
+        return (0, 0)
+    def useItem(self, *args, **kwargs):
+        return 0
+    def addItem(self, *args, **kwargs):
+        return 0
+    def makeNetString(self, *args, **kwargs):
+        return b''
+
 class DistributedSOSCompanionAI(DistributedNPCToonBaseAI):
     notify = DirectNotifyGlobal.directNotify.newCategory('DistributedSOSCompanionAI')
 
@@ -43,11 +55,15 @@ class DistributedSOSCompanionAI(DistributedNPCToonBaseAI):
         self.preferredTracks = preferredTracks or [THROW_TRACK, SQUIRT_TRACK]
         self.companionGags = gags or {}
         self.experience = CompanionExperience()
+        self.inventory = CompanionInventory()
         self.quests = []
         self.cogMerits = [0, 0, 0, 0]
         self.immortalMode = False
         self.hpOwnedByBattle = 0
         self.battleId = 0
+
+    def d_setInventory(self, *args, **kwargs):
+        pass
 
     def isPlayerControlled(self):
         return False
@@ -64,11 +80,11 @@ class DistributedSOSCompanionAI(DistributedNPCToonBaseAI):
     def stopToonUp(self):
         pass
 
-    def toonUp(self, hp):
+    def toonUp(self, hp, *args, **kwargs):
         self.hp = min(self.maxHp, self.hp + hp)
         self.d_setHp(self.hp)
 
-    def takeDamage(self, hp):
+    def takeDamage(self, hp, *args, **kwargs):
         self.hp = max(0, self.hp - hp)
         self.d_setHp(self.hp)
 
