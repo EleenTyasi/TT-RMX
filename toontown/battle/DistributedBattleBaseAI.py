@@ -521,7 +521,9 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
         toon = self.getToon(avId)
         if toon == None:
             return 0
-        toon.stopToonUp()
+        isCompanion = getattr(toon, 'isCompanion', False)
+        if hasattr(toon, 'stopToonUp'):
+            toon.stopToonUp()
         event = simbase.air.getAvatarExitEvent(avId)
         self.avatarExitEvents.append(event)
         self.accept(event, self.__handleUnexpectedExit, extraArgs=[avId])
@@ -533,9 +535,15 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
         toon = simbase.air.doId2do.get(avId)
         if toon:
             if hasattr(self, 'doId'):
-                toon.b_setBattleId(self.doId)
+                if hasattr(toon, 'b_setBattleId'):
+                    toon.b_setBattleId(self.doId)
+                else:
+                    toon.battleId = self.doId
             else:
-                toon.b_setBattleId(-1)
+                if hasattr(toon, 'b_setBattleId'):
+                    toon.b_setBattleId(-1)
+                else:
+                    toon.battleId = -1
             messageToonAdded = 'Battle adding toon %s' % avId
             messenger.send(messageToonAdded, [avId])
         if self.fsm != None and self.fsm.getCurrentState().getName() == 'PlayMovie':
@@ -544,24 +552,31 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
             self.responses[avId] = 0
         self.adjustingResponses[avId] = 0
         if avId not in self.toonExp:
-            p = []
-            for t in Tracks:
-                p.append(toon.experience.getExp(t))
-
-            self.toonExp[avId] = p
+            if hasattr(toon, 'experience'):
+                p = []
+                for t in Tracks:
+                    p.append(toon.experience.getExp(t))
+                self.toonExp[avId] = p
+            else:
+                self.toonExp[avId] = [0] * len(Tracks)
         if avId not in self.toonOrigMerits:
-            self.toonOrigMerits[avId] = toon.cogMerits[:]
+            if hasattr(toon, 'cogMerits'):
+                self.toonOrigMerits[avId] = toon.cogMerits[:]
+            else:
+                self.toonOrigMerits[avId] = [0, 0, 0, 0]
         if avId not in self.toonMerits:
             self.toonMerits[avId] = [0,
              0,
              0,
              0]
         if avId not in self.toonOrigQuests:
-            flattenedQuests = []
-            for quest in toon.quests:
-                flattenedQuests.extend(quest)
-
-            self.toonOrigQuests[avId] = flattenedQuests
+            if hasattr(toon, 'quests'):
+                flattenedQuests = []
+                for quest in toon.quests:
+                    flattenedQuests.extend(quest)
+                self.toonOrigQuests[avId] = flattenedQuests
+            else:
+                self.toonOrigQuests[avId] = []
         if avId not in self.toonItems:
             self.toonItems[avId] = ([], [])
         return 1
