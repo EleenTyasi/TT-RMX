@@ -5,17 +5,18 @@
 
 import random
 from direct.directnotify import DirectNotifyGlobal
-from toontown.toon.DistributedToonAI import DistributedToonAI
+from toontown.toon.DistributedNPCToonBaseAI import DistributedNPCToonBaseAI
 from toontown.toon import ToonDNA
 from toontown.toonbase import ToontownBattleGlobals
 from toontown.toonbase.ToontownBattleGlobals import *
 from toontown.battle.BattleBase import *
 
-class DistributedSOSCompanionAI(DistributedToonAI):
+class DistributedSOSCompanionAI(DistributedNPCToonBaseAI):
     notify = DirectNotifyGlobal.directNotify.newCategory('DistributedSOSCompanionAI')
 
     def __init__(self, air, npcId, summonerId, maxHp=100, trinkets=None, preferredTracks=None, gags=None):
-        DistributedToonAI.__init__(self, air)
+        DistributedNPCToonBaseAI.__init__(self, air, npcId)
+        self.posIndex = 0
         self.isCompanion = True
         self.npcId = npcId
         self.summonerId = summonerId

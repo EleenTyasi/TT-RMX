@@ -228,7 +228,8 @@ class NPCFriendPage(ShtikerPage.ShtikerPage):
             count = npcFriendsDict.get(npcId, 0)
             name = NPCToons.getNPCName(npcId) or f"Merc #{npcId}"
             track, level, hp, stars = NPCToons.getNPCTrackLevelHpRarity(npcId)
-            starStr = "★" * stars
+            rarityNames = {1: "Novice", 2: "Adept", 3: "Veteran", 4: "Elite", 5: "Legendary"}
+            tierTitle = rarityNames.get(stars, "Mercenary")
             
             # Card selection button
             btn = DirectButton(
@@ -236,8 +237,8 @@ class NPCFriendPage(ShtikerPage.ShtikerPage):
                 relief=DGG.RAISED,
                 frameColor=(0.25, 0.4, 0.65, 0.9) if npcId == self.selectedNpcId else (0.18, 0.25, 0.4, 0.8),
                 borderWidth=(0.008, 0.008),
-                text=f"{name}\n{starStr}  (x{count})",
-                text_scale=0.032,
+                text=f"{name}\n{stars}-Star {tierTitle}  (x{count})",
+                text_scale=0.030,
                 text_fg=(1, 1, 1, 1),
                 text_shadow=(0, 0, 0, 1),
                 text_font=ToontownGlobals.getToonFont(),
@@ -276,11 +277,10 @@ class NPCFriendPage(ShtikerPage.ShtikerPage):
         maxHp = profile['maxHp']
         trinketIds = profile['trinkets']
         
-        starStr = "★" * stars
         rarityNames = {1: "Novice", 2: "Adept", 3: "Veteran", 4: "Elite", 5: "Legendary"}
         tierTitle = rarityNames.get(stars, "Mercenary")
 
-        self.inspectorName['text'] = f"{name} ({starStr})"
+        self.inspectorName['text'] = f"{name} ({stars}-Star)"
         
         trackNames = {
             ToontownBattleGlobals.HEAL_TRACK: "Toon-Up",

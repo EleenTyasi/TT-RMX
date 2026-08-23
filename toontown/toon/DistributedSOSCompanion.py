@@ -3,8 +3,8 @@
 #  TT-RMX Personal Tinkering Project
 # =============================================================================
 
-from toontown.toon.DistributedToon import DistributedToon
+from toontown.toon.DistributedNPCToonBase import DistributedNPCToonBase
 
-class DistributedSOSCompanion(DistributedToon):
+class DistributedSOSCompanion(DistributedNPCToonBase):
     def __init__(self, cr):
-        DistributedToon.__init__(self, cr)
+        DistributedNPCToonBase.__init__(self, cr)

@@ -2473,7 +2473,10 @@ dclass DistributedNPCCombatChris : DistributedNPCToonBase {
   setSpawnPos(float64, float64, float64, float64) broadcast ram;
 };
 
-dclass DistributedSOSCompanion : DistributedToon {
+dclass DistributedSOSCompanion : DistributedNPCToonBase {
+  setMaxHp(int16) broadcast ram;
+  setHp(int16) broadcast ram;
+  setTrinketSlots(uint8, uint8) broadcast ram;
 };
 
 dclass DistributedKnockKnockDoor : DistributedAnimatedProp {

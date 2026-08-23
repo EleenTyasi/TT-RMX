@@ -6,9 +6,10 @@ from direct.directnotify import DirectNotifyGlobal
 from direct.fsm import StateData
 from toontown.toonbase import ToontownGlobals
 from toontown.toonbase import TTLocalizer
-import types
 from toontown.toon import NPCToons
-from toontown.toon import NPCFriendPanel
+from toontown.toon import ToonHead
+from toontown.toon import ToonDNA
+from toontown.toon.TrinketsConfig import get_trinket_info
 from toontown.toonbase import ToontownBattleGlobals
 
 class TownBattleSOSPanel(DirectFrame, StateData.StateData):
@@ -20,45 +21,208 @@ class TownBattleSOSPanel(DirectFrame, StateData.StateData):
         StateData.StateData.__init__(self, doneEvent)
         self.friends = {}
         self.NPCFriends = {}
-        self.textRolloverColor = Vec4(1, 1, 0, 1)
-        self.textDownColor = Vec4(0.5, 0.9, 1, 1)
-        self.textDisabledColor = Vec4(0.4, 0.8, 0.4, 1)
+        self.curPage = 0
+        self.pageSize = 5
+        self.selectedNpcId = None
+        self.mercList = []
+        self.cardButtons = []
+        self.mercHeads = []
+        self.inspectorHead = None
+        self.showingOnlineFriends = False
         self.bldg = 0
         self.chosenNPCToons = []
-        return
 
     def load(self):
         if self.isLoaded == 1:
             return None
         self.isLoaded = 1
-        bgd = loader.loadModel('phase_3.5/models/gui/frame')
-        gui = loader.loadModel('phase_3.5/models/gui/frame4names')
-        scrollGui = loader.loadModel('phase_3.5/models/gui/friendslist_gui')
-        backGui = loader.loadModel('phase_3.5/models/gui/battle_gui')
-        self['image'] = bgd
-        self['image_pos'] = (0.0, 0.1, -0.08)
-        self.setScale(0.3)
-        self.title = DirectLabel(parent=self, relief=None, text=TTLocalizer.TownBattleSOSNoFriends, text_scale=0.4, text_fg=(1, 1, 1, 1), text_shadow=(0, 0, 0, 1), pos=(0.0, 0.0, 1.5))
-        self.NPCFriendPanel = NPCFriendPanel.NPCFriendPanel(parent=self, doneEvent=self.doneEvent)
-        self.NPCFriendPanel.setPos(-0.75, 0, -0.15)
-        self.NPCFriendPanel.setScale(0.325)
-        self.NPCFriendsLabel = DirectLabel(parent=self, relief=None, text=TTLocalizer.TownBattleSOSNPCFriends, text_scale=0.3, text_fg=(1, 1, 1, 1), text_shadow=(0, 0, 0, 1), pos=(-0.75, 0.0, -2.0))
-        self.scrollList = DirectScrolledList(parent=self, relief=None, image=gui.find('**/frame4names'), image_scale=(0.11, 1, 0.1), text=TTLocalizer.FriendsListPanelOnlineFriends, text_scale=0.04, text_pos=(-0.02, 0.275), text_fg=(0, 0, 0, 1), incButton_image=(scrollGui.find('**/FndsLst_ScrollUp'),
-         scrollGui.find('**/FndsLst_ScrollDN'),
-         scrollGui.find('**/FndsLst_ScrollUp_Rllvr'),
-         scrollGui.find('**/FndsLst_ScrollUp')), incButton_relief=None, incButton_pos=(0.0, 0.0, -0.3), incButton_image3_color=Vec4(0.6, 0.6, 0.6, 0.6), incButton_scale=(1.0, 1.0, -1.0), decButton_image=(scrollGui.find('**/FndsLst_ScrollUp'),
-         scrollGui.find('**/FndsLst_ScrollDN'),
-         scrollGui.find('**/FndsLst_ScrollUp_Rllvr'),
-         scrollGui.find('**/FndsLst_ScrollUp')), decButton_relief=None, decButton_pos=(0.0, 0.0, 0.175), decButton_image3_color=Vec4(0.6, 0.6, 0.6, 0.6), itemFrame_pos=(-0.17, 0.0, 0.11), itemFrame_relief=None, numItemsVisible=9, items=[], pos=(2.4, 0.0, 0.025), scale=3.5)
-        clipper = PlaneNode('clipper')
-        clipper.setPlane(Plane(Vec3(-1, 0, 0), Point3(0.32, 0, 0)))
-        clipNP = self.scrollList.component('itemFrame').attachNewNode(clipper)
-        self.scrollList.component('itemFrame').setClipPlane(clipNP)
-        self.close = DirectButton(parent=self, relief=None, image=(backGui.find('**/PckMn_BackBtn'), backGui.find('**/PckMn_BackBtn_Dn'), backGui.find('**/PckMn_BackBtn_Rlvr')), pos=(2.3, 0.0, -1.65), scale=3, text=TTLocalizer.TownBattleSOSBack, text_scale=0.05, text_pos=(0.01, -0.012), text_fg=Vec4(0, 0, 0.8, 1), command=self.__close)
-        gui.removeNode()
-        scrollGui.removeNode()
-        backGui.removeNode()
-        bgd.removeNode()
+        
+        btn_font = ToontownGlobals.getToonFont()
+        sign_font = ToontownGlobals.getSignFont()
+
+        # Main Outer Panel Frame
+        self.mainFrame = DirectFrame(
+            parent=self,
+            relief=DGG.RAISED,
+            frameColor=(0.10, 0.12, 0.18, 0.96),
+            frameSize=(-0.82, 0.82, -0.58, 0.58),
+            borderWidth=(0.015, 0.015),
+            pos=(0, 0, 0)
+        )
+
+        self.title = DirectLabel(
+            parent=self.mainFrame,
+            relief=None,
+            text="Call an SOS Mercenary",
+            text_scale=0.065,
+            text_fg=Vec4(0.3, 0.9, 1.0, 1),
+            text_shadow=Vec4(0, 0, 0, 1),
+            text_font=sign_font,
+            pos=(0.0, 0.0, 0.49)
+        )
+
+        # Left Column Frame: Merc Roster List
+        self.rosterFrame = DirectFrame(
+            parent=self.mainFrame,
+            relief=DGG.SUNKEN,
+            frameColor=(0.16, 0.18, 0.26, 0.85),
+            frameSize=(-0.78, -0.05, -0.46, 0.42),
+            borderWidth=(0.01, 0.01),
+            pos=(0, 0, 0)
+        )
+
+        self.rosterTitle = DirectLabel(
+            parent=self.rosterFrame,
+            relief=None,
+            text="Available Mercs",
+            text_scale=0.042,
+            text_fg=Vec4(1, 0.85, 0.3, 1),
+            text_shadow=Vec4(0, 0, 0, 1),
+            text_font=sign_font,
+            pos=(-0.415, 0, 0.36)
+        )
+
+        # Pagination controls
+        btn_style = {
+            'relief': DGG.RAISED,
+            'frameColor': (0.25, 0.45, 0.75, 0.9),
+            'borderWidth': (0.01, 0.01),
+            'text_scale': 0.036,
+            'text_fg': (1, 1, 1, 1),
+            'text_shadow': (0, 0, 0, 1),
+            'text_font': btn_font,
+            'pad': (0.02, 0.01),
+        }
+
+        self.prevButton = DirectButton(
+            parent=self.rosterFrame,
+            text="< Prev",
+            pos=(-0.65, 0, -0.41),
+            command=self.prevPage,
+            **btn_style
+        )
+
+        self.pageLabel = DirectLabel(
+            parent=self.rosterFrame,
+            relief=None,
+            text="Page 1/1",
+            text_scale=0.035,
+            text_fg=Vec4(1, 1, 1, 1),
+            text_shadow=Vec4(0, 0, 0, 1),
+            text_font=btn_font,
+            pos=(-0.415, 0, -0.41)
+        )
+
+        self.nextButton = DirectButton(
+            parent=self.rosterFrame,
+            text="Next >",
+            pos=(-0.18, 0, -0.41),
+            command=self.nextPage,
+            **btn_style
+        )
+
+        # Right Column Frame: Selected Merc Inspector & Use Button
+        self.inspectorFrame = DirectFrame(
+            parent=self.mainFrame,
+            relief=DGG.SUNKEN,
+            frameColor=(0.14, 0.16, 0.24, 0.92),
+            frameSize=(0.02, 0.78, -0.46, 0.42),
+            borderWidth=(0.01, 0.01),
+            pos=(0, 0, 0)
+        )
+
+        self.inspectorTitle = DirectLabel(
+            parent=self.inspectorFrame,
+            relief=None,
+            text="Merc Profile & Trinkets",
+            text_scale=0.042,
+            text_fg=Vec4(1, 0.85, 0.3, 1),
+            text_shadow=Vec4(0, 0, 0, 1),
+            text_font=sign_font,
+            pos=(0.40, 0, 0.36)
+        )
+
+        self.inspectorName = DirectLabel(
+            parent=self.inspectorFrame,
+            relief=None,
+            text="Select a Merc",
+            text_scale=0.045,
+            text_fg=Vec4(0.3, 0.9, 1.0, 1),
+            text_shadow=Vec4(0, 0, 0, 1),
+            text_font=sign_font,
+            pos=(0.40, 0, 0.26)
+        )
+
+        self.inspectorStats = DirectLabel(
+            parent=self.inspectorFrame,
+            relief=None,
+            text="",
+            text_scale=0.030,
+            text_fg=Vec4(1, 1, 1, 1),
+            text_shadow=Vec4(0, 0, 0, 1),
+            text_font=btn_font,
+            text_align=TextNode.ALeft,
+            text_wordwrap=22,
+            pos=(0.06, 0, 0.19)
+        )
+
+        self.inspectorTrinketsTitle = DirectLabel(
+            parent=self.inspectorFrame,
+            relief=None,
+            text="Equipped Trinkets:",
+            text_scale=0.034,
+            text_fg=Vec4(1, 0.85, 0.3, 1),
+            text_shadow=Vec4(0, 0, 0, 1),
+            text_font=sign_font,
+            text_align=TextNode.ALeft,
+            pos=(0.06, 0, 0.05)
+        )
+
+        self.inspectorTrinketsText = DirectLabel(
+            parent=self.inspectorFrame,
+            relief=None,
+            text="Select a mercenary on the left to inspect their combat stats and trinkets.",
+            text_scale=0.026,
+            text_fg=Vec4(0.9, 0.92, 0.95, 1),
+            text_shadow=Vec4(0, 0, 0, 1),
+            text_font=btn_font,
+            text_align=TextNode.ALeft,
+            text_wordwrap=25,
+            pos=(0.06, 0, -0.02)
+        )
+
+        # "USE SOS" Action Button in the Inspector!
+        self.useSosButton = DirectButton(
+            parent=self.inspectorFrame,
+            relief=DGG.RAISED,
+            frameColor=(0.15, 0.65, 0.25, 0.95),
+            borderWidth=(0.012, 0.012),
+            text="Use SOS",
+            text_scale=0.045,
+            text_fg=(1, 1, 1, 1),
+            text_shadow=(0, 0, 0, 1),
+            text_font=sign_font,
+            pos=(0.40, 0, -0.38),
+            command=self.__useSelectedSOS,
+            pad=(0.06, 0.015)
+        )
+
+        # Back Button at Bottom
+        self.backButton = DirectButton(
+            parent=self.mainFrame,
+            relief=DGG.RAISED,
+            frameColor=(0.75, 0.2, 0.2, 0.9),
+            borderWidth=(0.01, 0.01),
+            text=TTLocalizer.TownBattleSOSBack,
+            text_scale=0.042,
+            text_fg=(1, 1, 1, 1),
+            text_shadow=(0, 0, 0, 1),
+            text_font=btn_font,
+            pos=(0.0, 0.0, -0.52),
+            command=self.__close,
+            pad=(0.04, 0.012)
+        )
+
         self.hide()
         return
 
@@ -67,35 +231,26 @@ class TownBattleSOSPanel(DirectFrame, StateData.StateData):
             return None
         self.isLoaded = 0
         self.exit()
-        del self.title
-        del self.scrollList
-        del self.close
-        del self.friends
-        del self.NPCFriends
+        self.clearRosterItems()
+        self.clearInspectorHead()
+        del self.mainFrame
         DirectFrame.destroy(self)
         return None
 
-    def makeFriendButton(self, friendPair):
-        friendId, flags = friendPair
-        handle = base.cr.playerFriendsManager.identifyFriend(friendId)
-        if handle == None:
-            base.cr.fillUpFriendsMap()
-            return
-        friendName = handle.getName()
-        fg = Vec4(0.0, 0.0, 0.0, 1.0)
-        if handle.isPet():
-            com = self.__chosePet
-        else:
-            com = self.__choseFriend
-        return DirectButton(relief=None, text=friendName, text_scale=0.04, text_align=TextNode.ALeft, text_fg=fg, text1_bg=self.textDownColor, text2_bg=self.textRolloverColor, text3_fg=self.textDisabledColor, command=com, extraArgs=[friendId, friendName])
+    def clearInspectorHead(self):
+        if self.inspectorHead:
+            self.inspectorHead.detachNode()
+            self.inspectorHead.delete()
+            self.inspectorHead = None
 
-    def makeNPCFriendButton(self, NPCFriendId, numCalls):
-        if NPCFriendId not in TTLocalizer.NPCToonNames:
-            return None
-        friendName = TTLocalizer.NPCToonNames[NPCFriendId]
-        friendName += ' %d' % numCalls
-        fg = Vec4(0.0, 0.0, 0.0, 1.0)
-        return DirectButton(relief=None, text=friendName, text_scale=0.04, text_align=TextNode.ALeft, text_fg=fg, text1_bg=self.textDownColor, text2_bg=self.textRolloverColor, text3_fg=self.textDisabledColor, command=self.__choseNPCFriend, extraArgs=[NPCFriendId])
+    def clearRosterItems(self):
+        for btn in self.cardButtons:
+            btn.destroy()
+        self.cardButtons = []
+        for head in self.mercHeads:
+            head.detachNode()
+            head.delete()
+        self.mercHeads = []
 
     def enter(self, canLure = 1, canTrap = 1):
         if self.isEntered == 1:
@@ -107,44 +262,239 @@ class TownBattleSOSPanel(DirectFrame, StateData.StateData):
         self.canTrap = canTrap
         self.factoryToonIdList = None
         messenger.send('SOSPanelEnter', [self])
-        self.__updateScrollList()
-        self.__updateNPCFriendsPanel()
-        self.__updateTitleText()
+        self.updateMercRoster()
         self.show()
-        self.accept('friendOnline', self.__friendOnline)
-        self.accept('friendOffline', self.__friendOffline)
-        self.accept('friendsListChanged', self.__friendsListChanged)
-        self.accept('friendsMapComplete', self.__friendsListChanged)
         return
 
     def exit(self):
         if self.isEntered == 0:
             return None
         self.isEntered = 0
+        self.clearRosterItems()
+        self.clearInspectorHead()
         self.hide()
-        self.ignore('friendOnline')
-        self.ignore('friendOffline')
-        self.ignore('friendsListChanged')
-        self.ignore('friendsMapComplete')
         messenger.send(self.doneEvent)
         return None
+
+    def updateMercRoster(self):
+        npcFriendsDict = getattr(base.localAvatar, 'NPCFriendsDict', {})
+        self.mercList = [npcId for npcId in list(npcFriendsDict.keys()) if npcFriendsDict[npcId] > 0]
+        
+        # Sort by star rating descending, then name
+        def sortKey(npcId):
+            stars = NPCToons.getNPCTrackLevelHpRarity(npcId)[3]
+            name = NPCToons.getNPCName(npcId) or ""
+            return (-stars, name)
+        
+        self.mercList.sort(key=sortKey)
+        
+        maxPages = max(1, (len(self.mercList) + self.pageSize - 1) // self.pageSize)
+        self.curPage = max(0, min(self.curPage, maxPages - 1))
+        
+        self.renderRoster()
+        
+        if self.mercList and (self.selectedNpcId is None or self.selectedNpcId not in self.mercList):
+            self.selectMerc(self.mercList[0])
+        elif not self.mercList:
+            self.selectedNpcId = None
+            self.inspectorName['text'] = "No Mercs Owned"
+            self.inspectorStats['text'] = ""
+            self.inspectorTrinketsText['text'] = "No SOS Merc cards available! Clear Field Offices or defeat the Sellbot VP to earn SOS cards."
+            self.useSosButton['state'] = DGG.DISABLED
+            self.clearInspectorHead()
+
+    def renderRoster(self):
+        self.clearRosterItems()
+        
+        totalPages = max(1, (len(self.mercList) + self.pageSize - 1) // self.pageSize)
+        self.pageLabel['text'] = f"Page {self.curPage + 1}/{totalPages}"
+        self.prevButton['state'] = DGG.NORMAL if self.curPage > 0 else DGG.DISABLED
+        self.nextButton['state'] = DGG.NORMAL if self.curPage < totalPages - 1 else DGG.DISABLED
+        
+        startIdx = self.curPage * self.pageSize
+        pageMercs = self.mercList[startIdx:startIdx + self.pageSize]
+        
+        npcFriendsDict = getattr(base.localAvatar, 'NPCFriendsDict', {})
+        
+        yOffset = 0.26
+        for i, npcId in enumerate(pageMercs):
+            count = npcFriendsDict.get(npcId, 0)
+            name = NPCToons.getNPCName(npcId) or f"Merc #{npcId}"
+            track, level, hp, stars = NPCToons.getNPCTrackLevelHpRarity(npcId)
+            rarityNames = {1: "Novice", 2: "Adept", 3: "Veteran", 4: "Elite", 5: "Legendary"}
+            tierTitle = rarityNames.get(stars, "Mercenary")
+            
+            trackNames = {
+                ToontownBattleGlobals.HEAL_TRACK: "Toon-Up",
+                ToontownBattleGlobals.TRAP_TRACK: "Trap",
+                ToontownBattleGlobals.LURE_TRACK: "Lure",
+                ToontownBattleGlobals.SOUND_TRACK: "Sound",
+                ToontownBattleGlobals.THROW_TRACK: "Throw",
+                ToontownBattleGlobals.SQUIRT_TRACK: "Squirt",
+                ToontownBattleGlobals.DROP_TRACK: "Drop",
+            }
+            trackStr = trackNames.get(track, "Combat")
+
+            # Selection Card Button
+            isSelected = (npcId == self.selectedNpcId)
+            btn = DirectButton(
+                parent=self.rosterFrame,
+                relief=DGG.RAISED,
+                frameColor=(0.20, 0.45, 0.70, 0.95) if isSelected else (0.16, 0.22, 0.35, 0.85),
+                borderWidth=(0.008, 0.008),
+                text=f"{name} ({trackStr})\n{stars}-Star {tierTitle}  (x{count})",
+                text_scale=0.026,
+                text_fg=(1, 1, 1, 1),
+                text_shadow=(0, 0, 0, 1),
+                text_font=ToontownGlobals.getToonFont(),
+                text_align=TextNode.ALeft,
+                frameSize=(-0.02, 0.62, -0.045, 0.055),
+                pos=(-0.72, 0, yOffset),
+                command=self.selectMerc,
+                extraArgs=[npcId]
+            )
+            self.cardButtons.append(btn)
+            
+            # Mini Toon Head
+            try:
+                head = self.createNPCToonHead(npcId, dimension=0.08)
+                if head:
+                    head.reparentTo(btn)
+                    head.setPos(0.04, 0, 0.005)
+                    self.mercHeads.append(head)
+            except Exception:
+                pass
+                
+            yOffset -= 0.12
+
+    def selectMerc(self, npcId):
+        self.selectedNpcId = npcId
+        self.renderRoster()
+        self.renderInspector(npcId)
+
+    def renderInspector(self, npcId):
+        self.clearInspectorHead()
+        if not npcId:
+            self.useSosButton['state'] = DGG.DISABLED
+            return
+
+        name = NPCToons.getNPCName(npcId) or f"Merc #{npcId}"
+        track, level, hp, stars = NPCToons.getNPCTrackLevelHpRarity(npcId)
+        profile = NPCToons.get_companion_profile(npcId)
+        maxHp = profile['maxHp']
+        trinketIds = profile['trinkets']
+        
+        rarityNames = {1: "Novice", 2: "Adept", 3: "Veteran", 4: "Elite", 5: "Legendary"}
+        tierTitle = rarityNames.get(stars, "Mercenary")
+
+        self.inspectorName['text'] = f"{name} ({stars}-Star)"
+        
+        trackNames = {
+            ToontownBattleGlobals.HEAL_TRACK: "Toon-Up",
+            ToontownBattleGlobals.TRAP_TRACK: "Trap",
+            ToontownBattleGlobals.LURE_TRACK: "Lure",
+            ToontownBattleGlobals.SOUND_TRACK: "Sound",
+            ToontownBattleGlobals.THROW_TRACK: "Throw",
+            ToontownBattleGlobals.SQUIRT_TRACK: "Squirt",
+            ToontownBattleGlobals.DROP_TRACK: "Drop",
+        }
+        mainTrack = trackNames.get(track, "Offensive")
+        secTracks = [trackNames.get(t, "") for t in profile['preferredTracks'] if t != track]
+        secStr = f" / {secTracks[0]}" if secTracks and secTracks[0] else ""
+
+        npcFriendsDict = getattr(base.localAvatar, 'NPCFriendsDict', {})
+        count = npcFriendsDict.get(npcId, 0)
+
+        self.inspectorStats['text'] = (
+            f"Tier: {stars}-Star {tierTitle}\n"
+            f"Max Laff: {maxHp} Laff  |  Summons: x{count}\n"
+            f"Specialty: {mainTrack}{secStr}\n"
+            f"Duration: 5 Combat Rounds"
+        )
+
+        # Build Trinket breakdown
+        trinketTexts = []
+        for t_id in trinketIds:
+            if t_id != 0:
+                t_info = get_trinket_info(t_id)
+                if t_info:
+                    trinketTexts.append(f"• {t_info['name']}:\n  {t_info['desc']}")
+        
+        if trinketTexts:
+            self.inspectorTrinketsText['text'] = "\n\n".join(trinketTexts)
+        else:
+            self.inspectorTrinketsText['text'] = "Standard combat loadout with high-tier Gag distribution."
+
+        # Enable or disable Use SOS button
+        if count > 0:
+            self.useSosButton['state'] = DGG.NORMAL
+        else:
+            self.useSosButton['state'] = DGG.DISABLED
+
+        # Large Toon Portrait Head in Inspector
+        try:
+            head = self.createNPCToonHead(npcId, dimension=0.18)
+            if head:
+                head.reparentTo(self.inspectorFrame)
+                head.setPos(0.66, 0, 0.26)
+                self.inspectorHead = head
+        except Exception:
+            pass
+
+    def __useSelectedSOS(self):
+        if self.selectedNpcId:
+            self.__choseNPCFriend(self.selectedNpcId)
+
+    def prevPage(self):
+        if self.curPage > 0:
+            self.curPage -= 1
+            self.renderRoster()
+
+    def nextPage(self):
+        totalPages = max(1, (len(self.mercList) + self.pageSize - 1) // self.pageSize)
+        if self.curPage < totalPages - 1:
+            self.curPage += 1
+            self.renderRoster()
+
+    def createNPCToonHead(self, NPCID, dimension = 0.5):
+        NPCInfo = NPCToons.NPCToonDict.get(NPCID)
+        if not NPCInfo:
+            return None
+        dnaList = NPCInfo[2]
+        gender = NPCInfo[3]
+        if dnaList == 'r':
+            dnaList = NPCToons.getRandomDNA(NPCID, gender)
+        dna = ToonDNA.ToonDNA()
+        dna.newToonFromProperties(*dnaList)
+        head = ToonHead.ToonHead()
+        head.setupHead(dna, forGui=1)
+        self.fitGeometry(head, fFlip=1, dimension=dimension)
+        return head
+
+    def fitGeometry(self, geom, fFlip = 0, dimension = 0.5):
+        p1 = Point3()
+        p2 = Point3()
+        geom.calcTightBounds(p1, p2)
+        if fFlip:
+            t = p1[0]
+            p1.setX(-p2[0])
+            p2.setX(-t)
+        d = p2 - p1
+        biggest = max(d[0], d[2])
+        if biggest <= 0:
+            biggest = 1.0
+        s = dimension / biggest
+        mid = (p1 + d / 2.0) * s
+        geomXform = hidden.attachNewNode('geomXform')
+        for child in geom.getChildren():
+            child.reparentTo(geomXform)
+
+        geomXform.setPosHprScale(-mid[0], -mid[1] + 1, -mid[2], 180, 0, 0, s, s, s)
+        geomXform.reparentTo(geom)
 
     def __close(self):
         doneStatus = {}
         doneStatus['mode'] = 'Back'
-        messenger.send(self.doneEvent, [doneStatus])
-
-    def __choseFriend(self, friendId, friendName):
-        doneStatus = {}
-        doneStatus['mode'] = 'Friend'
-        doneStatus['friend'] = friendId
-        messenger.send(self.doneEvent, [doneStatus])
-
-    def __chosePet(self, petId, petName):
-        doneStatus = {}
-        doneStatus['mode'] = 'Pet'
-        doneStatus['petId'] = petId
-        doneStatus['petName'] = petName
         messenger.send(self.doneEvent, [doneStatus])
 
     def __choseNPCFriend(self, friendId):
@@ -157,65 +507,3 @@ class TownBattleSOSPanel(DirectFrame, StateData.StateData):
     def setFactoryToonIdList(self, toonIdList):
         self.factoryToonIdList = toonIdList[:]
 
-    def __updateScrollList(self):
-        newFriends = []
-        battlePets = base.config.GetBool('want-pets-in-battle', 1)
-        if base.wantPets and battlePets == 1 and base.localAvatar.hasPet():
-            newFriends.append((base.localAvatar.getPetId(), 0))
-        if not self.bldg or self.factoryToonIdList is not None:
-            for friendPair in base.localAvatar.friendsList:
-                if base.cr.isFriendOnline(friendPair[0]):
-                    if self.factoryToonIdList is None or friendPair[0] in self.factoryToonIdList:
-                        newFriends.append(friendPair)
-
-            if hasattr(base.cr, 'playerFriendsManager'):
-                for avatarId in base.cr.playerFriendsManager.getAllOnlinePlayerAvatars():
-                    if not base.cr.playerFriendsManager.askAvatarKnownElseWhere(avatarId):
-                        newFriends.append((avatarId, 0))
-
-        for friendPair in list(self.friends.keys()):
-            if friendPair not in newFriends:
-                friendButton = self.friends[friendPair]
-                self.scrollList.removeItem(friendButton)
-                if not friendButton.isEmpty():
-                    friendButton.destroy()
-                del self.friends[friendPair]
-
-        for friendPair in newFriends:
-            if friendPair not in self.friends:
-                friendButton = self.makeFriendButton(friendPair)
-                if friendButton:
-                    self.scrollList.addItem(friendButton)
-                    self.friends[friendPair] = friendButton
-
-        return
-
-    def __updateNPCFriendsPanel(self):
-        self.NPCFriends = {}
-        for friend, count in list(base.localAvatar.NPCFriendsDict.items()):
-            track = NPCToons.getNPCTrack(friend)
-            if track == ToontownBattleGlobals.LURE_TRACK and self.canLure == 0 or track == ToontownBattleGlobals.TRAP_TRACK and self.canTrap == 0:
-                self.NPCFriends[friend] = 0
-            else:
-                self.NPCFriends[friend] = count
-
-        self.NPCFriendPanel.update(self.NPCFriends, fCallable=1)
-
-    def __updateTitleText(self):
-        isEmpty = (len(self.friends) == 0 and len(self.NPCFriends) == 0)
-        if isEmpty:
-            self.title['text'] = TTLocalizer.TownBattleSOSNoFriends
-        else:
-            self.title['text'] = TTLocalizer.TownBattleSOSWhichFriend
-
-    def __friendOnline(self, doId, commonChatFlags, whitelistChatFlags, alert=True):
-        self.__updateScrollList()
-        self.__updateTitleText()
-
-    def __friendOffline(self, doId):
-        self.__updateScrollList()
-        self.__updateTitleText()
-
-    def __friendsListChanged(self):
-        self.__updateScrollList()
-        self.__updateTitleText()
