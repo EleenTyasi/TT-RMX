@@ -16,12 +16,6 @@ backups/
 settings.json
 errorCode
 
-# Databases & Character Data
-astron/databases/*.db*
-astron/databases/astrondb/*.yaml
-!astron/databases/.gitignore
-!astron/databases/astrondb/.gitignore
-astron/logs/
 
 # PyCharm IDE
 .idea
