@@ -903,6 +903,9 @@ class BattleCalculatorAI:
             lvl = attack[TOON_LVL_COL]
             id = attack[TOON_ID_COL]
         if trk != -1 and trk != NPCSOS and trk != PETSOS and lvl != -1 and id != -1:
+            toonObj = self.battle.getToon(id)
+            if toonObj and getattr(toonObj, 'isCompanion', False):
+                return
             expList = self.toonSkillPtsGained.get(id, None)
             if expList == None:
                 expList = [0,
@@ -915,7 +918,6 @@ class BattleCalculatorAI:
                 self.toonSkillPtsGained[id] = expList
             
             exp_mult = self.__skillCreditMultiplier
-            toonObj = self.battle.getToon(id)
             if toonObj and hasattr(toonObj, 'hasTrinketEquipped'):
                 from toontown.toon.TrinketsConfig import TRINKET_SMALL_SMART, TRINKET_BELLIGERENT_INTEL
                 # Small But Smart: Under 34 Laff or Uber -> 2x Gag EXP

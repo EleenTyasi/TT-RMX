@@ -3813,11 +3813,14 @@ class DistributedToonAI(DistributedPlayerAI.DistributedPlayerAI, DistributedSmoo
         self.trackBonusLevel = trackBonusLevelArray
 
     def getTrackBonusLevel(self, track = None):
+        if not hasattr(self, 'trackBonusLevel') or self.trackBonusLevel is None:
+            return [-1] * 7 if track is None else -1
         if track == None:
             return self.trackBonusLevel
         else:
-            return self.trackBonusLevel[track]
-        return
+            if isinstance(self.trackBonusLevel, (list, tuple)) and 0 <= track < len(self.trackBonusLevel):
+                return self.trackBonusLevel[track]
+            return -1
 
     def checkGagBonus(self, track, level):
         from toontown.toon.TrinketsConfig import (

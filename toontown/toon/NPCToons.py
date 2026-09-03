@@ -11601,8 +11601,15 @@ NPCToonDict = {20000: (-1,
         NPC_REGULAR)}
 try:
     config = simbase.config
-except:
-    config = base.config
+except Exception:
+    try:
+        config = base.config
+    except Exception:
+        from panda3d.core import ConfigVariableBool
+        class DummyConfig:
+            def GetBool(self, name, default=1):
+                return ConfigVariableBool(name, default).getValue()
+        config = DummyConfig()
 
 if config.GetBool('want-new-toonhall', 1):
     NPCToonDict[2001] = (2513,

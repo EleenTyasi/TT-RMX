@@ -155,6 +155,8 @@ def assignRewards(activeToons, toonSkillPtsGained, suitsKilled, zoneId, helpfulT
     for t in activeToons:
         toon = simbase.air.doId2do.get(t)
         if toon != None:
+            if getattr(toon, 'isCompanion', False):
+                continue
             activeToonList.append(toon)
 
     # Calculate Toon Level EXP gained from defeated suits

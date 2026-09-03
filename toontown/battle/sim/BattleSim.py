@@ -293,3 +293,122 @@ class BattleSim:
             dmg *= 0.70
 
         return max(1, int(math.ceil(dmg)))
+
+    @classmethod
+    def choose_companion_action(cls, companion, battle) -> List[int]:
+        """
+        Calculates and selects the mathematically optimal combat move for an SOS Companion.
+        Uses BattleSim combat calculation formulas to evaluate kill securing, Drop stun synergy,
+        Lure knockback bonus, and emergency healing.
+        """
+        from toontown.battle.BattleBase import getToonAttack, TOON_TRACK_COL, TOON_TGT_COL, PASS, NO_ATTACK
+
+        if not battle or not getattr(battle, 'activeSuits', None):
+            return getToonAttack(companion.doId, track=PASS)
+
+        active_cogs = battle.activeSuits
+        living_cogs = [s for s in active_cogs if getattr(s, 'currHP', 1) > 0]
+        if not living_cogs:
+            return getToonAttack(companion.doId, track=PASS)
+
+        preferred_tracks = getattr(companion, 'preferredTracks', [THROW_TRACK, SQUIRT_TRACK])
+        companion_gags = getattr(companion, 'companionGags', {})
+
+        def get_best_gag_level(track: int) -> Optional[int]:
+            if track in companion_gags and companion_gags[track]:
+                return max(companion_gags[track])
+            if track in preferred_tracks:
+                return 4
+            return None
+
+        # 1. EMERGENCY HEALING CHECK (Allies <= 45% HP)
+        heal_level = get_best_gag_level(HEAL_TRACK)
+        if heal_level is not None:
+            lowest_toon = None
+            lowest_hp_ratio = 1.0
+            for t_id in getattr(battle, 'activeToons', []):
+                t_obj = battle.getToon(t_id)
+                if t_obj and t_obj.hp > 0:
+                    ratio = t_obj.hp / float(max(1, t_obj.maxHp))
+                    if ratio <= 0.45 and ratio < lowest_hp_ratio:
+                        lowest_hp_ratio = ratio
+                        lowest_toon = t_id
+
+            if lowest_toon is not None:
+                return getToonAttack(companion.doId, track=HEAL_TRACK, level=heal_level, target=lowest_toon)
+
+        # Inspect summoner attack
+        summoner_id = getattr(companion, 'summonerId', 0)
+        summoner_atk = battle.toonAttacks.get(summoner_id) if hasattr(battle, 'toonAttacks') else None
+        summoner_track = summoner_atk[TOON_TRACK_COL] if summoner_atk else NO_ATTACK
+        summoner_target = summoner_atk[TOON_TGT_COL] if summoner_atk else -1
+
+        # 2. DROP STUN ACCURACY SYNERGY:
+        # If summoner used Drop, stun that same Cog using Squirt or Sound (+20% accuracy stun)
+        if summoner_track == DROP_TRACK and summoner_target != -1:
+            target_idx = summoner_target if summoner_target < len(active_cogs) else 0
+            squirt_lvl = get_best_gag_level(SQUIRT_TRACK)
+            sound_lvl = get_best_gag_level(SOUND_TRACK)
+            if squirt_lvl is not None:
+                return getToonAttack(companion.doId, track=SQUIRT_TRACK, level=squirt_lvl, target=target_idx)
+            elif sound_lvl is not None:
+                return getToonAttack(companion.doId, track=SOUND_TRACK, level=sound_lvl, target=-1)
+
+        # 3. LURE SYNERGY:
+        # If 2+ Cogs are unlured, deploy Lure
+        lured_suits = getattr(battle, 'luredSuits', [])
+        unlured_cogs = [s for s in living_cogs if s not in lured_suits]
+        lure_lvl = get_best_gag_level(LURE_TRACK)
+        if len(unlured_cogs) >= 2 and lure_lvl is not None:
+            return getToonAttack(companion.doId, track=LURE_TRACK, level=lure_lvl, target=-1)
+
+        # 4. LETHAL KILL SECURING & KNOCKBACK COMBO:
+        best_attack = None
+        highest_score = -1
+
+        for idx, cog in enumerate(active_cogs):
+            if getattr(cog, 'currHP', 0) <= 0:
+                continue
+
+            is_lured = cog in lured_suits
+            cog_snapshot = SuitSnapshot(
+                id=cog.doId,
+                name=getattr(cog, 'worldBossName', None) or getattr(cog, 'name', 'Cog'),
+                hp=cog.currHP,
+                max_hp=cog.maxHP,
+                defense=getattr(cog, 'getActualLevel', lambda: 1)(),
+                is_lured=is_lured
+            )
+
+            for trk in (THROW_TRACK, SQUIRT_TRACK, SOUND_TRACK, DROP_TRACK):
+                lvl = get_best_gag_level(trk)
+                if lvl is None:
+                    continue
+
+                tgt = -1 if trk == SOUND_TRACK else idx
+                fc = cls.forecast(trk, lvl, cog_snapshot, lured_override=is_lured)
+
+                score = fc.total_expected_damage
+                if fc.is_lethal:
+                    score += 500
+                if is_lured and trk in (THROW_TRACK, SQUIRT_TRACK):
+                    score += 150
+                if summoner_track == trk and trk in (SOUND_TRACK, THROW_TRACK, SQUIRT_TRACK):
+                    score += 100
+
+                if score > highest_score:
+                    highest_score = score
+                    best_attack = (trk, lvl, tgt)
+
+        if best_attack:
+            return getToonAttack(companion.doId, track=best_attack[0], level=best_attack[1], target=best_attack[2])
+
+        # 5. FALLBACK: Preferred track
+        primary_track = preferred_tracks[0] if preferred_tracks else THROW_TRACK
+        fallback_lvl = get_best_gag_level(primary_track) or 3
+        fallback_target = summoner_target if (summoner_target != -1 and summoner_target < len(active_cogs)) else 0
+        if primary_track == SOUND_TRACK:
+            fallback_target = -1
+
+        return getToonAttack(companion.doId, track=primary_track, level=fallback_lvl, target=fallback_target)
+

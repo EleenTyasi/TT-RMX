@@ -1327,6 +1327,8 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
     def sendEarnedExperience(self, toonId):
         toon = self.getToon(toonId)
         if toon != None:
+            if getattr(toon, 'isCompanion', False):
+                return
             expList = self.battleCalc.toonSkillPtsGained.get(toonId, None)
             if expList == None:
                 toon.d_setEarnedExperience([])
@@ -1858,8 +1860,19 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
             if summoner:
                 summoner.d_setSystemMessage(0, f"{comp.getName()}'s 5 turns expired and they departed safely!")
             self.__removeToon(comp.doId)
-            comp.requestDelete()
+            comp.depart(delay=3.0)
             needUpdate = 1
+
+        if lastActiveSuitDied:
+            for t in list(self.activeToons):
+                comp = self.getToon(t)
+                if comp and getattr(comp, 'isCompanion', False):
+                    summoner = self.getToon(getattr(comp, 'summonerId', 0))
+                    if summoner:
+                        summoner.d_setSystemMessage(0, f"{comp.getName()} assisted in victory and departed safely!")
+                    self.__removeToon(comp.doId)
+                    comp.depart(delay=3.0)
+                    needUpdate = 1
 
         self.clearAttacks()
         self.d_setMovie()
@@ -1884,9 +1897,12 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
         for toonId in self.toons:
             toon = simbase.air.doId2do.get(toonId)
             if toon:
-                toon.b_setBattleId(0)
-                messageToonReleased = 'Battle releasing toon %s' % toon.doId
-                messenger.send(messageToonReleased, [toon.doId])
+                if getattr(toon, 'isCompanion', False):
+                    toon.depart(delay=3.0)
+                else:
+                    toon.b_setBattleId(0)
+                    messageToonReleased = 'Battle releasing toon %s' % toon.doId
+                    messenger.send(messageToonReleased, [toon.doId])
 
         for exitEvent in self.avatarExitEvents:
             self.ignore(exitEvent)
