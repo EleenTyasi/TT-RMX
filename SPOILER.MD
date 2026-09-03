@@ -62,9 +62,8 @@
 
 ## 🛠️ Setup & Requirements
 
-### 1. Panda3D Custom SDK
-This source code requires a customized version of Panda3D with Astron support:
-* [Panda3D SDK for Windows (64-bit)](https://drive.google.com/file/d/1i-7C_uAfzZSaArzFh80NMD3Dg5FD2Tdt/view?usp=sharing)
+### 1. 64-bit Engine Runtime
+The required 64-bit custom Panda3D runtime (with Astron, libotp, and libtoontown support) is **pre-bundled** directly in `dependencies/panda3d/`. No external installation is required!
 
 
 

@@ -1,11 +1,12 @@
 @echo off
+cd /d "%~dp0"
 
-taskkill /f /im astrond.exe
-taskkill /f /im ppython.exe
-taskkill /f /fi "windowtitle eq Toontown Online - UberDOG Server"
-taskkill /f /fi "windowtitle eq Toontown Online - Astron Server"
-taskkill /f /fi "windowtitle eq Toontown Online - AI (District) Server"
-taskkill /f /fi "windowtitle eq Toontown Online - Game Client"
+taskkill /f /im astrond.exe >nul 2>&1
+taskkill /f /im ppython.exe >nul 2>&1
+taskkill /f /fi "windowtitle eq Toontown Online - UberDOG Server" >nul 2>&1
+taskkill /f /fi "windowtitle eq Toontown Online - Astron Server" >nul 2>&1
+taskkill /f /fi "windowtitle eq Toontown Online - AI (District) Server" >nul 2>&1
+taskkill /f /fi "windowtitle eq Toontown Online - Game Client" >nul 2>&1
 
 start start_astron_server.bat
 
