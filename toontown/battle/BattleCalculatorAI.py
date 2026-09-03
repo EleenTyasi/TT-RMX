@@ -9,6 +9,7 @@ from direct.showbase.PythonUtil import lerp
 from .StatusEffectManager import StatusEffectManager
 from .StatusEffectsConfig import GAG_TRACK_STATUS_EFFECTS, SUIT_ATTACK_STATUS_EFFECTS, SUIT_BUFF_ATTACKS, TOON_BUFFS
 from toontown.battle.GagsConfig import TOONUP_CAN_TARGET_SELF
+from toontown.battle.sim.BattleSim import BattleSim
 
 class BattleCalculatorAI:
     AccuracyBonuses = [
@@ -352,7 +353,7 @@ class BattleCalculatorAI:
                 toon = self.battle.getToon(attackerId)
                 organicBonus = toon.checkGagBonus(TRAP, trapLvl)
                 propBonus = self.__checkPropBonus(TRAP)
-                damage = getAvPropDamage(TRAP, trapLvl, toon.experience.getExp(TRAP), organicBonus, propBonus, self.propAndOrganicBonusStack)
+                damage = BattleSim.get_base_gag_damage(TRAP, trapLvl, toon.experience.getExp(TRAP), organicBonus, propBonus)
                 if self.itemIsCredit(TRAP, trapLvl):
                     self.traps[suitId] = [
                      trapLvl, attackerId, damage]
@@ -381,7 +382,7 @@ class BattleCalculatorAI:
                 toon = self.battle.getToon(attackerId)
                 organicBonus = toon.checkGagBonus(TRAP, trapLvl)
                 propBonus = self.__checkPropBonus(TRAP)
-                damage = getAvPropDamage(TRAP, trapLvl, toon.experience.getExp(TRAP), organicBonus, propBonus, self.propAndOrganicBonusStack)
+                damage = BattleSim.get_base_gag_damage(TRAP, trapLvl, toon.experience.getExp(TRAP), organicBonus, propBonus)
                 if self.itemIsCredit(TRAP, trapLvl):
                     self.traps[suitId] = [
                      trapLvl, attackerId, damage]
@@ -567,7 +568,7 @@ class BattleCalculatorAI:
                     if attackTrack in trinket_organic_map and toon.hasTrinketEquipped(trinket_organic_map[attackTrack]):
                         organicBonus = 1
                     propBonus = self.__checkPropBonus(attackTrack)
-                    attackDamage = getAvPropDamage(attackTrack, attackLevel, toon.experience.getExp(attackTrack), organicBonus, propBonus, self.propAndOrganicBonusStack)
+                    attackDamage = BattleSim.get_base_gag_damage(attackTrack, attackLevel, toon.experience.getExp(attackTrack), organicBonus, propBonus)
                 if not self.__combatantDead(targetId, toon=toonTarget):
                     if self.__suitIsLured(targetId) and atkTrack == DROP:
                         from toontown.toon.TrinketsConfig import TRINKET_LURED_DROP

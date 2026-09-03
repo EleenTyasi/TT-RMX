@@ -1,3 +1,34 @@
+import os
+import sys
+
+# Ensure AI server logs are available in logs/fusion_ai.log for the Dev Console
+class Tee(object):
+    def __init__(self, *files):
+        self.files = files
+    def write(self, obj):
+        for f in self.files:
+            try:
+                f.write(obj)
+                f.flush()
+            except Exception:
+                pass
+    def flush(self):
+        for f in self.files:
+            try:
+                f.flush()
+            except Exception:
+                pass
+
+try:
+    os.makedirs("logs", exist_ok=True)
+    ai_log_path = os.path.join("logs", "fusion_ai.log")
+    if sys.stdout and not getattr(sys.stdout, 'name', '').endswith('fusion_ai.log'):
+        _f_ai = open(ai_log_path, "a", encoding="utf-8", errors="replace")
+        sys.stdout = Tee(sys.stdout, _f_ai)
+        sys.stderr = Tee(sys.stderr, _f_ai)
+except Exception:
+    pass
+
 from panda3d.core import *
 from otp.otpbase import PythonUtil
 import builtins

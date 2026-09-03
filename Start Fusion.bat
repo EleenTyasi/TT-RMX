@@ -29,7 +29,7 @@ if not exist "%PPYTHON_PATH%" (
     exit /b 1
 )
 
-"%PPYTHON_PATH%" tools\fusion.py
+"%PPYTHON_PATH%" tools\fusion.py %*
 
 if errorlevel 1 (
     echo.

@@ -111,10 +111,124 @@ def __throwBouncePoint(startPoint, endPoint):
     return Point3(midPoint)
 
 
+def doDividendPayout(attack):
+    suit = attack['suit']
+    battle = attack['battle']
+    paper = globalPropPool.getProp('shredder-paper')
+    suitTrack = getSuitAnimTrack(attack)
+    posPoints = [Point3(-0.04, 0.15, -1.38), VBase3(10.584, -11.945, 18.316)]
+    propTrack = Sequence(
+        getPropAppearTrack(paper, suit.getRightHand(), posPoints, 0.8, MovieUtil.PNT3_ONE, scaleUpTime=0.5),
+        Wait(1.73),
+        Func(battle.movie.needRestoreRenderProp, paper),
+        Func(paper.wrtReparentTo, render),
+        Wait(1.5),
+        Func(MovieUtil.removeProp, paper),
+        Func(battle.movie.clearRenderProp, paper)
+    )
+    soundTrack = getSoundTrack('SA_audit.ogg', delay=0.8, node=suit)
+    targets = attack.get('target', [])
+    if isinstance(targets, list):
+        toonTracks = getToonTracks(attack, damageDelay=2.2, damageAnimNames=['cringe'], dodgeDelay=1.0, dodgeAnimNames=['duck'])
+    else:
+        toonTracks = getToonTrack(attack, 2.2, ['cringe'], 1.0, ['duck'])
+    return Parallel(suitTrack, propTrack, soundTrack, toonTracks)
+
+
+def doBailout(attack):
+    suit = attack['suit']
+    battle = attack['battle']
+    suitTrack = getSuitAnimTrack(attack)
+    soundTrack = getSoundTrack('SA_synergy.ogg', delay=0.8, node=suit)
+    BattleParticles.loadParticles()
+    particleEffect = BattleParticles.createParticleEffect('Synergy')
+    partTrack = getPartTrack(particleEffect, 0.8, 2.0, [particleEffect, suit, 0])
+    targets = attack.get('target', [])
+    if isinstance(targets, list):
+        toonTracks = getToonTracks(attack, damageDelay=1.8, damageAnimNames=['cringe'], dodgeDelay=0.9, dodgeAnimNames=['duck'])
+    else:
+        toonTracks = getToonTrack(attack, 1.8, ['cringe'], 0.9, ['duck'])
+    return Parallel(suitTrack, partTrack, soundTrack, toonTracks)
+
+
+def doCapitalInjection(attack):
+    suit = attack['suit']
+    battle = attack['battle']
+    suitTrack = getSuitAnimTrack(attack)
+    soundTrack = getSoundTrack('SA_demotion.ogg', delay=0.5, node=suit)
+    target = attack.get('target')
+    if isinstance(target, list):
+        toonTracks = getToonTracks(attack, damageDelay=1.5, damageAnimNames=['cringe'], dodgeDelay=0.8, dodgeAnimNames=['duck'])
+    else:
+        toonTracks = getToonTrack(attack, 1.5, ['cringe'], 0.8, ['duck'])
+    return Parallel(suitTrack, soundTrack, toonTracks)
+
+
+def doRestructure(attack):
+    suit = attack['suit']
+    battle = attack['battle']
+    phone = globalPropPool.getProp('receiver')
+    suitTrack = getSuitAnimTrack(attack)
+    posPoints = [Point3(0.08, -0.05, -0.15), VBase3(0, 0, 0)]
+    propTrack = Sequence(
+        getPropAppearTrack(phone, suit.getRightHand(), posPoints, 0.5, MovieUtil.PNT3_ONE, scaleUpTime=0.5),
+        Wait(2.0),
+        Func(MovieUtil.removeProp, phone),
+        Func(battle.movie.clearRenderProp, phone)
+    )
+    soundTrack = getSoundTrack('SA_hangup.ogg', delay=0.6, node=suit)
+    target = attack.get('target')
+    if isinstance(target, list):
+        toonTracks = getToonTracks(attack, damageDelay=1.8, damageAnimNames=['cringe'], dodgeDelay=0.9, dodgeAnimNames=['duck'])
+    else:
+        toonTracks = getToonTrack(attack, 1.8, ['cringe'], 0.9, ['duck'])
+    return Parallel(suitTrack, propTrack, soundTrack, toonTracks)
+
+
+def doLitigationDefense(attack):
+    suit = attack['suit']
+    battle = attack['battle']
+    gavel = globalPropPool.getProp('gavel')
+    suitTrack = getSuitAnimTrack(attack)
+    posPoints = [Point3(0, 0, 0), VBase3(0, 0, 0)]
+    propTrack = Sequence(
+        getPropAppearTrack(gavel, suit.getRightHand(), posPoints, 0.5, MovieUtil.PNT3_ONE, scaleUpTime=0.5),
+        Wait(2.2),
+        Func(MovieUtil.removeProp, gavel),
+        Func(battle.movie.clearRenderProp, gavel)
+    )
+    soundTrack = getSoundTrack('SA_gavel.ogg', delay=0.8, node=suit)
+    targets = attack.get('target', [])
+    if isinstance(targets, list):
+        toonTracks = getToonTracks(attack, damageDelay=1.8, damageAnimNames=['cringe'], dodgeDelay=0.9, dodgeAnimNames=['duck'])
+    else:
+        toonTracks = getToonTrack(attack, 1.8, ['cringe'], 0.9, ['duck'])
+    return Parallel(suitTrack, propTrack, soundTrack, toonTracks)
+
+
+def doGigaTremor(attack):
+    return doTremor(attack)
+
+
 def doSuitAttack(attack):
     notify.debug('building suit attack in doSuitAttack: %s' % attack['name'])
     name = attack['id']
-    if name == AUDIT:
+    atkName = attack.get('name', '')
+
+    # TT-RMX Custom Attacks
+    if atkName == 'DividendPayout':
+        suitTrack = doDividendPayout(attack)
+    elif atkName == 'Bailout':
+        suitTrack = doBailout(attack)
+    elif atkName == 'CapitalInjection':
+        suitTrack = doCapitalInjection(attack)
+    elif atkName == 'Restructure':
+        suitTrack = doRestructure(attack)
+    elif atkName == 'LitigationDefense':
+        suitTrack = doLitigationDefense(attack)
+    elif atkName in ('ultrastomp', 'GigaTremor'):
+        suitTrack = doGigaTremor(attack)
+    elif name == AUDIT:
         suitTrack = doAudit(attack)
     elif name == BITE:
         suitTrack = doBite(attack)
@@ -249,20 +363,27 @@ def doSuitAttack(attack):
     elif name == WRITE_OFF:
         suitTrack = doWriteOff(attack)
     else:
-        notify.warning('unknown attack: %d substituting Finger Wag' % name)
-        suitTrack = doDefault(attack)
+        notify.warning('unknown attack: %d (%s) substituting fallback' % (name, atkName))
+        if attack.get('group') == ATK_TGT_GROUP or isinstance(attack.get('target'), list):
+            suitTrack = doSynergy(attack)
+        else:
+            suitTrack = doDefault(attack)
     camTrack = MovieCamera.chooseSuitShot(attack, suitTrack.getDuration())
     battle = attack['battle']
     target = attack['target']
     groupStatus = attack['group']
-    if groupStatus == ATK_TGT_SINGLE:
-        toon = target['toon']
-        toonHprTrack = Sequence(Func(toon.headsUp, battle, MovieUtil.PNT3_ZERO), Func(toon.loop, 'neutral'))
-    else:
+    if isinstance(target, list):
         toonHprTrack = Parallel()
         for t in target:
-            toon = t['toon']
-            toonHprTrack.append(Sequence(Func(toon.headsUp, battle, MovieUtil.PNT3_ZERO), Func(toon.loop, 'neutral')))
+            toon = t.get('toon') if isinstance(t, dict) else getattr(t, 'toon', None)
+            if toon:
+                toonHprTrack.append(Sequence(Func(toon.headsUp, battle, MovieUtil.PNT3_ZERO), Func(toon.loop, 'neutral')))
+    else:
+        toon = target.get('toon') if isinstance(target, dict) else getattr(target, 'toon', None)
+        if toon:
+            toonHprTrack = Sequence(Func(toon.headsUp, battle, MovieUtil.PNT3_ZERO), Func(toon.loop, 'neutral'))
+        else:
+            toonHprTrack = Sequence()
 
     suit = attack['suit']
     neutralIval = Func(suit.loop, 'neutral')
@@ -306,6 +427,9 @@ def __makeCancelledNodePath():
 
 def doDefault(attack):
     notify.debug('building suit attack in doDefault')
+    # If this is a group attack, fallback to safe group attack doSynergy
+    if attack.get('group') == ATK_TGT_GROUP or isinstance(attack.get('target'), list):
+        return doSynergy(attack)
     suitName = attack['suitName']
     if suitName == 'f':
         attack['id'] = POUND_KEY
@@ -1345,7 +1469,11 @@ def doTeeOff(attack):
     suit = attack['suit']
     battle = attack['battle']
     target = attack['target']
-    toon = target['toon']
+    if isinstance(target, list):
+        target = target[0] if target else {'toon': None, 'hp': 0}
+    toon = target.get('toon') if isinstance(target, dict) else getattr(target, 'toon', None)
+    if not toon:
+        return getSuitTrack(attack)
     club = globalPropPool.getProp('golf-club')
     ball = globalPropPool.getProp('golf-ball')
     suitTrack = getSuitTrack(attack)

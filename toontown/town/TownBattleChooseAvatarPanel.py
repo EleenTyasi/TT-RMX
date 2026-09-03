@@ -27,9 +27,13 @@ class TownBattleChooseAvatarPanel(StateData.StateData):
             self.textFrame['text'] = TTLocalizer.TownBattleChooseAvatarToonTitle
         else:
             self.textFrame['text'] = TTLocalizer.TownBattleChooseAvatarCogTitle
+        self.hoverCallback = None
+        self.unhoverCallback = None
         self.avatarButtons = []
         for i in range(4):
             button = DirectButton(parent=self.frame, relief=None, image=(gui.find('**/PckMn_Arrow_Up'), gui.find('**/PckMn_Arrow_Dn'), gui.find('**/PckMn_Arrow_Rlvr')), command=self.__handleAvatar, extraArgs=[i])
+            button.bind(DGG.ENTER, self.__handleHover, extraArgs=[i])
+            button.bind(DGG.EXIT, self.__handleUnhover, extraArgs=[i])
             if self.toon:
                 button.setScale(1, 1, -1)
                 button.setPos(0, 0, -0.2)
@@ -64,12 +68,26 @@ class TownBattleChooseAvatarPanel(StateData.StateData):
 
     def exit(self):
         self.frame.hide()
+        if self.unhoverCallback:
+            self.unhoverCallback(None)
+
+    def __handleHover(self, avatar, event=None):
+        if self.hoverCallback:
+            self.hoverCallback(avatar)
+
+    def __handleUnhover(self, avatar, event=None):
+        if self.unhoverCallback:
+            self.unhoverCallback(avatar)
 
     def __handleBack(self):
+        if self.unhoverCallback:
+            self.unhoverCallback(None)
         doneStatus = {'mode': 'Back'}
         messenger.send(self.doneEvent, [doneStatus])
 
     def __handleAvatar(self, avatar):
+        if self.unhoverCallback:
+            self.unhoverCallback(None)
         doneStatus = {'mode': 'Avatar',
          'avatar': avatar}
         messenger.send(self.doneEvent, [doneStatus])

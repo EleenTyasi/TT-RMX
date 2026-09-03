@@ -11,6 +11,31 @@ SC_HEALER_HANK = 20002
 OL.SpeedChatStaticText[SC_HEALER_NEED] = "I need to see the healer."
 OL.SpeedChatStaticText[SC_HEALER_HANK] = "Hank, patch me up!"
 
+# TT-RMX Battle Section Additions
+SC_GUARD = 20101
+SC_HEAL_SELF = 20102
+SC_FREEZE_SHATTER = 20103
+SC_WET_SQUIRT = 20104
+SC_BOSS_DPS = 20105
+SC_BOSS_CLOCK = 20106
+SC_BOSS_ESCAPE = 20107
+SC_DIRECT_HIT = 20108
+SC_CRIT_DIRECT_HIT = 20109
+SC_BOSS_DEFEATED = 20110
+SC_SECOND_WIND = 20111
+
+OL.SpeedChatStaticText[SC_GUARD] = "I'm going to Guard! (Pass)"
+OL.SpeedChatStaticText[SC_HEAL_SELF] = "Healing myself up!"
+OL.SpeedChatStaticText[SC_FREEZE_SHATTER] = "Freeze them for Ice Shatter!"
+OL.SpeedChatStaticText[SC_WET_SQUIRT] = "Applying Wet with Squirt!"
+OL.SpeedChatStaticText[SC_BOSS_DPS] = "Focus DPS on the World Boss!"
+OL.SpeedChatStaticText[SC_BOSS_CLOCK] = "Watch the 7-turn flee clock!"
+OL.SpeedChatStaticText[SC_BOSS_ESCAPE] = "The World Boss is escaping!"
+OL.SpeedChatStaticText[SC_DIRECT_HIT] = "Direct Hit!"
+OL.SpeedChatStaticText[SC_CRIT_DIRECT_HIT] = "Critical Direct Hit!"
+OL.SpeedChatStaticText[SC_BOSS_DEFEATED] = "World Boss defeated!"
+OL.SpeedChatStaticText[SC_SECOND_WIND] = "Second Wind saved me!"
+
 commitmantst = 'kptmptest - removable'
 InterfaceFont = 'phase_3/models/fonts/ImpressBT.ttf'
 ToonFont = 'phase_3/models/fonts/ImpressBT.ttf'
@@ -2672,7 +2697,14 @@ SuitAttackNames = {'Audit': 'Audit!',
  'Tremor': 'Tremor!',
  'Watercooler': 'Watercooler!',
  'Withdrawal': 'Withdrawal!',
- 'WriteOff': 'Write Off!'}
+ 'WriteOff': 'Write Off!',
+ 'DividendPayout': 'Dividend Payout!',
+ 'Bailout': 'Bailout!',
+ 'CapitalInjection': 'Capital Injection!',
+ 'Restructure': 'Restructure!',
+ 'LitigationDefense': 'Litigation Defense!',
+ 'GigaTremor': 'Giga Tremor!',
+ 'ultrastomp': 'Ultra Stomp!'}
 SuitAttackTaunts = {'Audit': ["I believe your books don't balance.",
            "Looks like you're in the red.",
            'Let me help you with your books.',
@@ -3291,7 +3323,51 @@ SuitAttackTaunts = {'Audit': ["I believe your books don't balance.",
               'You can forget about a bonus.',
               "I'll shuffle your accounts around.",
               "You're about to suffer some losses.",
-              'This is going to hurt your bottom line.']}
+              'This is going to hurt your bottom line.'],
+ 'DividendPayout': ['Here is your share of the losses.',
+                    'Time to collect your negative dividends.',
+                    'Our profit margins demand your defeat.',
+                    'Consider this a distribution of distress.'],
+ 'Bailout': ['We are too big to fail!',
+             'Injecting emergency capital!',
+             'A public expense for private gain!',
+             'Our reserves have been replenished!'],
+ 'CapitalInjection': ['An influx of corporate funding!',
+                      'Restoring shareholder equity!',
+                      'Our balance sheet is looking healthy again!',
+                      'Time to boost our working capital.'],
+ 'Restructure': ['Your department is being liquidated.',
+                 'We are streamlining our operations.',
+                 'You do not fit in our strategic reorganization.',
+                 'Effective immediately, you are restructured.'],
+ 'LitigationDefense': ['Our legal counsel objects to your presence.',
+                       'You have violated our terms of agreement.',
+                       'Court is now in session.',
+                       'Case closed!'],
+ 'GigaTremor': ['Feel the weight of the market collapse!',
+                'A seismic financial shockwave!',
+                'The market is plummeting!'],
+ 'ultrastomp': ['Crushing the bottom line!',
+                'Stepping on the competition!',
+                'Down with frivolous fun!'],
+ 'FillWithLead': ['I have plenty of pencil lead for you.',
+                  'Try erasing this!',
+                  'Here is some heavy graphite.'],
+ 'CigarSmoke': ['Smoke out the competition.',
+                'A little smog in the air never hurt business.',
+                'Inhaling some second-hand figures.'],
+ 'FloodTheMarket': ['An overabundance of supply!',
+                    'Drowning in inventory!',
+                    'The market cannot absorb this!'],
+ 'SongAndDance': ['Let me give you the old routine.',
+                  'Watch me dance around the issues.',
+                  'A performance worthy of Wall Street.'],
+ 'DoubleTalk': ['Allow me to clarify by confusing you.',
+               'Terms and conditions definitely apply.',
+               'Reading between the non-existent lines.'],
+ 'ThrowBook': ['By the book, you lose.',
+               'Throwing the corporate rulebook at you.',
+               'Knowledge is power, and heavy.']}
 BuildingWaitingForVictors = ('Waiting for other players...',)
 ElevatorHopOff = 'Hop off'
 ElevatorStayOff = "If you hop off, you'll need to wait\nfor the elevator to leave or empty."

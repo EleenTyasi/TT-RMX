@@ -71,6 +71,10 @@ class ToontownChatManager(ChatManager.ChatManager):
         self.chatInputWhiteList.desc = 'chatInputWhiteList'
         return
 
+    def deactivateChat(self):
+        if hasattr(self, 'fsm'):
+            self.fsm.request('mainMenu')
+
     def sendSCResistanceChatMessage(self, textId):
         messenger.send('chatUpdateSCResistance', [textId])
         self.announceSCChat()

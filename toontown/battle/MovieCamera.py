@@ -481,7 +481,7 @@ def chooseSuitShot(attack, attackDuration):
         notify.warning('unknown attack id in chooseSuitShot: %d using default cam' % name)
         camTrack.append(defaultCamera())
     pbpText = attack['playByPlayText']
-    displayName = TTLocalizer.SuitAttackNames[attack['name']]
+    displayName = TTLocalizer.SuitAttackNames.get(attack.get('name', ''), attack.get('name', '') + '!')
     pbpTrack = pbpText.getShowInterval(displayName, 3.5)
     return Parallel(camTrack, pbpTrack)
 
@@ -494,10 +494,13 @@ def chooseSuitCloseShot(attack, openDuration, openName, attackDuration):
     groupStatus = attack['group']
     diedTrack = None
     if groupStatus == ATK_TGT_SINGLE:
-        av = attack['target']['toon']
+        tgt = attack['target']
+        if isinstance(tgt, list):
+            tgt = tgt[0] if tgt else {'toon': None, 'died': 0}
+        av = tgt.get('toon') if isinstance(tgt, dict) else None
         shotChoices = [avatarCloseUpThreeQuarterRightShot, suitGroupThreeQuarterLeftBehindShot]
-        died = attack['target']['died']
-        if died != 0:
+        died = tgt.get('died', 0) if isinstance(tgt, dict) else 0
+        if died != 0 and av:
             pbpText = attack['playByPlayText']
             diedText = av.getName() + ' was defeated!'
             diedTextList = [diedText]

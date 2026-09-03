@@ -20,6 +20,7 @@ from toontown.toonbase import TTLocalizer
 from toontown.pets import PetConstants
 from direct.gui.DirectGui import DGG
 from toontown.battle import FireCogPanel
+from toontown.battle.BattleForecastCard import BattleForecastCard
 
 class TownBattle(StateData.StateData):
     notify = DirectNotifyGlobal.directNotify.newCategory('TownBattle')
@@ -51,6 +52,7 @@ class TownBattle(StateData.StateData):
         self.activeCogs = []
         self.cog = 0
         self.enemyHPPanel = EnemyHPPanel.EnemyHPPanelManager()
+        self.forecastCard = None
         self.fsm = ClassicFSM.ClassicFSM('TownBattle', [State.State('Off', self.enterOff, self.exitOff, ['Attack', 'Pet']),
          State.State('Attack', self.enterAttack, self.exitAttack, ['ChooseCog',
           'ChooseToon',
@@ -171,11 +173,15 @@ class TownBattle(StateData.StateData):
         self.SOSPanel.load()
         self.SOSPetSearchPanel.load()
         self.SOSPetInfoPanel.load()
+        self.forecastCard = BattleForecastCard()
         self.isLoaded = 1
 
     def unload(self):
         if not self.isLoaded:
             return
+        if hasattr(self, 'forecastCard') and self.forecastCard:
+            self.forecastCard.destroy()
+            self.forecastCard = None
         self.attackPanel.unload()
         self.waitPanel.unload()
         self.chooseCogPanel.unload()
@@ -462,16 +468,22 @@ class TownBattle(StateData.StateData):
 
     def enterChooseCog(self):
         self.cog = 0
+        self.chooseCogPanel.hoverCallback = self.__handleCogHover
+        self.chooseCogPanel.unhoverCallback = self.__handleCogUnhover
         self.chooseCogPanel.enter(self.numCogs, luredIndices=self.luredIndices, trappedIndices=self.trappedIndices, track=self.track)
         self.accept(self.chooseCogPanelDoneEvent, self.__handleChooseCogPanelDone)
         return None
 
     def exitChooseCog(self):
         self.ignore(self.chooseCogPanelDoneEvent)
+        if hasattr(self, 'forecastCard') and self.forecastCard:
+            self.forecastCard.hide()
         self.chooseCogPanel.exit()
         return None
 
     def __handleChooseCogPanelDone(self, doneStatus):
+        if hasattr(self, 'forecastCard') and self.forecastCard:
+            self.forecastCard.hide()
         mode = doneStatus['mode']
         if mode == 'Back':
             self.fsm.request('Attack')
@@ -489,6 +501,61 @@ class TownBattle(StateData.StateData):
             messenger.send(self.battleEvent, [response])
         else:
             self.notify.warning('unknown mode: %s' % mode)
+
+    def __handleCogHover(self, cog_index):
+        if not hasattr(self, 'activeCogs') or cog_index >= len(self.activeCogs):
+            return
+        suit = self.activeCogs[cog_index]
+        if not suit:
+            return
+
+        if not hasattr(self, 'forecastCard') or not self.forecastCard:
+            self.forecastCard = BattleForecastCard()
+
+        from toontown.battle.sim.BattleSim import BattleSim, SuitSnapshot, ToonSnapshot
+
+        cog_hp = suit.getHP() if hasattr(suit, 'getHP') else 10
+        cog_max_hp = suit.getMaxHP() if hasattr(suit, 'getMaxHP') else 10
+        cog_level = suit.getActualLevel() if hasattr(suit, 'getActualLevel') else 1
+        cog_code = getattr(getattr(suit, 'dna', None), 'name', 'f')
+        cog_name = suit.getName() if hasattr(suit, 'getName') else "Cog"
+        is_lured = cog_index in self.luredIndices
+
+        suit_snapshot = SuitSnapshot(
+            id=suit.doId if hasattr(suit, 'doId') else cog_index,
+            name=cog_name,
+            code=cog_code,
+            level=cog_level,
+            hp=cog_hp,
+            max_hp=cog_max_hp,
+            defense=getattr(suit, 'defense', cog_level * 5),
+            is_lured=is_lured
+        )
+
+        toon_snapshot = None
+        if hasattr(base, 'localAvatar') and base.localAvatar:
+            av = base.localAvatar
+            toon_snapshot = ToonSnapshot(
+                id=av.doId,
+                name=av.getName(),
+                hp=av.getHp(),
+                max_hp=av.getMaxHp()
+            )
+
+        forecast = BattleSim.forecast(
+            self.track,
+            self.level,
+            suit_snapshot,
+            toon=toon_snapshot,
+            lured_override=is_lured
+        )
+
+        # Position card above the battle picker panel
+        self.forecastCard.show_forecast(forecast, pos_override=(0, 0.44))
+
+    def __handleCogUnhover(self, cog_index=None):
+        if hasattr(self, 'forecastCard') and self.forecastCard:
+            self.forecastCard.hide()
 
     def enterAttackWait(self, chosenToon = -1):
         self.accept(self.waitPanelDoneEvent, self.__handleAttackWaitBack)

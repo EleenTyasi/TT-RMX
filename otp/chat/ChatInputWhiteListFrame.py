@@ -203,7 +203,10 @@ class ChatInputWhiteListFrame(FSM.FSM, DirectFrame):
             if self.wantHistory:
                 self.addToHistory(text)
         else:
-            localAvatar.chatMgr.deactivateChat()
+            if hasattr(localAvatar.chatMgr, 'deactivateChat'):
+                localAvatar.chatMgr.deactivateChat()
+            elif hasattr(localAvatar.chatMgr, 'fsm'):
+                localAvatar.chatMgr.fsm.request('mainMenu')
 
         if not overflow:
             self.hide()

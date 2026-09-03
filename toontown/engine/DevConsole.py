@@ -75,14 +75,43 @@ class DevConsole(DirectObject):
             'version': self.cmd_version,
             'exit': self.cmd_exit,
             'quit': self.cmd_exit,
+            'ai_log': self.cmd_ai_log,
         }
 
+        self.aiLogFile = os.path.join(os.getcwd(), "logs", "fusion_ai.log")
+        self.aiLogOffset = 0
+        self.showAiLogs = True
+
+        self.initTextProperties()
         self.buildGui()
         self.bindKeys()
         self.hookStreams()
 
+        # Start background polling of AI server logs
+        taskMgr.doMethodLater(0.2, self.pollAiLog, 'devConsolePollAiLog')
+
         self.log(f"] TT-RMX Fusion Engine Developer Console initialized (64-bit).", color='header')
         self.log(f"] Type 'help' for commands. sv_cheats is currently 0 (cheats disabled).", color='dim')
+        self.log(f"] AI server live log streaming is active. Toggle with 'ai_log 0/1'.", color='dim')
+
+    def initTextProperties(self):
+        tpm = TextPropertiesManager.getGlobalPtr()
+
+        tp_ai = TextProperties()
+        tp_ai.setTextColor(0.75, 0.55, 1.0, 1.0)
+        tpm.setProperties('console_ai', tp_ai)
+
+        tp_err = TextProperties()
+        tp_err.setTextColor(1.0, 0.35, 0.35, 1.0)
+        tpm.setProperties('console_err', tp_err)
+
+        tp_warn = TextProperties()
+        tp_warn.setTextColor(1.0, 0.85, 0.2, 1.0)
+        tpm.setProperties('console_warn', tp_warn)
+
+        tp_echo = TextProperties()
+        tp_echo.setTextColor(0.3, 0.9, 1.0, 1.0)
+        tpm.setProperties('console_echo', tp_echo)
 
     def hookStreams(self):
         try:
@@ -196,6 +225,33 @@ class DevConsole(DirectObject):
             except Exception:
                 pass
 
+    def pollAiLog(self, task=None):
+        if not self.showAiLogs:
+            return task.again if task else None
+
+        if not os.path.exists(self.aiLogFile):
+            return task.again if task else None
+
+        try:
+            current_size = os.path.getsize(self.aiLogFile)
+            if current_size < self.aiLogOffset:
+                self.aiLogOffset = 0
+
+            if current_size > self.aiLogOffset:
+                with open(self.aiLogFile, "r", encoding="utf-8", errors="replace") as f:
+                    f.seek(self.aiLogOffset)
+                    chunk = f.read()
+                    self.aiLogOffset = f.tell()
+
+                for raw_line in chunk.splitlines():
+                    line = raw_line.strip()
+                    if line:
+                        self.log(line, color='ai')
+        except Exception:
+            pass
+
+        return task.again if task else None
+
     def log(self, text, color='normal'):
         for line in str(text).splitlines():
             prefix = ""
@@ -203,6 +259,8 @@ class DevConsole(DirectObject):
                 prefix = "[ERROR] "
             elif color == 'warning':
                 prefix = "[WARN] "
+            elif color == 'ai' and not line.startswith("[AI]"):
+                prefix = "[AI] "
             self.lines.append((prefix + line, color))
 
         if len(self.lines) > self.MAX_LINES:
@@ -213,8 +271,20 @@ class DevConsole(DirectObject):
 
     def updateDisplay(self):
         display = self.lines[-self.DISPLAY_LINES:]
-        formatted = "\n".join([line[0] for line in display])
-        self.outputNode.setText(formatted)
+        formatted_lines = []
+        for line_text, color in display:
+            if color == 'ai':
+                formatted_lines.append(f"\1console_ai\1{line_text}\2")
+            elif color == 'error':
+                formatted_lines.append(f"\1console_err\1{line_text}\2")
+            elif color == 'warning':
+                formatted_lines.append(f"\1console_warn\1{line_text}\2")
+            elif color == 'echo':
+                formatted_lines.append(f"\1console_echo\1{line_text}\2")
+            else:
+                formatted_lines.append(line_text)
+
+        self.outputNode.setText("\n".join(formatted_lines))
         cheats_str = "1 (ENABLED)" if self.sv_cheats else "0 (DISABLED)"
         self.titleLabel['text'] = f"] TT-RMX Fusion Engine Console  |  sv_cheats: {cheats_str}  |  Press [~] to close"
 
@@ -380,6 +450,93 @@ class DevConsole(DirectObject):
 
     def cmd_version(self, args):
         self.log("TT-RMX Fusion Engine (64-bit Python 3.9 / Panda3D 1.11.0)", color='normal')
+
+    def cmd_ai_log(self, args):
+        if not args:
+            status = "enabled" if self.showAiLogs else "disabled"
+            self.log(f"\"ai_log\" is \"{1 if self.showAiLogs else 0}\" ({status})", color='normal')
+            return
+
+        val = args[0].strip().lower()
+        if val in ('1', 'on', 'true'):
+            self.showAiLogs = True
+            self.log("AI server log streaming enabled.", color='normal')
+        elif val in ('0', 'off', 'false'):
+            self.showAiLogs = False
+            self.log("AI server log streaming disabled.", color='normal')
+    def cmd_sim_turn(self, args):
+        if len(args) < 4:
+            self.log("Usage: sim_turn <cog_code> <cog_lvl> <gag_track> <gag_lvl>", color='warning')
+            self.log("Example: sim_turn rb 12 throw 6", color='dim')
+            return
+
+        from toontown.battle.sim.BattleSim import BattleSim, SuitSnapshot, ToonSnapshot
+        from toontown.battle.SuitsConfig import SUIT_ATTRIBUTES
+        from toontown.toonbase.ToontownBattleGlobals import (
+            HEAL_TRACK, TRAP_TRACK, LURE_TRACK, SOUND_TRACK, THROW_TRACK, SQUIRT_TRACK, DROP_TRACK
+        )
+
+        cog_code = args[0].strip().lower()
+        try:
+            cog_lvl = int(args[1])
+        except ValueError:
+            self.log("Error: cog_lvl must be an integer.", color='error')
+            return
+
+        track_str = args[2].strip().lower()
+        track_map = {
+            'heal': HEAL_TRACK, 'trap': TRAP_TRACK, 'lure': LURE_TRACK,
+            'sound': SOUND_TRACK, 'throw': THROW_TRACK, 'squirt': SQUIRT_TRACK, 'drop': DROP_TRACK
+        }
+        if track_str in track_map:
+            track = track_map[track_str]
+        else:
+            try:
+                track = int(track_str)
+            except ValueError:
+                self.log(f"Error: unknown gag track '{track_str}'. Use heal, trap, lure, sound, throw, squirt, drop.", color='error')
+                return
+
+        try:
+            gag_lvl = int(args[3]) - 1 # Convert 1-indexed to 0-indexed
+            gag_lvl = max(0, min(6, gag_lvl))
+        except ValueError:
+            self.log("Error: gag_lvl must be an integer (1-7).", color='error')
+            return
+
+        cog_data = SUIT_ATTRIBUTES.get(cog_code)
+        cog_name = cog_data['name'] if cog_data else f"Cog ({cog_code})"
+        hp_val = 200
+        if cog_data and 'hp' in cog_data:
+            idx = min(len(cog_data['hp']) - 1, max(0, cog_lvl - cog_data.get('level', 1)))
+            hp_val = cog_data['hp'][idx]
+
+        suit_snapshot = SuitSnapshot(
+            id=1,
+            name=cog_name,
+            code=cog_code,
+            level=cog_lvl,
+            hp=hp_val,
+            max_hp=hp_val,
+            defense=cog_lvl * 5
+        )
+
+        toon_snapshot = None
+        if hasattr(base, 'localAvatar') and base.localAvatar:
+            av = base.localAvatar
+            toon_snapshot = ToonSnapshot(id=av.doId, name=av.getName(), hp=av.getHp(), max_hp=av.getMaxHp())
+
+        fc = BattleSim.forecast(track, gag_lvl, suit_snapshot, toon=toon_snapshot)
+        self.log("=== BattleSim Forecast ===", color='header')
+        self.log(f"Target:  {fc.target_name} (Lv. {cog_lvl})  [HP: {fc.target_hp}/{fc.target_max_hp}]", color='normal')
+        self.log(f"Gag:     {fc.gag_name}  (Track: {track_str.capitalize()})", color='normal')
+        self.log(f"Damage:  {fc.total_expected_damage} (Min: {fc.min_damage} | Max/Crit: {fc.max_damage})", color='warning')
+        self.log(f"Chance:  Hit: {fc.hit_chance_pct:.0f}%  |  Crit: {fc.crit_chance_pct:.0f}%  |  Direct: {fc.direct_chance_pct:.0f}%", color='normal')
+        if fc.status_effect_name:
+            self.log(f"Status:  {fc.status_effect_name} ({fc.status_effect_chance:.0f}% proc)", color='echo')
+        rem_hp = max(0, fc.target_hp - fc.total_expected_damage)
+        outcome = "LETHAL KILL" if fc.is_lethal else f"Survives with {rem_hp} HP"
+        self.log(f"Outcome: {outcome}", color='error' if fc.is_lethal else 'normal')
 
     def cmd_exit(self, args):
         self.close()
