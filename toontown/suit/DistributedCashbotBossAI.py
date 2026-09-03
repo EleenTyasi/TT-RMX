@@ -153,6 +153,18 @@ class DistributedCashbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
         return
 
     def __doDirectedAttack(self):
+        # Intelligent Targeting: Prioritize active crane operators
+        craneToons = []
+        if self.cranes:
+            for crane in self.cranes:
+                if crane.avId and crane.avId in self.involvedToons:
+                    craneToons.append(crane.avId)
+
+        if craneToons and random.random() < 0.70:
+            targetId = random.choice(craneToons)
+            self.b_setAttackCode(ToontownGlobals.BossCogSlowDirectedAttack, targetId)
+            return
+
         if self.toonsToAttack:
             toonId = self.toonsToAttack.pop(0)
             while toonId not in self.involvedToons:
@@ -357,6 +369,7 @@ class DistributedCashbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
         if self.state != 'BattleThree':
             return
         self.b_setBossDamage(self.bossDamage + damage)
+        self.checkEnrage()
         if self.bossDamage >= self.bossMaxDamage:
             self.b_setState('Victory')
         elif self.attackCode != ToontownGlobals.BossCogDizzy:
@@ -367,6 +380,22 @@ class DistributedCashbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
                 self.b_setAttackCode(ToontownGlobals.BossCogNoAttack)
                 self.stopHelmets()
                 self.waitForNextHelmet()
+
+    def checkEnrage(self):
+        if not self.hasEnraged and self.bossDamage >= self.bossMaxDamage * 0.5:
+            self.hasEnraged = True
+            for tId in self.involvedToons:
+                t = self.air.doId2do.get(tId)
+                if t and hasattr(t, 'd_setSystemMessage'):
+                    t.d_setSystemMessage(0, "The Chief Financial Officer is ENRAGED! 'Time to foreclose on your accounts!'")
+            # Magnetic Surge: Disconnect all cranes temporarily
+            if self.cranes:
+                for crane in self.cranes:
+                    if crane.avId != 0:
+                        crane.request('Free')
+            # Spawn extra goons immediately
+            self.makeGoon('EmergeA')
+            self.makeGoon('EmergeB')
 
     def b_setBossDamage(self, bossDamage):
         self.d_setBossDamage(bossDamage)

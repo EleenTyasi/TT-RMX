@@ -95,10 +95,20 @@ class DistributedLawbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FSM
             bossDamage *= ToontownGlobals.LawbotBossBonusWeightMultiplier
         bossDamage = min(self.getBossDamage() + bossDamage, self.bossMaxDamage)
         self.b_setBossDamage(bossDamage, 0, 0)
+        self.checkEnrage()
         if self.bossDamage >= self.bossMaxDamage:
             self.b_setState('Victory')
         else:
             self.__recordHit()
+
+    def checkEnrage(self):
+        if not self.hasEnraged and self.getBossDamage() >= self.bossMaxDamage * 0.5:
+            self.hasEnraged = True
+            for tId in self.involvedToons:
+                t = self.air.doId2do.get(tId)
+                if t and hasattr(t, 'd_setSystemMessage'):
+                    t.d_setSystemMessage(0, "The Chief Justice is ENRAGED! 'I hold this entire courtroom in CONTEMPT!'")
+            self.__doAreaAttack()
 
     def healBoss(self, bossHeal):
         bossDamage = -bossHeal

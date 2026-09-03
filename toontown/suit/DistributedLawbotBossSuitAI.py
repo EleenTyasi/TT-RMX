@@ -75,9 +75,17 @@ class DistributedLawbotBossSuitAI(DistributedSuitBaseAI.DistributedSuitBaseAI):
     def doNextAttack(self, lawbotBoss):
         if self.stunned:
             return
+
+        # Cap the amount of attorneys firing into the scales at max 2
+        activeProsecutions = 0
+        if lawbotBoss and hasattr(lawbotBoss, 'lawyers'):
+            for l in lawbotBoss.lawyers:
+                if taskMgr.hasTaskNamed(l.uniqueName('ProsecutionHealsBoss')):
+                    activeProsecutions += 1
+
         chanceToDoAttack = ToontownGlobals.LawbotBossLawyerChanceToAttack
         action = random.randrange(1, 101)
-        if action > chanceToDoAttack:
+        if action > chanceToDoAttack and activeProsecutions < 2:
             self.doProsecute()
         else:
             if not lawbotBoss.involvedToons:
@@ -85,7 +93,8 @@ class DistributedLawbotBossSuitAI(DistributedSuitBaseAI.DistributedSuitBaseAI):
             toonToAttackId = random.choice(lawbotBoss.involvedToons)
             toon = self.air.doId2do.get(toonToAttackId)
             if not toon:
-                self.doProsecute()
+                if activeProsecutions < 2:
+                    self.doProsecute()
                 return
             toonPos = toon.getPos()
             z2 = toonPos[2] + 1.3

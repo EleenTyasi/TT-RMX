@@ -43,6 +43,7 @@ class DistributedBossCogAI(DistributedAvatarAI.DistributedAvatarAI):
         self.attackAvId = 0
         self.hitCount = 0
         self.nerfed = False
+        self.hasEnraged = False
         self.numRentalDiguises = 0
         self.numNormalDiguises = 0
         AllBossCogs.append(self)
@@ -657,6 +658,9 @@ class DistributedBossCogAI(DistributedAvatarAI.DistributedAvatarAI):
         self.attackAvId = avId
         if attackCode == ToontownGlobals.BossCogDizzy or attackCode == ToontownGlobals.BossCogDizzyNow:
             delayTime = self.progressValue(20, 5)
+            # Cashbot CFO: Stun duration +120% longer (2.2x duration: 44s down to 11s)
+            if hasattr(self, 'dna') and getattr(self.dna, 'dept', None) == 'c':
+                delayTime *= 2.2
             self.hitCount = 0
         else:
             if attackCode == ToontownGlobals.BossCogSlowDirectedAttack:

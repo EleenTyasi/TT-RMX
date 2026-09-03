@@ -84,12 +84,34 @@ class DistributedSellbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
             return
         if self.attackCode != ToontownGlobals.BossCogDizzyNow:
             return
+
+        # Stunned Pie Hit: 25% chance to CRITICAL HIT! (2x knockback distance)
+        if random.random() < 0.25:
+            bossDamage *= 2
+            toon = self.air.doId2do.get(avId)
+            toonName = toon.getName() if toon else 'A Toon'
+            for tId in self.involvedToons:
+                t = self.air.doId2do.get(tId)
+                if t and hasattr(t, 'd_setSystemMessage'):
+                    t.d_setSystemMessage(0, f"*** CRITICAL HIT! {toonName} lands a crushing blow on the stunned VP! (2x Knockback) ***")
+
         bossDamage = min(self.getBossDamage() + bossDamage, self.bossMaxDamage)
         self.b_setBossDamage(bossDamage, 0, 0)
+        self.checkEnrage()
         if self.bossDamage >= self.bossMaxDamage:
             self.setState('NearVictory')
         else:
             self.__recordHit()
+
+    def checkEnrage(self):
+        if not self.hasEnraged and self.getBossDamage() >= self.bossMaxDamage * 0.5:
+            self.hasEnraged = True
+            for tId in self.involvedToons:
+                t = self.air.doId2do.get(tId)
+                if t and hasattr(t, 'd_setSystemMessage'):
+                    t.d_setSystemMessage(0, "The Vice President is ENRAGED! 'Your quarterly bonuses are REVOKED!'")
+            # Enrage Attack: Shockwave Stomp & Area Tremor
+            self.__doAreaAttack()
 
     def hitBossInsides(self):
         avId = self.air.getAvatarIdFromSender()
@@ -139,7 +161,11 @@ class DistributedSellbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
         if self.attackCode == ToontownGlobals.BossCogDizzyNow:
             attackCode = ToontownGlobals.BossCogRecoverDizzyAttack
         else:
-            attackCode = random.choice([ToontownGlobals.BossCogAreaAttack, ToontownGlobals.BossCogFrontAttack, ToontownGlobals.BossCogDirectedAttack, ToontownGlobals.BossCogDirectedAttack, ToontownGlobals.BossCogDirectedAttack, ToontownGlobals.BossCogDirectedAttack])
+            # Intelligent Targeting: If 2 or more Toons are near the VP, favor Area Attack (Jump)
+            if len(self.nearToons) >= 2 and random.random() < 0.60:
+                attackCode = ToontownGlobals.BossCogAreaAttack
+            else:
+                attackCode = random.choice([ToontownGlobals.BossCogAreaAttack, ToontownGlobals.BossCogFrontAttack, ToontownGlobals.BossCogDirectedAttack, ToontownGlobals.BossCogDirectedAttack, ToontownGlobals.BossCogDirectedAttack])
         if attackCode == ToontownGlobals.BossCogAreaAttack:
             self.__doAreaAttack()
         else:
@@ -159,8 +185,15 @@ class DistributedSellbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
 
     def __doDirectedAttack(self):
         if self.nearToons:
-            toonId = random.choice(self.nearToons)
-            self.b_setAttackCode(ToontownGlobals.BossCogDirectedAttack, toonId)
+            # Intelligent Targeting: Prioritize targeting the Toon with lowest health
+            targetId = self.nearToons[0]
+            lowestHp = 9999
+            for tId in self.nearToons:
+                toon = self.air.doId2do.get(tId)
+                if toon and hasattr(toon, 'hp') and toon.hp < lowestHp:
+                    lowestHp = toon.hp
+                    targetId = tId
+            self.b_setAttackCode(ToontownGlobals.BossCogDirectedAttack, targetId)
         else:
             self.__doAreaAttack()
 

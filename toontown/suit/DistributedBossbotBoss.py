@@ -1095,14 +1095,20 @@ class DistributedBossbotBoss(DistributedBossCog.DistributedBossCog, FSM.FSM):
 
     def getCurTurnSpeed(self):
         result = ToontownGlobals.BossbotTurnSpeedMax - (ToontownGlobals.BossbotTurnSpeedMax - ToontownGlobals.BossbotTurnSpeedMin) * self.getFractionalSpeedDamage()
+        if hasattr(self, 'bossDamage') and hasattr(self, 'bossMaxDamage') and self.bossDamage < self.bossMaxDamage * 0.5:
+            result *= 0.5
         return result
 
     def getCurRollSpeed(self):
         result = ToontownGlobals.BossbotRollSpeedMax - (ToontownGlobals.BossbotRollSpeedMax - ToontownGlobals.BossbotRollSpeedMin) * self.getFractionalSpeedDamage()
+        if hasattr(self, 'bossDamage') and hasattr(self, 'bossMaxDamage') and self.bossDamage < self.bossMaxDamage * 0.5:
+            result *= 0.5
         return result
 
     def getCurTreadSpeed(self):
         result = ToontownGlobals.BossbotTreadSpeedMax - (ToontownGlobals.BossbotTreadSpeedMax - ToontownGlobals.BossbotTreadSpeedMin) * self.getFractionalSpeedDamage()
+        if hasattr(self, 'bossDamage') and hasattr(self, 'bossMaxDamage') and self.bossDamage < self.bossMaxDamage * 0.5:
+            result *= 0.5
         return result
 
     def startMoveTask(self):

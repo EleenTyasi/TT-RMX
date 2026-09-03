@@ -473,10 +473,21 @@ class DistributedBossbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
         bossDamage *= 2
         bossDamage = min(self.getBossDamage() + bossDamage, self.bossMaxDamage)
         self.b_setBossDamage(bossDamage, 0, 0)
+        self.checkEnrage()
         if self.bossDamage >= self.bossMaxDamage:
             self.b_setState('Victory')
         else:
             self.__recordHit(bossDamage)
+
+    def checkEnrage(self):
+        if not self.hasEnraged and self.bossDamage >= self.bossMaxDamage * 0.5:
+            self.hasEnraged = True
+            for tId in self.involvedToons:
+                t = self.air.doId2do.get(tId)
+                if t and hasattr(t, 'd_setSystemMessage'):
+                    t.d_setSystemMessage(0, "The Chief Executive Officer is ENRAGED! 'Consider yourselves summarily TERMINATED!'")
+            # Executive Downsizing: 360-degree rapid golf ball barrage
+            self.b_setAttackCode(ToontownGlobals.BossCogGolfAreaAttack)
 
     def __recordHit(self, bossDamage):
         now = globalClock.getFrameTime()
@@ -628,14 +639,6 @@ class DistributedBossbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
             self.waitForNextAttack(5)
         elif self.attackCode == ToontownGlobals.BossCogDizzyNow:
             attackCode = ToontownGlobals.BossCogRecoverDizzyAttack
-        elif self.getBattleFourTime() > self.overtimeOneStart and not self.doneOvertimeOneAttack:
-            attackCode = ToontownGlobals.BossCogOvertimeAttack
-            self.doneOvertimeOneAttack = True
-            optionalParam = 0
-        elif self.getBattleFourTime() > 1.0 and not self.doneOvertimeTwoAttack:
-            attackCode = ToontownGlobals.BossCogOvertimeAttack
-            self.doneOvertimeTwoAttack = True
-            optionalParam = 1
         else:
             attackCode = random.choice([ToontownGlobals.BossCogGolfAreaAttack,
              ToontownGlobals.BossCogDirectedAttack,
@@ -653,14 +656,8 @@ class DistributedBossbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
         return
 
     def progressValue(self, fromValue, toValue):
-        t0 = float(self.bossDamage) / float(self.bossMaxDamage)
-        elapsed = globalClock.getFrameTime() - self.battleFourStart
-        t1 = elapsed / float(self.battleThreeDuration)
-        t = max(t0, t1)
+        t = float(self.bossDamage) / float(self.bossMaxDamage)
         progVal = fromValue + (toValue - fromValue) * min(t, 1)
-        self.notify.debug('progVal=%s' % progVal)
-        import pdb
-        pdb.set_trace()
         return progVal
 
     def __doDirectedAttack(self):
@@ -909,12 +906,7 @@ class DistributedBossbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
         return t1
 
     def getDamageMultiplier(self):
-        mult = 1.0
-        if self.doneOvertimeOneAttack and not self.doneOvertimeTwoAttack:
-            mult = 1.25
-        if self.getBattleFourTime() > 1.0:
-            mult = self.getBattleFourTime() + 1
-        return mult
+        return 1.0
 
     def toggleMove(self):
         self.moveAttackAllowed = not self.moveAttackAllowed
