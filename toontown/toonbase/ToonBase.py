@@ -138,6 +138,16 @@ class ToonBase(OTPBase.OTPBase):
         self.oldX = max(1, base.win.getXSize())
         self.oldY = max(1, base.win.getYSize())
         self.aspectRatio = float(self.oldX) / self.oldY
+
+        # Initialize TT-RMX Fusion Engine Systems
+        from toontown.engine.DevConsole import DevConsole
+        self.console = DevConsole()
+
+        from toontown.engine.CrashShield import CrashShield
+        self.crashShield = CrashShield()
+
+        from toontown.engine.DiscordRPC import DiscordRPC
+        self.discordRPC = DiscordRPC()
         return
 
     def openMainWindow(self, *args, **kw):

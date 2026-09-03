@@ -5,6 +5,12 @@ OL.SpeedChatStaticText = OL.SpeedChatStaticTextToontown.copy()
 for key in OL.SpeedChatStaticTextCommon.keys():
     OL.SpeedChatStaticText[key] = OL.SpeedChatStaticTextCommon[key]
 
+# TT-RMX Single-Player SpeedChat Additions
+SC_HEALER_NEED = 20001
+SC_HEALER_HANK = 20002
+OL.SpeedChatStaticText[SC_HEALER_NEED] = "I need to see the healer."
+OL.SpeedChatStaticText[SC_HEALER_HANK] = "Hank, patch me up!"
+
 commitmantst = 'kptmptest - removable'
 InterfaceFont = 'phase_3/models/fonts/ImpressBT.ttf'
 ToonFont = 'phase_3/models/fonts/ImpressBT.ttf'

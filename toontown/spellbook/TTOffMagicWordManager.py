@@ -51,6 +51,13 @@ class TTOffMagicWordManager(DistributedObject.DistributedObject):
             self.generateResponse(responseType = "NoAccess")
             return
 
+        # Check sv_cheats for gameplay advantage commands
+        wordName = magicWord[len(self.chatPrefix):].split()[0].lower() if len(magicWord) > len(self.chatPrefix) else ''
+        if hasattr(base, 'console') and base.console:
+            if wordName in base.console.CHEAT_COMMANDS and not base.console.sv_cheats:
+                base.localAvatar.setSystemMessage(0, "Cheats not enabled! Turn them on by using sv_cheats 1.", WhisperPopup.WTMagicWord)
+                return
+
         self.handleMagicWord(magicWord)
 
     def generateResponse(self, responseType, magicWord='', args=None, returnValue=None, affectRange=None,
