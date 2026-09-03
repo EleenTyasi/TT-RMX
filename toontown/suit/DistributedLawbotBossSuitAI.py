@@ -76,7 +76,8 @@ class DistributedLawbotBossSuitAI(DistributedSuitBaseAI.DistributedSuitBaseAI):
         if self.stunned:
             return
 
-        # Cap the amount of attorneys firing into the scales at max 2
+        # Cap the amount of attorneys firing into the scales: max 1 for single-player, max 2 for multiplayer
+        maxProsecutors = 1 if (lawbotBoss and len(lawbotBoss.involvedToons) <= 1) else 2
         activeProsecutions = 0
         if lawbotBoss and hasattr(lawbotBoss, 'lawyers'):
             for l in lawbotBoss.lawyers:
@@ -85,7 +86,7 @@ class DistributedLawbotBossSuitAI(DistributedSuitBaseAI.DistributedSuitBaseAI):
 
         chanceToDoAttack = ToontownGlobals.LawbotBossLawyerChanceToAttack
         action = random.randrange(1, 101)
-        if action > chanceToDoAttack and activeProsecutions < 2:
+        if action > chanceToDoAttack and activeProsecutions < maxProsecutors:
             self.doProsecute()
         else:
             if not lawbotBoss.involvedToons:
@@ -93,7 +94,7 @@ class DistributedLawbotBossSuitAI(DistributedSuitBaseAI.DistributedSuitBaseAI):
             toonToAttackId = random.choice(lawbotBoss.involvedToons)
             toon = self.air.doId2do.get(toonToAttackId)
             if not toon:
-                if activeProsecutions < 2:
+                if activeProsecutions < maxProsecutors:
                     self.doProsecute()
                 return
             toonPos = toon.getPos()

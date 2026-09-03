@@ -134,8 +134,8 @@ class DistributedCashbotBossGoon(DistributedGoon.DistributedGoon, DistributedCas
             self.grabPos = (0, 0, self.walkGrabZ * self.scale)
             self.wiggleStart = globalClock.getFrameTime()
             taskMgr.add(self.__wiggleTask, self.wiggleTaskName)
-            base.sfxPlayer.playSfx(self.wiggleSfx, node=self)
-            if self.avId == localAvatar.doId:
+            # Nerfed Goon wiggle-free rate when unstunned to 10% (was 100%)
+            if self.avId == localAvatar.doId and random.random() < 0.10:
                 taskMgr.doMethodLater(self.wiggleFreeTime, self.__wiggleFree, self.wiggleFreeName)
         self.radar.hide()
 

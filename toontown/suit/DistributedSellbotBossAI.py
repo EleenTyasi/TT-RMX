@@ -148,7 +148,8 @@ class DistributedSellbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
             return
         toon = simbase.air.doId2do.get(avId)
         if toon:
-            toon.b_setNumPies(self.numPies)
+            # Single-Player: Guarantee full pies immediately on touching the cage
+            toon.b_setNumPies(max(self.numPies, ToontownGlobals.FullPies))
             toon.__touchedCage = 1
             self.__goodJump(avId)
 
@@ -161,11 +162,18 @@ class DistributedSellbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
         if self.attackCode == ToontownGlobals.BossCogDizzyNow:
             attackCode = ToontownGlobals.BossCogRecoverDizzyAttack
         else:
-            # Intelligent Targeting: If 2 or more Toons are near the VP, favor Area Attack (Jump)
-            if len(self.nearToons) >= 2 and random.random() < 0.60:
-                attackCode = ToontownGlobals.BossCogAreaAttack
+            if len(self.involvedToons) <= 1:
+                # Single-Player: Gentler jump rate (20% when near) allowing solo repositioning
+                if len(self.nearToons) >= 1 and random.random() < 0.20:
+                    attackCode = ToontownGlobals.BossCogAreaAttack
+                else:
+                    attackCode = random.choice([ToontownGlobals.BossCogFrontAttack, ToontownGlobals.BossCogDirectedAttack, ToontownGlobals.BossCogDirectedAttack])
             else:
-                attackCode = random.choice([ToontownGlobals.BossCogAreaAttack, ToontownGlobals.BossCogFrontAttack, ToontownGlobals.BossCogDirectedAttack, ToontownGlobals.BossCogDirectedAttack, ToontownGlobals.BossCogDirectedAttack])
+                # Multiplayer: If 2 or more Toons are near the VP, favor Area Attack (Jump)
+                if len(self.nearToons) >= 2 and random.random() < 0.60:
+                    attackCode = ToontownGlobals.BossCogAreaAttack
+                else:
+                    attackCode = random.choice([ToontownGlobals.BossCogAreaAttack, ToontownGlobals.BossCogFrontAttack, ToontownGlobals.BossCogDirectedAttack, ToontownGlobals.BossCogDirectedAttack, ToontownGlobals.BossCogDirectedAttack])
         if attackCode == ToontownGlobals.BossCogAreaAttack:
             self.__doAreaAttack()
         else:

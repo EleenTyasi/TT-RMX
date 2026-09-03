@@ -871,7 +871,8 @@ class DistributedLawbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FSM
 
     def calculateWeightPerToon(self):
         for toonId in self.involvedToons:
-            defaultWeight = 1
+            # Single-Player: Boost default evidence weight to 3 (multiplayer was 1 per toon across 8 toons)
+            defaultWeight = 3 if len(self.involvedToons) <= 1 else 1
             bonusWeight = 0
             cannonIndex = self.cannonIndexPerToon.get(toonId)
             if not cannonIndex == None:

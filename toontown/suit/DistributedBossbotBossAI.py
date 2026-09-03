@@ -485,9 +485,9 @@ class DistributedBossbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
             for tId in self.involvedToons:
                 t = self.air.doId2do.get(tId)
                 if t and hasattr(t, 'd_setSystemMessage'):
-                    t.d_setSystemMessage(0, "The Chief Executive Officer is ENRAGED! 'Consider yourselves summarily TERMINATED!'")
-            # Executive Downsizing: 360-degree rapid golf ball barrage
-            self.b_setAttackCode(ToontownGlobals.BossCogGolfAreaAttack)
+                    t.d_setSystemMessage(0, "The Chief Executive Officer is ENRAGED! 'Consider yourselves summarily TERMINATED!' [TAKE COVER!]")
+            # Executive Downsizing: 2-second telegraph before unleashing 360-degree golf ball barrage
+            taskMgr.doMethodLater(2.0, lambda task: self.b_setAttackCode(ToontownGlobals.BossCogGolfAreaAttack), self.uniqueName('EnrageBarrage'))
 
     def __recordHit(self, bossDamage):
         now = globalClock.getFrameTime()

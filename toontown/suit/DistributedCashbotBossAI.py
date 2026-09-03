@@ -160,7 +160,9 @@ class DistributedCashbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
                 if crane.avId and crane.avId in self.involvedToons:
                     craneToons.append(crane.avId)
 
-        if craneToons and random.random() < 0.70:
+        # Intelligent Targeting: Prioritize active crane operators (balanced for single-player)
+        craneChance = 0.25 if len(self.involvedToons) <= 1 else 0.70
+        if craneToons and random.random() < craneChance:
             targetId = random.choice(craneToons)
             self.b_setAttackCode(ToontownGlobals.BossCogSlowDirectedAttack, targetId)
             return
@@ -388,14 +390,20 @@ class DistributedCashbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
                 t = self.air.doId2do.get(tId)
                 if t and hasattr(t, 'd_setSystemMessage'):
                     t.d_setSystemMessage(0, "The Chief Financial Officer is ENRAGED! 'Time to foreclose on your accounts!'")
-            # Magnetic Surge: Disconnect all cranes temporarily
-            if self.cranes:
-                for crane in self.cranes:
-                    if crane.avId != 0:
-                        crane.request('Free')
-            # Spawn extra goons immediately
-            self.makeGoon('EmergeA')
-            self.makeGoon('EmergeB')
+            # Magnetic Surge: EMP pulse
+            if len(self.involvedToons) <= 1:
+                # Single-Player: EMP pulse stuns active goons on the arena floor
+                if self.goons:
+                    for goon in self.goons:
+                        if hasattr(goon, 'state') and goon.state in ('Walk', 'Battle'):
+                            goon.demand('Stunned')
+            else:
+                if self.cranes:
+                    for crane in self.cranes:
+                        if crane.avId != 0:
+                            crane.request('Free')
+                self.makeGoon('EmergeA')
+                self.makeGoon('EmergeB')
 
     def b_setBossDamage(self, bossDamage):
         self.d_setBossDamage(bossDamage)
