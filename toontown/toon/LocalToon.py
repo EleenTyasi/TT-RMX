@@ -1351,67 +1351,8 @@ class LocalToon(DistributedToon.DistributedToon, LocalAvatar.LocalAvatar):
         DistributedToon.DistributedToon.setGhostMode(self, flag)
 
     def newCatalogNotify(self):
-        if not self.gotCatalogNotify:
-            return
-        hasPhase = not launcher or launcher.getPhaseComplete(5.5)
-        if not hasPhase:
-            return
-        if not self.friendsListButtonActive or self.friendsListButtonObscured > 0:
-            return
+        # Old yeller treatment: Permanently suppress annoying cattlelog popups
         self.gotCatalogNotify = 0
-        currentWeek = self.catalogScheduleCurrentWeek - 1
-        if currentWeek < 57:
-            seriesNumber = currentWeek // ToontownGlobals.CatalogNumWeeksPerSeries + 1
-            weekNumber = currentWeek % ToontownGlobals.CatalogNumWeeksPerSeries + 1
-        elif currentWeek < 65:
-            seriesNumber = 6
-            weekNumber = currentWeek - 56
-        else:
-            seriesNumber = currentWeek // ToontownGlobals.CatalogNumWeeksPerSeries + 2
-            weekNumber = currentWeek % ToontownGlobals.CatalogNumWeeksPerSeries + 1
-        message = None
-        if self.mailboxNotify == ToontownGlobals.NoItems:
-            if self.catalogNotify == ToontownGlobals.NewItems:
-                if self.catalogScheduleCurrentWeek == 1:
-                    message = (TTLocalizer.CatalogNotifyFirstCatalog, TTLocalizer.CatalogNotifyInstructions)
-                else:
-                    message = (TTLocalizer.CatalogNotifyNewCatalog % weekNumber,)
-        elif self.mailboxNotify == ToontownGlobals.NewItems:
-            if self.catalogNotify == ToontownGlobals.NewItems:
-                message = (TTLocalizer.CatalogNotifyNewCatalogNewDelivery % weekNumber,)
-            else:
-                message = (TTLocalizer.CatalogNotifyNewDelivery,)
-        elif self.mailboxNotify == ToontownGlobals.OldItems:
-            if self.catalogNotify == ToontownGlobals.NewItems:
-                message = (TTLocalizer.CatalogNotifyNewCatalogOldDelivery % weekNumber,)
-            else:
-                message = (TTLocalizer.CatalogNotifyOldDelivery,)
-        if self.awardNotify == ToontownGlobals.NoItems:
-            pass
-        elif self.awardNotify == ToontownGlobals.NewItems:
-            oldStr = ''
-            if message:
-                oldStr = message[0] + ' '
-            oldStr += TTLocalizer.AwardNotifyNewItems
-            message = (oldStr,)
-        elif self.awardNotify == ToontownGlobals.OldItems:
-            oldStr = ''
-            if message:
-                oldStr = message[0] + ' '
-            oldStr += TTLocalizer.AwardNotifyOldItems
-            message = (oldStr,)
-        if self.simpleMailNotify == ToontownGlobals.NewItems or self.inviteMailNotify == ToontownGlobals.NewItems:
-            oldStr = ''
-            if message:
-                oldStr = message[0] + ' '
-            oldStr += TTLocalizer.MailNotifyNewItems
-            message = (oldStr,)
-        if message == None:
-            return
-        if self.__catalogNotifyDialog:
-            self.__catalogNotifyDialog.cleanup()
-        self.__catalogNotifyDialog = CatalogNotifyDialog.CatalogNotifyDialog(message)
-        base.playSfx(self.soundPhoneRing)
         return
 
     def allowHardLand(self):
