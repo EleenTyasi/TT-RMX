@@ -658,6 +658,9 @@ class DistributedBossbotBoss(DistributedBossCog.DistributedBossCog, FSM.FSM):
         DistributedBossCog.DistributedBossCog.enterBattleFour(self)
         self.releaseToons(finalBattle=1)
         self.setToonsToNeutral(self.involvedToons)
+        # Initial 5s Invulnerability Window upon entering CEO final action round
+        self.lastZapLocalTime = globalClock.getFrameTime()
+        self.startInvulnerabilityVisual(5.0)
         for toonId in self.involvedToons:
             toon = self.cr.doId2do.get(toonId)
             if toon:
@@ -669,6 +672,7 @@ class DistributedBossbotBoss(DistributedBossCog.DistributedBossCog, FSM.FSM):
         base.playMusic(self.phaseFourMusic, looping=1, volume=0.9)
 
     def exitBattleFour(self):
+        self.cleanupInvulnerabilityVisual()
         DistributedBossCog.DistributedBossCog.exitBattleFour(self)
         self.phaseFourMusic.stop()
 
@@ -1189,10 +1193,11 @@ class DistributedBossbotBoss(DistributedBossCog.DistributedBossCog, FSM.FSM):
     def zapLocalToon(self, attackCode, origin = None):
         if self.localToonIsSafe or localAvatar.ghostMode or localAvatar.isStunned:
             return
-        if globalClock.getFrameTime() < self.lastZapLocalTime + 1.0:
+        now = globalClock.getFrameTime()
+        if hasattr(self, 'lastZapLocalTime') and now < self.lastZapLocalTime + 5.0:
             return
-        else:
-            self.lastZapLocalTime = globalClock.getFrameTime()
+        self.lastZapLocalTime = now
+        self.startInvulnerabilityVisual(5.0)
         self.notify.debug('zapLocalToon frameTime=%s' % globalClock.getFrameTime())
         messenger.send('interrupt-pie')
         place = self.cr.playGame.getPlace()

@@ -481,6 +481,7 @@ class DistributedLawbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FSM
         self.battleThreeTimeStarted = globalClock.getFrameTime()
         self.calcAndSetBattleDifficulty()
         self.calculateWeightPerToon()
+        self.grantInvulnerability(5.0)
         diffSettings = ToontownGlobals.LawbotBossDifficultySettings[self.battleDifficulty]
         self.ammoCount = diffSettings[0]
         self.numGavels = diffSettings[1]
@@ -659,14 +660,17 @@ class DistributedLawbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FSM
         self.d_setBattleExperience()
         self.b_setState('Reward')
         BattleExperienceAI.assignRewards(self.involvedToons, self.toonSkillPtsGained, self.suitsKilled, ToontownGlobals.dept2cogHQ(self.dept), self.helpfulToons)
-        preferredDept = random.randrange(len(SuitDNA.suitDepts))
-        typeWeights = ['single'] * 70 + ['building'] * 27 + ['invasion'] * 3
-        preferredSummonType = random.choice(typeWeights)
+        from toontown.chat import ResistanceChat
         for toonId in self.involvedToons:
             toon = self.air.doId2do.get(toonId)
             if toon:
-                self.giveCogSummonReward(toon, preferredDept, preferredSummonType)
+                # CJ Reward: 8 random Resistance Unites!
+                for _ in range(8):
+                    uniteId = ResistanceChat.getRandomId()
+                    toon.addResistanceMessage(uniteId)
                 toon.b_promote(self.deptIndex)
+                if hasattr(toon, 'd_setSystemMessage'):
+                    toon.d_setSystemMessage(0, "You received 8 random Resistance Unites for defeating the Chief Justice!")
 
     def giveCogSummonReward(self, toon, prefDeptIndex, prefSummonType):
         cogLevel = int(self.toonLevels / self.maxToonLevels * SuitDNA.suitsPerDept)

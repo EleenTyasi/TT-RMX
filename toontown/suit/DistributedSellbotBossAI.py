@@ -343,6 +343,7 @@ class DistributedSellbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
         self.setPieType()
         self.b_setBossDamage(0, 0, 0)
         self.battleThreeStart = globalClock.getFrameTime()
+        self.grantInvulnerability(5.0)
         for toonId in self.involvedToons:
             toon = simbase.air.doId2do.get(toonId)
             if toon:

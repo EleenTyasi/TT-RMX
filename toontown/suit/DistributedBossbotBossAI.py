@@ -402,6 +402,7 @@ class DistributedBossbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
         self.battleFourTimeStarted = globalClock.getFrameTime()
         self.numToonsAtStart = len(self.involvedToons)
         self.resetBattles()
+        self.grantInvulnerability(5.0)
         self.setupBattleFourObjects()
         self.battleFourStart = globalClock.getFrameTime()
         self.waitForNextAttack(5)

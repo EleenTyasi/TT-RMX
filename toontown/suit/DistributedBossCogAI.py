@@ -187,12 +187,25 @@ class DistributedBossCogAI(DistributedAvatarAI.DistributedAvatarAI):
         self.sendUpdate('setToonIds', [self.involvedToons, self.toonsA, self.toonsB])
 
     def damageToon(self, toon, deduction):
+        now = globalClock.getFrameTime()
+        if not hasattr(self, 'toonInvulnerableUntil'):
+            self.toonInvulnerableUntil = {}
+        if now < self.toonInvulnerableUntil.get(toon.doId, 0):
+            return
+        self.toonInvulnerableUntil[toon.doId] = now + 5.0
         toon.takeDamage(deduction)
         if toon.getHp() <= 0:
             self.sendUpdate('toonDied', [toon.doId])
             empty = InventoryBase.InventoryBase(toon)
             toon.b_setInventory(empty.makeNetString())
             self.removeToon(toon.doId)
+
+    def grantInvulnerability(self, duration=5.0):
+        now = globalClock.getFrameTime()
+        if not hasattr(self, 'toonInvulnerableUntil'):
+            self.toonInvulnerableUntil = {}
+        for tId in self.involvedToons:
+            self.toonInvulnerableUntil[tId] = now + duration
 
     def healToon(self, toon, increment):
         toon.toonUp(increment)
@@ -626,6 +639,11 @@ class DistributedBossCogAI(DistributedAvatarAI.DistributedAvatarAI):
             return
         if attackCode == ToontownGlobals.BossCogLawyerAttack and self.dna.dept != 'l':
             self.notify.warning('got lawyer attack but not in CJ boss battle')
+            return
+        now = globalClock.getFrameTime()
+        if not hasattr(self, 'toonInvulnerableUntil'):
+            self.toonInvulnerableUntil = {}
+        if now < self.toonInvulnerableUntil.get(avId, 0):
             return
         toon = simbase.air.doId2do.get(avId)
         if toon:

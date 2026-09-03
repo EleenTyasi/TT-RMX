@@ -59,6 +59,8 @@ class DistributedBossCog(DistributedAvatar.DistributedAvatar, BossCog.BossCog):
         self.battleBNode.setPosHpr(*ToontownGlobals.BossCogBattleBPosHpr)
         self.activeIntervals = {}
         self.flashInterval = None
+        self.lastZapLocalTime = 0
+        self.invulnInterval = None
         self.elevatorType = ElevatorConstants.ELEVATOR_VP
         return
 
@@ -131,6 +133,7 @@ class DistributedBossCog(DistributedAvatar.DistributedAvatar, BossCog.BossCog):
         self.stopAnimate()
         self.cleanupIntervals()
         self.cleanupFlash()
+        self.cleanupInvulnerabilityVisual()
         self.disableLocalToonSimpleCollisions()
         self.ignoreAll()
         return
@@ -661,6 +664,11 @@ class DistributedBossCog(DistributedAvatar.DistributedAvatar, BossCog.BossCog):
     def zapLocalToon(self, attackCode, origin = None):
         if self.localToonIsSafe or localAvatar.ghostMode or localAvatar.isStunned:
             return
+        now = globalClock.getFrameTime()
+        if hasattr(self, 'lastZapLocalTime') and now < self.lastZapLocalTime + 5.0:
+            return
+        self.lastZapLocalTime = now
+        self.startInvulnerabilityVisual(5.0)
         messenger.send('interrupt-pie')
         place = self.cr.playGame.getPlace()
         currentState = None
@@ -820,6 +828,28 @@ class DistributedBossCog(DistributedAvatar.DistributedAvatar, BossCog.BossCog):
             i = Sequence(self.colorScaleInterval(0.1, colorScale=VBase4(0, 1, 0, 1)), self.colorScaleInterval(0.3, colorScale=VBase4(1, 1, 1, 1)))
             self.flashInterval = i
             i.start()
+
+    def startInvulnerabilityVisual(self, duration=5.0):
+        self.cleanupInvulnerabilityVisual()
+        if not hasattr(base, 'localAvatar') or not base.localAvatar:
+            return
+        base.localAvatar.setTransparency(1)
+        blink = Sequence(
+            base.localAvatar.colorScaleInterval(0.2, colorScale=VBase4(1, 1, 1, 0.4)),
+            base.localAvatar.colorScaleInterval(0.2, colorScale=VBase4(1, 1, 1, 1.0))
+        )
+        steps = max(1, int(duration / 0.4))
+        ivals = [Func(base.localAvatar.setTransparency, 1)] + [blink] * steps + [Func(base.localAvatar.clearColorScale), Func(base.localAvatar.clearTransparency)]
+        self.invulnInterval = Sequence(*ivals)
+        self.invulnInterval.start()
+
+    def cleanupInvulnerabilityVisual(self):
+        if hasattr(self, 'invulnInterval') and self.invulnInterval:
+            self.invulnInterval.finish()
+            self.invulnInterval = None
+        if hasattr(base, 'localAvatar') and base.localAvatar:
+            base.localAvatar.clearColorScale()
+            base.localAvatar.clearTransparency()
 
     def getGearFrisbee(self):
         return loader.loadModel('phase_9/models/char/gearProp')
@@ -1016,6 +1046,9 @@ class DistributedBossCog(DistributedAvatar.DistributedAvatar, BossCog.BossCog):
     def enterBattleThree(self):
         self.cleanupIntervals()
         self.releaseToons(finalBattle=1)
+        # Initial 5s Invulnerability Window upon entering the action round
+        self.lastZapLocalTime = globalClock.getFrameTime()
+        self.startInvulnerabilityVisual(5.0)
         self.accept('clickedNametag', self.__clickedNameTag)
         self.accept('friendAvatar', self.__handleFriendAvatar)
         self.accept('avatarDetails', self.__handleAvatarDetails)
@@ -1023,6 +1056,7 @@ class DistributedBossCog(DistributedAvatar.DistributedAvatar, BossCog.BossCog):
         NametagGlobals.setMasterNametagsActive(1)
 
     def exitBattleThree(self):
+        self.cleanupInvulnerabilityVisual()
         self.ignore('clickedNameTag')
         self.ignore('friendAvatar')
         self.ignore('avatarDetails')

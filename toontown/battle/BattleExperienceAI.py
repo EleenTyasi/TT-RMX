@@ -162,8 +162,12 @@ def assignRewards(activeToons, toonSkillPtsGained, suitsKilled, zoneId, helpfulT
     # Calculate Toon Level EXP gained from defeated suits
     totalToonLevelExp = 0
     for suitDict in suitsKilled:
-        suitLevel = suitDict.get('level', 1)
-        suitExp = max(1, int(suitLevel / 2) + 1)
+        suitLevel = suitDict.get('level')
+        if suitLevel is None:
+            # Boss defeat record (e.g. VP, CFO, CJ, CEO) where level is None
+            suitExp = 25
+        else:
+            suitExp = max(1, int(suitLevel / 2) + 1)
         if suitDict.get('isSkelecog', 0) or suitDict.get('isV2', 0):
             suitExp = int(suitExp * 1.5)
         totalToonLevelExp += suitExp

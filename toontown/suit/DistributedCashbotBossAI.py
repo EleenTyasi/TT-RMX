@@ -462,6 +462,7 @@ class DistributedCashbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
         self.__makeBattleThreeObjects()
         self.__resetBattleThreeObjects()
         self.reportToonHealth()
+        self.grantInvulnerability(5.0)
         self.toonsToAttack = self.involvedToons[:]
         random.shuffle(self.toonsToAttack)
         self.b_setBossDamage(0)

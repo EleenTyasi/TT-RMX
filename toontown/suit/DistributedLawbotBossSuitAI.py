@@ -101,8 +101,12 @@ class DistributedLawbotBossSuitAI(DistributedSuitBaseAI.DistributedSuitBaseAI):
             z2 = toonPos[2] + 1.3
             toonPos = Point3(toonPos.getX(), toonPos.getY(), 0)
             lawyerPos = self.getPos()
-            lawyerPos = Point3(self.getPos().getX(), self.getPos().getY(), 0)
             dirVector = toonPos - lawyerPos
+            dirVector.normalize()
+            # 30% lateral projectile deviation for Cog Juror attacks
+            perpVector = Point3(-dirVector[1], dirVector[0], 0)
+            deviation = random.uniform(-0.30, 0.30)
+            dirVector = dirVector + perpVector * deviation
             dirVector.normalize()
             dirVector *= 200
             destPos = Point3(lawyerPos[0] + dirVector[0], lawyerPos[1] + dirVector[1], lawyerPos[2] + dirVector[2] + 1.3)
